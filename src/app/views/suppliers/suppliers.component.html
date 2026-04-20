@@ -1,1 +1,32 @@
-<p>suppliers works!</p>
+<section class="title-section">
+  <span>Nossos Parceiros</span>
+  <h1>Fornecedores</h1>
+  <p>Trabalhamos com as melhores indústrias para garantir a pureza e a eficácia de cada produto distribuído pela Fitoherb.</p>
+</section>
+
+<section class="suppliers-container reveal-group" #suppliersGrid>
+  <div class="grid">
+    @for (item of sortedSuppliers(); track item.slug; let i = $index) {
+      <div
+        class="supplier-card reveal-bottom"
+        [class.highlighted]="item.isHighlighted"
+        [style.transition-delay]="(i * 0.1) + 's'"
+      >
+        @if (item.isHighlighted) {
+          <div class="premium-badge">
+            <i class="fas fa-star"></i> Parceiro Premium
+          </div>
+        }
+
+        <div class="image-box">
+          <img [src]="backendUrl + item.imageUrl" [alt]="item.name" draggable="false">
+        </div>
+
+        <div class="info">
+          <h3>{{ item.name }}</h3>
+          <span class="category">Distribuição Exclusiva</span>
+        </div>
+      </div>
+    }
+  </div>
+</section>
