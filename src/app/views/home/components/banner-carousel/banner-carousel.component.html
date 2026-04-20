@@ -6,13 +6,15 @@
   (touchmove)="onDragMove($event)"
   (mouseup)="onDragEnd()"
   (touchend)="onDragEnd()"
-  (mouseleave)="onDragEnd()"
-  (mouseenter)="stopAutoplay()"
+  (mouseleave)="onMouseLeave()"
+  (mouseenter)="onMouseEnter()"
 >
   <div
     class="carousel-track"
     [style.transform]="'translateX(' + currentTranslate + '%)'"
-    [style.transition]="isTransitioning ? 'transform ' + transitionTime + 's ease-in-out' : 'none'"
+    [style.transition]="
+      isTransitioning ? 'transform ' + transitionTime + 's ease-in-out' : 'none'
+    "
     (transitionend)="onTransitionEnd()"
   >
     @for (img of displayImages; track $index) {
@@ -22,10 +24,18 @@
     }
   </div>
 
-  <button class="nav-btn prev-btn" (click)="prev(); $event.stopPropagation()" aria-label="Banner anterior">
+  <button
+    class="nav-btn prev-btn"
+    (click)="prev(); $event.stopPropagation()"
+    aria-label="Banner anterior"
+  >
     <i class="fas fa-chevron-left"></i>
   </button>
-  <button class="nav-btn next-btn" (click)="next(); $event.stopPropagation()" aria-label="Próximo banner">
+  <button
+    class="nav-btn next-btn"
+    (click)="next(); $event.stopPropagation()"
+    aria-label="Próximo banner"
+  >
     <i class="fas fa-chevron-right"></i>
   </button>
 </div>

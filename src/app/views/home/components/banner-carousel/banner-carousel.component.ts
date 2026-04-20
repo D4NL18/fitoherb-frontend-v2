@@ -134,4 +134,16 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
   onWindowMouseUp() {
     if (this.isDragging) this.onDragEnd();
   }
+
+  onMouseEnter() {
+    this.stopAutoplay();
+  }
+
+  onMouseLeave() {
+    if (this.isDragging) {
+      this.onDragEnd();
+    } else {
+      this.startAutoplay();
+    }
+  }
 }
