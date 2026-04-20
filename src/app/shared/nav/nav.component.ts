@@ -9,5 +9,13 @@ import { RouterLink } from '@angular/router';
   styleUrl: './nav.component.scss'
 })
 export class NavComponent {
+  isMenuOpen = false;
 
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu() {
+    this.isMenuOpen = false;
+  }
 }

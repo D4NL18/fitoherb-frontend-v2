@@ -1,21 +1,48 @@
 <nav>
+  <button class="hamburger" (click)="toggleMenu()" aria-label="Abrir menu">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+
   <img
     src="/assets/images/fitoherb-logo.png"
     alt="Logo da Fitoherb"
-    class="logo"
+    class="logo top-logo"
     aria-label="Logo da Fitoherb"
     draggable="false"
     routerLink="/"
   />
-  <ul>
-    <li><a href="/" draggable="false">Home</a></li>
-    <li><a href="/quem-somos" draggable="false">Quem Somos</a></li>
-    <li><a href="/produtos" draggable="false">Produtos</a></li>
-    <li><a href="/fornecedores" draggable="false">Fornecedores</a></li>
-    <li><a href="/fale-conosco" draggable="false">Fale Conosco</a></li>
-  </ul>
-  <button routerLink="/admin">
-    <i class="fa-solid fa-user-lock"></i>
-    <p>Admin</p>
-  </button>
+
+  @if (isMenuOpen) {
+    <div class="backdrop" (click)="closeMenu()"></div>
+  }
+
+  <div class="menu-container" [class.open]="isMenuOpen">
+
+    <div class="sidebar-header">
+      <img
+        src="/assets/images/fitoherb-logo.png"
+        alt="Logo da Fitoherb"
+        class="logo"
+        draggable="false"
+        routerLink="/"
+        (click)="closeMenu()"
+      />
+      <button class="close-btn" (click)="closeMenu()" aria-label="Fechar menu">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+
+    <ul>
+      <li><a routerLink="/" draggable="false" (click)="closeMenu()">Home</a></li>
+      <li><a routerLink="/quem-somos" draggable="false" (click)="closeMenu()">Quem Somos</a></li>
+      <li><a routerLink="/produtos" draggable="false" (click)="closeMenu()">Produtos</a></li>
+      <li><a routerLink="/fornecedores" draggable="false" (click)="closeMenu()">Fornecedores</a></li>
+      <li><a routerLink="/fale-conosco" draggable="false" (click)="closeMenu()">Fale Conosco</a></li>
+    </ul>
+
+    <button class="admin-btn" routerLink="/admin" (click)="closeMenu()">
+      <i class="fa-solid fa-user-lock"></i>
+      <p>Admin</p>
+    </button>
+  </div>
 </nav>
