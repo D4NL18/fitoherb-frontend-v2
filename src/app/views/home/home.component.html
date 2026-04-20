@@ -1,48 +1,49 @@
 <section>
   <app-banner-carousel></app-banner-carousel>
 </section>
-<section class="about">
+
+<section class="about reveal-group" #aboutSection>
   <div class="container">
-    <div class="content-left">
-      <span class="tag">
+    <div class="content-left reveal-left">
+      <span class="tag item-1">
         <i class="fas fa-leaf"></i> DISTRIBUIDORA PREMIUM DE SUPLEMENTOS
       </span>
 
-      <h1>
+      <h1 class="item-2">
         Natureza que <i>nutre</i>, <br />
         qualidade que <span>transforma.</span>
       </h1>
 
-      <p>
+      <p class="item-3">
         A Fitoherb é referência nacional na distribuição de suplementos naturais
         de alta qualidade. Conectamos os melhores fornecedores às marcas que
         acreditam no poder da natureza.
       </p>
 
-      <div class="cta-group">
+      <div class="cta-group item-4">
         <button class="btn-primary">
           <i class="fas fa-seedling"></i> Explorar Produtos
         </button>
         <button class="btn-outline">Conheça a Fitoherb</button>
       </div>
 
-      <div class="stats">
+      <div class="stats item-5">
         <div class="stat-item">
-          <strong>500+</strong>
+          <strong>{{ stats.products() }}+</strong>
           <span>Produtos distribuídos</span>
         </div>
         <div class="stat-item">
-          <strong>12</strong>
+          <strong>{{ stats.years() }}</strong>
           <span>Anos de mercado</span>
         </div>
         <div class="stat-item">
-          <strong>150+</strong>
+          <strong>{{ stats.clients() }}+</strong>
           <span>Clientes ativos</span>
         </div>
       </div>
     </div>
 
-    <div class="content-right">
+    <div class="content-right reveal-right">
       <div class="image-wrapper">
         <img
           src="assets/images/company.png"
@@ -53,18 +54,20 @@
     </div>
   </div>
 </section>
-<section class="products">
-  <h2>Nossas <span>categorias</span></h2>
-  <p>
+
+<section class="products reveal-group" #productsSection>
+  <h2 class="reveal-left item-1">Nossas <span>categorias</span></h2>
+  <p class="reveal-left item-2">
     Distribuímos um portfólio completo de suplementos naturais para atender
     todas as necessidades do seu negócio.
   </p>
 
   <div class="product-categories">
-    @for (category of productCategoriesList; track category.slug) {
+    @for (category of productCategories(); track category.slug; let i = $index) {
       <div
-        class="category"
+        class="category reveal-left"
         [style.backgroundImage]="'url(' + backendUrl + category.imageUrl + ')'"
+        [style.transition-delay]="(i * 0.4) + 0.8 + 's'"
       >
         <h3>{{ category.name }}</h3>
         <button>Ver Produtos</button>
@@ -72,8 +75,9 @@
     }
   </div>
 </section>
-<section class="contact">
-  <div class="contact-wrapper">
+
+<section class="contact" #contactSection>
+  <div class="contact-wrapper reveal-bottom">
     <span class="tag">SEJA NOSSO PARCEIRO</span>
 
     <h2>

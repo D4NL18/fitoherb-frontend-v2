@@ -16,20 +16,9 @@ export class FooterComponent implements OnInit {
   private productCategoriesService = inject(ProductCategoriesService);
 
   ngOnInit(): void {
-    this.getAllProductCategories();
+    this.productCategoriesService.getAll();
   }
 
-  productCategoriesList: ProductCategoryRes[] = [];
-
-  getAllProductCategories(): void {
-    this.productCategoriesService.getAll().subscribe({
-      next: (res) => {
-        this.productCategoriesList = res;
-      },
-      error: (err) => {
-        console.error(err);
-      }
-    });
-  }
+  public productCategories = this.productCategoriesService.productCategories;
 
 }

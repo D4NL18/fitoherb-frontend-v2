@@ -44,7 +44,7 @@
   <section>
     <h3>Categorias</h3>
     <ul>
-      @for (category of productCategoriesList; track category.slug) {
+      @for (category of productCategories(); track category.slug) {
         <li>
           <a [routerLink]="['/categorias', category.slug]">{{
             category.name

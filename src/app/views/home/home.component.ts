@@ -1,4 +1,12 @@
-import { Component, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  inject,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { BannerCarouselComponent } from './components/banner-carousel/banner-carousel.component';
 import { ProductCategoryRes } from '../../types/product-categories/productCategoriesRes.interface';
 import { ProductCategoriesService } from '../../services/product-categories/product-categories.service';
@@ -11,27 +19,87 @@ import { environment } from '../../../environments/environment.development';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent {
-
+export class HomeComponent implements OnInit, AfterViewInit {
   private productCategoriesService = inject(ProductCategoriesService);
+
+  @ViewChild('aboutSection') aboutSection!: ElementRef;
+  @ViewChild('productsSection') productsSection!: ElementRef;
+  @ViewChild('contactSection') contactSection!: ElementRef;
+
+  stats = {
+    products: signal(0),
+    years: signal(0),
+    clients: signal(0),
+  };
+
+  private animatedStats = false;
 
   public backendUrl = environment.apiUrl;
 
+  public productCategories = this.productCategoriesService.productCategories;
+
   ngOnInit(): void {
-    this.getAllProductCategories();
+    this.productCategoriesService.getAll();
   }
 
-  productCategoriesList: ProductCategoryRes[] = [];
+  ngAfterViewInit() {
+    this.initScrollObserver();
+  }
 
-  getAllProductCategories(): void {
-    this.productCategoriesService.getAll().subscribe({
-      next: (res) => {
-        this.productCategoriesList = res;
-        console.log(res)
-      },
-      error: (err) => {
-        console.error(err);
-      },
-    });
+  private initScrollObserver() {
+    const options = { threshold: 0.3 };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+
+          if (
+            entry.target === this.aboutSection.nativeElement &&
+            !this.animatedStats
+          ) {
+            this.animateNumbers();
+          }
+        }
+      });
+    }, options);
+
+    observer.observe(this.aboutSection.nativeElement);
+    observer.observe(this.productsSection.nativeElement);
+    observer.observe(this.contactSection.nativeElement);
+  }
+
+  private animateNumbers() {
+    this.animatedStats = true;
+    const fastDuration = 800;
+
+    this.counter(500, 'products', fastDuration);
+    this.counter(12, 'years', fastDuration);
+    this.counter(150, 'clients', fastDuration);
+  }
+
+  private counter(
+    endValue: number,
+    key: keyof typeof this.stats,
+    duration: number,
+  ) {
+    let start = 0;
+    const frameRate = 1000 / 60;
+    const totalFrames = Math.round(duration / frameRate);
+    const increment = endValue / totalFrames;
+    let currentFrame = 0;
+
+    const timer = setInterval(() => {
+      currentFrame++;
+
+      const currentValue = Math.round(increment * currentFrame);
+
+      if (currentFrame <= totalFrames) {
+        this.stats[key].set(currentValue);
+      } else {
+        this.stats[key].set(endValue);
+        clearInterval(timer);
+      }
+    }, frameRate);
   }
 }
