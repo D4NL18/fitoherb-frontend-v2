@@ -1,0 +1,10 @@
+<button
+  [class]="'custom-btn ' + variant()"
+  [class.full-width]="fullWidth()"
+  (click)="onClick()"
+>
+  @if (icon()) {
+    <i [class]="icon()"></i>
+  }
+  <span>{{ label() }}</span>
+</button>

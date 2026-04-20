@@ -8,14 +8,14 @@ import {
   ViewChild,
 } from '@angular/core';
 import { BannerCarouselComponent } from './components/banner-carousel/banner-carousel.component';
-import { ProductCategoryRes } from '../../types/product-categories/productCategoriesRes.interface';
 import { ProductCategoriesService } from '../../services/product-categories/product-categories.service';
 import { environment } from '../../../environments/environment.development';
+import { ButtonComponent } from '../../shared/button/button.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [BannerCarouselComponent],
+  imports: [BannerCarouselComponent, ButtonComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

@@ -21,10 +21,13 @@
       </p>
 
       <div class="cta-group item-4">
-        <button class="btn-primary">
-          <i class="fas fa-seedling"></i> Explorar Produtos
-        </button>
-        <button class="btn-outline">Conheça a Fitoherb</button>
+        <app-button
+          label="Explorar Produtos"
+          variant="primary"
+          icon="fas fa-seedling"
+        >
+        </app-button>
+        <app-button label="Conheça a Fitoherb" variant="outline"> </app-button>
       </div>
 
       <div class="stats item-5">
@@ -63,14 +66,20 @@
   </p>
 
   <div class="product-categories">
-    @for (category of productCategories(); track category.slug; let i = $index) {
+    @for (
+      category of productCategories();
+      track category.slug;
+      let i = $index
+    ) {
       <div
         class="category reveal-left"
         [style.backgroundImage]="'url(' + backendUrl + category.imageUrl + ')'"
-        [style.transition-delay]="(i * 0.4) + 0.8 + 's'"
+        [style.transition-delay]="i * 0.3 + 0.4 + 's'"
       >
         <h3>{{ category.name }}</h3>
-        <button>Ver Produtos</button>
+
+        <app-button label="Ver Produtos" variant="primary" [fullWidth]="true">
+        </app-button>
       </div>
     }
   </div>
@@ -90,6 +99,6 @@
       como podemos impulsionar o seu negócio.
     </p>
 
-    <button class="btn-consultant">Fale com um consultor</button>
+    <app-button label="Fale com um consultor" variant="white"></app-button>
   </div>
 </section>

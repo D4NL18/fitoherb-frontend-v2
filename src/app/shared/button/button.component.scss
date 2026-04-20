@@ -1,0 +1,62 @@
+@use "../../../styles.scss";
+
+:host {
+  display: inline-block;
+  &.full-width { display: block; width: 100%; }
+}
+
+.custom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: none;
+  width: 100%;
+
+  i { font-size: 1.1rem; }
+
+  &.primary {
+    background-color: styles.$primary-color;
+    color: white;
+    box-shadow: 0 10px 20px rgba(styles.$primary-color, 0.2);
+
+    &:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.1);
+      box-shadow: 0 15px 25px rgba(styles.$primary-color, 0.3);
+    }
+  }
+
+  &.outline {
+    background: transparent;
+    color: styles.$primary-color;
+    border: 2px solid styles.$primary-color;
+
+    &:hover {
+      background-color: styles.$primary-color;
+      color: white;
+    }
+  }
+
+  &.white {
+    background-color: white;
+    color: styles.$dark-green;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      transform: translateY(-3px);
+      background-color: styles.$bg-green-base;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &.full-width {
+    width: 100%;
+  }
+}
