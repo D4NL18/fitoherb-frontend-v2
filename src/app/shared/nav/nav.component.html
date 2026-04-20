@@ -1,1 +1,21 @@
-<p>nav works!</p>
+<nav>
+  <img
+    src="/assets/images/fitoherb-logo.png"
+    alt="Logo da Fitoherb"
+    class="logo"
+    aria-label="Logo da Fitoherb"
+    draggable="false"
+    routerLink="/"
+  />
+  <ul>
+    <li><a href="/" draggable="false">Home</a></li>
+    <li><a href="/quem-somos" draggable="false">Quem Somos</a></li>
+    <li><a href="/produtos" draggable="false">Produtos</a></li>
+    <li><a href="/fornecedores" draggable="false">Fornecedores</a></li>
+    <li><a href="/fale-conosco" draggable="false">Fale Conosco</a></li>
+  </ul>
+  <button routerLink="/admin">
+    <i class="fa-solid fa-user-lock"></i>
+    <p>Admin</p>
+  </button>
+</nav>

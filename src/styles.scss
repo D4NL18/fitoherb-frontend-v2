@@ -1,1 +1,17 @@
-/* You can add global styles to this file, and also import other style files */
+@forward 'colors';
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f5f5f5;
+}
+
+p {
+  margin: 0;
+}
+
+.main-content {
+  padding-top: 100px;
+
+  min-height: calc(100vh - 100px);
+}
