@@ -1,0 +1,31 @@
+<div
+  class="carousel-container"
+  (mousedown)="onDragStart($event)"
+  (touchstart)="onDragStart($event)"
+  (mousemove)="onDragMove($event)"
+  (touchmove)="onDragMove($event)"
+  (mouseup)="onDragEnd()"
+  (touchend)="onDragEnd()"
+  (mouseleave)="onDragEnd()"
+  (mouseenter)="stopAutoplay()"
+>
+  <div
+    class="carousel-track"
+    [style.transform]="'translateX(' + currentTranslate + '%)'"
+    [style.transition]="isTransitioning ? 'transform ' + transitionTime + 's ease-in-out' : 'none'"
+    (transitionend)="onTransitionEnd()"
+  >
+    @for (img of displayImages; track $index) {
+      <div class="carousel-slide">
+        <img [src]="img" alt="Banner promocional Fitoherb" draggable="false" />
+      </div>
+    }
+  </div>
+
+  <button class="nav-btn prev-btn" (click)="prev(); $event.stopPropagation()" aria-label="Banner anterior">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+  <button class="nav-btn next-btn" (click)="next(); $event.stopPropagation()" aria-label="Próximo banner">
+    <i class="fas fa-chevron-right"></i>
+  </button>
+</div>
