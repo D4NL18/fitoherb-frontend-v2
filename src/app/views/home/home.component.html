@@ -25,9 +25,16 @@
           label="Explorar Produtos"
           variant="primary"
           icon="fas fa-seedling"
+          (btnClick)="goToProducts()"
         >
         </app-button>
-        <app-button label="Conheça a Fitoherb" variant="outline"> </app-button>
+
+        <app-button
+          label="Conheça a Fitoherb"
+          variant="outline"
+          (btnClick)="goToAbout()"
+        >
+        </app-button>
       </div>
 
       <div class="stats item-5">
@@ -78,7 +85,12 @@
       >
         <h3>{{ category.name }}</h3>
 
-        <app-button label="Ver Produtos" variant="primary" [fullWidth]="true">
+        <app-button
+          label="Ver Produtos"
+          variant="primary"
+          [fullWidth]="true"
+          (btnClick)="goToCategory(category.slug)"
+        >
         </app-button>
       </div>
     }
@@ -99,6 +111,11 @@
       como podemos impulsionar o seu negócio.
     </p>
 
-    <app-button label="Fale com um consultor" variant="white"></app-button>
+    <app-button
+      label="Fale com um consultor"
+      variant="white"
+      (btnClick)="goToContact()"
+    >
+    </app-button>
   </div>
 </section>

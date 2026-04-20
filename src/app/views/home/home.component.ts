@@ -11,6 +11,7 @@ import { BannerCarouselComponent } from './components/banner-carousel/banner-car
 import { ProductCategoriesService } from '../../services/product-categories/product-categories.service';
 import { environment } from '../../../environments/environment.development';
 import { ButtonComponent } from '../../shared/button/button.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -21,6 +22,7 @@ import { ButtonComponent } from '../../shared/button/button.component';
 })
 export class HomeComponent implements OnInit, AfterViewInit {
   private productCategoriesService = inject(ProductCategoriesService);
+  private router = inject(Router);
 
   @ViewChild('aboutSection') aboutSection!: ElementRef;
   @ViewChild('productsSection') productsSection!: ElementRef;
@@ -44,6 +46,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.initScrollObserver();
+  }
+
+  goToProducts() {
+    this.router.navigate(['/produtos']);
+  }
+
+  goToCategory(slug: string) {
+    this.router.navigate(['/produtos', slug]);
+  }
+
+  goToContact() {
+    this.router.navigate(['/contato']);
+  }
+
+  goToAbout() {
+    this.router.navigate(['/quem-somos']);
   }
 
   private initScrollObserver() {
