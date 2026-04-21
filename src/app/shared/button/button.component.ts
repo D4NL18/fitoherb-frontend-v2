@@ -13,10 +13,13 @@ export class ButtonComponent {
   variant = input<'primary' | 'outline' | 'white'>('primary');
   icon = input<string | null>(null);
   fullWidth = input<boolean>(false);
+  disabled = input<boolean>(false);
 
   btnClick = output<void>();
 
   onClick() {
-    this.btnClick.emit();
+    if (!this.disabled()) {
+      this.btnClick.emit();
+    }
   }
 }

@@ -1,6 +1,7 @@
 <button
   [class]="'custom-btn ' + variant()"
   [class.full-width]="fullWidth()"
+  [disabled]="disabled()"
   (click)="onClick()"
 >
   @if (icon()) {

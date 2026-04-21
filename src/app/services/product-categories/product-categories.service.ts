@@ -15,8 +15,6 @@ export class ProductCategoriesService {
 
   public productCategories = this.productCategoriesState.asReadonly();
 
-  constructor() { }
-
   getAll() {
     this.http.get<ProductCategoryRes[]>(`${this.API_URL}/get-all`).subscribe({
       next: (res) => {
