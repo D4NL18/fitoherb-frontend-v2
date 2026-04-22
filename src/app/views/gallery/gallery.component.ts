@@ -114,14 +114,13 @@ export class GalleryComponent implements OnInit, AfterViewInit {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { [key]: value },
-      queryParamsHandling: 'merge', // Preserva outros filtros já ativos
+      queryParamsHandling: 'merge',
     });
   }
 
   private initInfiniteScroll() {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Só carrega mais se o âncora estiver visível e se não for a última página
         if (
           entry.isIntersecting &&
           !this.products().last &&
@@ -131,7 +130,7 @@ export class GalleryComponent implements OnInit, AfterViewInit {
           this.loadProducts(true);
         }
       },
-      { threshold: 0.1 },
+      { threshold: 1 },
     );
 
     observer.observe(this.scrollAnchor.nativeElement);
