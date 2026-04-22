@@ -1,0 +1,172 @@
+@use "../../../styles.scss";
+
+.title-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  padding: 14rem 2rem 12rem;
+  background: linear-gradient(
+    180deg,
+    styles.$forest-mid 0%,
+    styles.$forest-light 100%
+  );
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  span {
+    text-transform: uppercase;
+    color: #82b074;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    font-size: 0.875rem;
+  }
+
+  h1 {
+    color: white;
+    font-size: 4rem;
+    font-family: "Playfair Display", serif;
+    margin: 1rem 0 3rem;
+    i {
+      color: lighten(styles.$primary-color, 15%);
+      font-style: italic;
+    }
+  }
+
+  p {
+    color: #d0e6c1;
+    max-width: 600px;
+    font-size: 1.125rem;
+  }
+}
+
+.gallery-container {
+  padding: 4rem 10%;
+
+  .container-wrapper {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+}
+
+.filters-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  .filter-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #eee;
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #333;
+      margin-bottom: 1rem;
+      i {
+        margin-right: 8px;
+        color: styles.$primary-color;
+      }
+    }
+  }
+
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      cursor: pointer;
+
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: styles.$primary-color;
+        cursor: pointer;
+      }
+
+      label {
+        margin-bottom: 0;
+        font-weight: 500;
+        color: #666;
+        font-size: 0.9rem;
+        flex: 1;
+        cursor: pointer;
+      }
+
+      .count {
+        color: #bbb;
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+
+.products-main {
+  flex: 1;
+  width: 100%;
+
+  .gallery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+
+    p {
+      color: #888;
+      font-size: 0.95rem;
+    }
+
+    .select {
+      width: 200px;
+    }
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    width: 100%;
+  }
+
+  .scroll-anchor {
+    display: flex;
+    justify-content: center;
+    padding: 3rem;
+    width: 100%;
+    color: styles.$primary-color;
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .gallery-container .container-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .filters-sidebar {
+    display: none;
+  }
+}

@@ -3,13 +3,25 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { MailService } from '../../services/mail/mail.service';
 import { environment } from '../../../environments/environment.development';
-import { MailReq } from '../../types/mail/mailReq.interface';
+import { MailReq } from '../../types/mail/MailReq.interface';
 import { ButtonComponent } from '../../shared/button/button.component';
+import { InputComponent } from '../../shared/input/input.component';
+import { SelectComponent } from '../../shared/select/select.component';
+import { TextareaComponent } from '../../shared/textarea/textarea.component';
+import { ModalResponseComponent } from '../../shared/modal-response/modal-response.component';
 
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    ButtonComponent,
+    InputComponent,
+    SelectComponent,
+    TextareaComponent,
+    ModalResponseComponent
+  ],
   templateUrl: './contact.component.html',
   styleUrl: './contact.component.scss',
 })
@@ -21,8 +33,9 @@ export class ContactComponent implements OnInit, AfterViewInit {
 
   contactForm!: FormGroup;
   formSubmitted = false;
-  phoneRegex = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
+  modalData: { status: number, message: string } | null = null;
 
+  phoneRegex = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
   assuntos = [
     'Parceria Comercial',
     'Dúvidas sobre Produtos',
@@ -43,10 +56,6 @@ export class ContactComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.initScrollObserver();
-  }
-
-  private initScrollObserver(): void {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -54,18 +63,17 @@ export class ContactComponent implements OnInit, AfterViewInit {
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.3 });
+    }, { threshold: 0.1 });
 
-    if (this.contactSection) {
-      observer.observe(this.contactSection.nativeElement);
-    }
+    if (this.contactSection) observer.observe(this.contactSection.nativeElement);
   }
 
   onSubmit() {
     this.formSubmitted = true;
+
     if (this.contactForm.valid) {
       const rawData = this.contactForm.value;
-      const formattedMessage = `[${rawData.empresa || 'Empresa: N/A'}] ${rawData.nomeCompleto} - ${rawData.email}\n${rawData.telefone}\n\n${rawData.mensagem}`;
+      const formattedMessage = `[${rawData.empresa || 'N/A'}] ${rawData.nomeCompleto} - ${rawData.email}\n${rawData.telefone}\n\n${rawData.mensagem}`;
 
       const mailPayload: MailReq = {
         email: environment.contactRecipient,
@@ -75,11 +83,16 @@ export class ContactComponent implements OnInit, AfterViewInit {
 
       this.mailService.sendEmail(mailPayload).subscribe({
         next: () => {
-          alert('Mensagem enviada com sucesso!');
+          this.modalData = { status: 200, message: 'Sua mensagem foi enviada com sucesso!' };
           this.contactForm.reset();
           this.formSubmitted = false;
         },
-        error: () => alert('Erro ao enviar. Tente novamente.'),
+        error: (err) => {
+          this.modalData = {
+            status: err.status || 503,
+            message: err.status === 0 ? 'Servidor offline. Tente mais tarde.' : 'Erro ao processar envio.'
+          };
+        },
       });
     } else {
       this.contactForm.markAllAsTouched();

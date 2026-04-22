@@ -1,0 +1,14 @@
+    <div class="form-group">
+      @if (label()) { <label [for]="id()">{{ label() }} @if (required()) { <span>*</span> }</label> }
+      <textarea
+        [id]="id()"
+        [placeholder]="placeholder()"
+        [rows]="rows()"
+        [value]="value"
+        [disabled]="disabled"
+        [class.invalid]="showError()"
+        (input)="onInput($event)"
+        (blur)="onTouched()"
+      ></textarea>
+      @if (showError() && errorMsg()) { <span class="error-msg">{{ errorMsg() }}</span> }
+    </div>

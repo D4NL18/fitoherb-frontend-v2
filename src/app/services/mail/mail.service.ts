@@ -1,8 +1,8 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment.development';
-import { MailReq } from '../../types/mail/mailReq.interface';
 import { finalize } from 'rxjs';
+import { MailReq } from '../../types/mail/MailReq.interface';
 
 @Injectable({
   providedIn: 'root'

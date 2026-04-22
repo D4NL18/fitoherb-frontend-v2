@@ -53,7 +53,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   goToCategory(slug: string) {
-    this.router.navigate(['/produtos', slug]);
+    this.router.navigate(['/produtos'], { queryParams: { category: slug } });
   }
 
   goToContact() {

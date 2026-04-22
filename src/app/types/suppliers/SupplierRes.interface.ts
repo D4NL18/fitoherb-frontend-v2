@@ -4,4 +4,5 @@ export interface SupplierRes {
   imageUrl: string;
   createdAt: string;
   isHighlighted: boolean;
+  count: number;
 }

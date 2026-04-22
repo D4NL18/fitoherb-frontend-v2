@@ -2,6 +2,7 @@ import { Component, inject, OnInit, ElementRef, ViewChild, AfterViewInit, comput
 import { CommonModule } from '@angular/common';
 import { SuppliersService } from '../../services/suppliers/suppliers.service';
 import { environment } from '../../../environments/environment.development';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-suppliers',
@@ -12,6 +13,7 @@ import { environment } from '../../../environments/environment.development';
 })
 export class SuppliersComponent implements OnInit, AfterViewInit {
   private supplierService = inject(SuppliersService);
+  private router = inject(Router);
 
   @ViewChild('suppliersGrid') suppliersGrid!: ElementRef;
 
@@ -47,5 +49,9 @@ export class SuppliersComponent implements OnInit, AfterViewInit {
     if (this.suppliersGrid) {
       observer.observe(this.suppliersGrid.nativeElement);
     }
+  }
+
+  goToGallery(slug: string) {
+    this.router.navigate(['/produtos'], { queryParams: { supplier: slug } });
   }
 }

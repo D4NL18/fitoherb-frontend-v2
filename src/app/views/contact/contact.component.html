@@ -15,142 +15,87 @@
 
         <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
           <div class="form-row">
-            <div class="form-group">
-              <label for="nomeCompleto">Nome completo <span>*</span></label>
-              <input
-                type="text"
-                id="nomeCompleto"
-                formControlName="nomeCompleto"
-                placeholder="Seu nome"
-                [class.invalid]="
-                  (f['nomeCompleto'].touched || formSubmitted) &&
-                  f['nomeCompleto'].invalid
-                "
-              />
-              @if (
-                (f["nomeCompleto"].touched || formSubmitted) &&
-                f["nomeCompleto"].errors?.["required"]
-              ) {
-                <span class="error-msg">O nome completo é obrigatório.</span>
-              }
-            </div>
+            <app-input
+              id="nomeCompleto"
+              formControlName="nomeCompleto"
+              label="Nome completo"
+              placeholder="Seu nome"
+              [required]="true"
+              [showError]="
+                (f['nomeCompleto'].touched || formSubmitted) &&
+                f['nomeCompleto'].invalid
+              "
+              errorMsg="O nome completo é obrigatório."
+            ></app-input>
 
-            <div class="form-group">
-              <label for="empresa">Empresa</label>
-              <input
-                type="text"
-                id="empresa"
-                formControlName="empresa"
-                placeholder="Nome da empresa"
-              />
-            </div>
+            <app-input
+              id="empresa"
+              formControlName="empresa"
+              label="Empresa"
+              placeholder="Nome da empresa"
+            ></app-input>
           </div>
 
           <div class="form-row">
-            <div class="form-group">
-              <label for="email">E-mail <span>*</span></label>
-              <input
-                type="email"
-                id="email"
-                formControlName="email"
-                placeholder="seu@email.com"
-                [class.invalid]="
-                  (f['email'].touched || formSubmitted) && f['email'].invalid
-                "
-              />
-              <div class="error-container">
-                @if (
-                  (f["email"].touched || formSubmitted) &&
-                  f["email"].errors?.["required"]
-                ) {
-                  <span class="error-msg">O e-mail é obrigatório.</span>
-                }
-                @if (
-                  (f["email"].touched || formSubmitted) &&
-                  f["email"].errors?.["email"]
-                ) {
-                  <span class="error-msg">Formato de e-mail inválido.</span>
-                }
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="telefone">Telefone <span>*</span></label>
-              <input
-                type="tel"
-                id="telefone"
-                formControlName="telefone"
-                placeholder="(71) 9 0000-0000"
-                [class.invalid]="
-                  (f['telefone'].touched || formSubmitted) &&
-                  f['telefone'].invalid
-                "
-              />
-              @if (
-                (f["telefone"].touched || formSubmitted) &&
-                f["telefone"].invalid
-              ) {
-                <div class="error-container">
-                  @if (f["telefone"].errors?.["required"]) {
-                    <span class="error-msg">O telefone é obrigatório.</span>
-                  }
-                  @if (f["telefone"].errors?.["pattern"]) {
-                    <span class="error-msg">Use o formato: (71) 98888-7777</span>
-                  }
-                </div>
-              }
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="assunto">Assunto <span>*</span></label>
-            <select
-              id="assunto"
-              formControlName="assunto"
-              [class.invalid]="
-                (f['assunto'].touched || formSubmitted) && f['assunto'].invalid
+            <app-input
+              id="email"
+              type="email"
+              formControlName="email"
+              label="E-mail"
+              placeholder="seu@email.com"
+              [required]="true"
+              [showError]="
+                (f['email'].touched || formSubmitted) && f['email'].invalid
               "
-            >
-              <option value="" disabled selected>Selecione um assunto</option>
-              @for (assunto of assuntos; track assunto) {
-                <option [value]="assunto">{{ assunto }}</option>
-              }
-            </select>
-            @if (
-              (f["assunto"].touched || formSubmitted) &&
-              f["assunto"].errors?.["required"]
-            ) {
-              <span class="error-msg">O assunto é obrigatório.</span>
-            }
+              [errorMsg]="
+                f['email'].errors?.['required']
+                  ? 'E-mail obrigatório.'
+                  : 'E-mail inválido.'
+              "
+            ></app-input>
+
+            <app-input
+              id="telefone"
+              type="tel"
+              formControlName="telefone"
+              label="Telefone"
+              placeholder="(71) 9 0000-0000"
+              [required]="true"
+              [showError]="
+                (f['telefone'].touched || formSubmitted) &&
+                f['telefone'].invalid
+              "
+              errorMsg="Telefone inválido."
+            ></app-input>
           </div>
 
-          <div class="form-group">
-            <label for="mensagem">Mensagem <span>*</span></label>
-            <textarea
-              id="mensagem"
-              formControlName="mensagem"
-              placeholder="Descreva como podemos ajudá-lo..."
-              rows="6"
-              [class.invalid]="
-                (f['mensagem'].touched || formSubmitted) &&
-                f['mensagem'].invalid
-              "
-            ></textarea>
-            <div class="error-container">
-              @if (
-                (f["mensagem"].touched || formSubmitted) &&
-                f["mensagem"].errors?.["required"]
-              ) {
-                <span class="error-msg">A mensagem é obrigatória.</span>
-              }
-              @if (
-                (f["mensagem"].touched || formSubmitted) &&
-                f["mensagem"].errors?.["minlength"]
-              ) {
-                <span class="error-msg">Mínimo de 10 caracteres.</span>
-              }
-            </div>
-          </div>
+          <app-select
+            id="assunto"
+            formControlName="assunto"
+            label="Assunto"
+            [options]="assuntos"
+            [required]="true"
+            [showError]="
+              (f['assunto'].touched || formSubmitted) && f['assunto'].invalid
+            "
+            errorMsg="Selecione um assunto."
+          ></app-select>
+
+          <app-textarea
+            id="mensagem"
+            formControlName="mensagem"
+            label="Mensagem"
+            placeholder="Descreva como podemos ajudá-lo..."
+            [required]="true"
+            [showError]="
+              (f['mensagem'].touched || formSubmitted) && f['mensagem'].invalid
+            "
+            [errorMsg]="
+              f['mensagem'].errors?.['required']
+                ? 'Mensagem obrigatória.'
+                : 'Mínimo de 10 caracteres.'
+            "
+          ></app-textarea>
 
           <div class="btn-group">
             <app-button
@@ -165,8 +110,7 @@
               "
               [disabled]="mailService.isLoading()"
               type="submit"
-            >
-            </app-button>
+            ></app-button>
           </div>
         </form>
       </div>
@@ -187,7 +131,6 @@
             <div class="texts">
               <h3>E-mail</h3>
               <p>contato&#64;fitoherb.com.br</p>
-              <p>comercial&#64;fitoherb.com.br</p>
             </div>
           </div>
 
@@ -195,17 +138,7 @@
             <div class="icon-box"><i class="fas fa-map-marker-alt"></i></div>
             <div class="texts">
               <h3>Endereço</h3>
-              <p>Av. Paralela, 1234 - Sala 501</p>
-              <p>Salvador, BA - CEP 41730-000</p>
-            </div>
-          </div>
-
-          <div class="info-item">
-            <div class="icon-box"><i class="fas fa-clock"></i></div>
-            <div class="texts">
-              <h3>Horário de atendimento</h3>
-              <p>Segunda a Sexta: 8h às 18h</p>
-              <p>Sábado: 9h às 13h</p>
+              <p>Rua Itaeté, 434 - Lauro de Freitas - BA</p>
             </div>
           </div>
 
@@ -215,14 +148,13 @@
               width="100%"
               height="300"
               style="border: 0"
-              allowfullscreen=""
+              allowfullscreen="true"
               loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
             >
             </iframe>
             <div class="map-footer">
               <i class="fas fa-map-marked-alt"></i>
-              <span>Lauro de Freitas, Bahia - Brasil</span>
+              <span>Lauro de Freitas, BA - Brasil</span>
             </div>
           </div>
         </div>
@@ -230,3 +162,12 @@
     </div>
   </div>
 </section>
+
+@if (modalData) {
+  <app-modal-response
+    [status]="modalData.status"
+    [message]="modalData.message"
+    (close)="modalData = null"
+  >
+  </app-modal-response>
+}

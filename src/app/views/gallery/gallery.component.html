@@ -1,1 +1,64 @@
-<p>gallery works!</p>
+<section class="title-section">
+  <span>Catálogo</span>
+  <h1>Nossos <i>Produtos</i></h1>
+  <p>Veja nosso catálogo e descubra quais são as melhores opções para você!</p>
+</section>
+
+<section class="gallery-container">
+  <div class="container-wrapper">
+    <aside class="filters-sidebar">
+      <div class="filter-box">
+        <label><i class="fas fa-search"></i> BUSCAR</label>
+        <app-input [formControl]="search" placeholder="Nome do produto..." id="search" icon="fa-brands fa-sistrix"></app-input>
+      </div>
+
+      <div class="filter-box">
+        <label>CATEGORIA</label>
+        <div class="checkbox-group">
+          @for (cat of categories(); track cat.slug) {
+            <div class="checkbox-item" (click)="toggleCategory(cat.slug)">
+              <input type="checkbox" [checked]="selectedCategory() === cat.slug" readonly>
+              <label>{{ cat.name }}</label>
+              <span class="count">{{ cat.count }}</span> </div>
+          }
+        </div>
+      </div>
+
+      <div class="filter-box">
+        <label>FORNECEDOR</label>
+        <div class="checkbox-group">
+          @for (sup of suppliers(); track sup.slug) {
+            <div class="checkbox-item" (click)="toggleSupplier(sup.slug)">
+              <input type="checkbox" [checked]="selectedSupplier() === sup.slug" readonly>
+              <label>{{ sup.name }}</label>
+              <span class="count">{{ sup.count }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </aside>
+
+    <main class="products-main">
+      <div class="gallery-header">
+        <p>Mostrando <strong>{{ products().content.length }}</strong> de <strong>{{ products().totalElements }}</strong> produtos</p>
+        <app-select id="order" class="select" [formControl]="orderBy" [options]="orderOptions"></app-select>
+      </div>
+
+      <div class="products-grid">
+        @for (product of products().content; track product.name) {
+          <app-item-card-gallery [product]="product" (productClicked)="onOpenProductDetails($event)"></app-item-card-gallery>
+        }
+      </div>
+
+      <div #scrollAnchor class="scroll-anchor">
+        @if (!products().last) { <i class="fas fa-spinner fa-spin"></i> }
+      </div>
+    </main>
+  </div>
+</section>
+
+<app-modal-gallery
+  [product]="selectedProduct()"
+  [isOpen]="isModalOpen()"
+  (close)="onCloseModal()">
+</app-modal-gallery>

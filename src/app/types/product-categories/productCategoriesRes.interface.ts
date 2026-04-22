@@ -3,4 +3,5 @@ export interface ProductCategoryRes {
   slug: string;
   imageUrl: string;
   createdAt: string;
+  count: number;
 }

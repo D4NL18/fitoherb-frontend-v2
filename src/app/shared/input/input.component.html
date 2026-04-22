@@ -1,0 +1,28 @@
+<div class="form-group">
+  @if (label()) {
+    <label [for]="id()"
+      >{{ label() }}
+      @if (required()) {
+        <span>*</span>
+      }
+    </label>
+  }
+  <div class="input-wrapper" [class.has-icon]="icon()">
+    @if (icon()) {
+      <i [class]="icon()"></i>
+    }
+    <input
+      [id]="id()"
+      [type]="type()"
+      [placeholder]="placeholder()"
+      [value]="value"
+      [disabled]="disabled"
+      [class.invalid]="showError()"
+      (input)="onInput($event)"
+      (blur)="onTouched()"
+    />
+  </div>
+  @if (showError() && errorMsg()) {
+    <span class="error-msg">{{ errorMsg() }}</span>
+  }
+</div>

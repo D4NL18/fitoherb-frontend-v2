@@ -1,0 +1,39 @@
+@if (isOpen() && product()) {
+  <div class="modal-overlay" (click)="onClose()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+
+      <button class="close-btn" (click)="onClose()">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="modal-content">
+        <div class="image-side">
+          <img [src]="backendUrl + product()?.imageUrl" [alt]="product()?.name">
+        </div>
+
+        <div class="info-side">
+          <span class="category-tag">{{ product()?.category?.name }}</span>
+          <h1>{{ product()?.name }}</h1>
+
+          <div class="meta-info">
+            <p><strong>Fornecedor:</strong> {{ product()?.supplier?.name }}</p>
+
+            @if (product()?.flavours && product()?.flavours!.length > 0) {
+              <p><strong>Sabores Disponíveis:</strong></p>
+              <div class="flavours-chips">
+                @for (flavour of product()?.flavours; track flavour) {
+                  <span class="chip">{{ flavour }}</span>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="description-section">
+            <h2>Sobre o produto</h2>
+            <p>{{ formattedDescription() }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,18 @@
+<div class="form-group">
+      @if (label()) { <label [for]="id()">{{ label() }} @if (required()) { <span>*</span> }</label> }
+      <div class="select-wrapper">
+        <select
+          [id]="id()"
+          [disabled]="disabled"
+          [class.invalid]="showError()"
+          (change)="onChangeSelect($event)"
+          (blur)="onTouched()"
+        >
+          <option value="" disabled [selected]="!value">{{ placeholder() }}</option>
+          @for (opt of options(); track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
+      </div>
+      @if (showError() && errorMsg()) { <span class="error-msg">{{ errorMsg() }}</span> }
+    </div>

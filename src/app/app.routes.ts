@@ -22,11 +22,6 @@ export const routes: Routes = [
     title: 'Produtos - Fitoherb',
   },
   {
-    path: 'produtos/:category',
-    component: GalleryComponent,
-    title: 'Produtos - Fitoherb',
-  },
-  {
     path: 'fornecedores',
     component: SuppliersComponent,
     title: 'Fornecedores - Fitoherb',
