@@ -1,0 +1,53 @@
+<div class="login-container">
+  <img src="/assets/images/fitoherb-logo.png" alt="Fitoherb Logo" />
+  <h2>Painel Administrativo</h2>
+
+  <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+    <app-input
+      label="Email"
+      id="email"
+      type="email"
+      [(ngModel)]="email"
+      name="email"
+      [required]="true"
+      email
+      placeholder="exemplo@fitoherb.com"
+      #emailInput="ngModel"
+      [showError]="!!(emailInput.invalid && emailInput.touched)"
+      errorMsg="Insira um e-mail válido."
+    />
+
+    <app-input
+      label="Senha"
+      id="password"
+      type="password"
+      [(ngModel)]="password"
+      name="password"
+      [required]="true"
+      placeholder="Sua senha"
+      #passwordInput="ngModel"
+      [showError]="!!(passwordInput.invalid && passwordInput.touched)"
+      errorMsg="A senha é obrigatória."
+    />
+
+    <app-button
+      [label]="isLoading() ? 'Autenticando...' : 'Entrar'"
+      [disabled]="loginForm.invalid || isLoading()"
+      [fullWidth]="true"
+      variant="primary"
+      type="submit"
+    />
+
+    <div class="footer-links">
+      <a href="/home"><i class="fa-solid fa-arrow-left-long"></i>Voltar ao site</a>
+    </div>
+  </form>
+</div>
+
+@if (modalResponseOpen()) {
+  <app-modal-response
+    [message]="errorMessage()"
+    [status]="errorStatus()"
+    (close)="onCloseModalResponse()"
+  ></app-modal-response>
+}

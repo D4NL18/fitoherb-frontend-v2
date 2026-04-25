@@ -1,7 +1,11 @@
-<header><app-nav></app-nav></header>
+@if (showLayout()) {
+  <header><app-nav></app-nav></header>
+}
 
-<main class="main-content">
+<main [class.main-content]="showLayout()">
   <router-outlet></router-outlet>
 </main>
 
-<app-footer></app-footer>
+@if (showLayout()) {
+  <app-footer></app-footer>
+}
