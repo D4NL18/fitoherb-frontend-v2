@@ -1,0 +1,142 @@
+<div class="modal-overlay" (click)="close.emit()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <h2>{{ mode() === "create" ? "Adicionar" : "Editar" }} {{ type() }}</h2>
+      <button class="btn-close" (click)="close.emit()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </header>
+
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Carregando informações...</p>
+      </div>
+    } @else {
+      <form
+        [formGroup]="entityForm"
+        (ngSubmit)="onSubmit()"
+        class="modal-content"
+      >
+        @if (type() !== "Usuários") {
+          <div class="image-upload-section">
+            <div
+              class="preview-box"
+              [class.empty]="!imagePreview"
+              [class.error-border]="submitAttempted && !isImageValid"
+            >
+              @if (imagePreview) {
+                <img [src]="imagePreview" alt="Preview" />
+              } @else {
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+              }
+            </div>
+            <label for="image-input" class="upload-label">
+              {{ imagePreview ? "Alterar Imagem" : "Selecionar Imagem" }}
+              <input
+                type="file"
+                id="image-input"
+                (change)="onFileSelected($event)"
+                accept="image/*"
+              />
+            </label>
+
+            @if (submitAttempted && !isImageValid) {
+              <small
+                class="error-msg"
+                style="color: #d93025; margin-top: 8px; font-weight: 500"
+              >
+                A imagem é obrigatória para o cadastro.
+              </small>
+            }
+          </div>
+        }
+
+        <div class="fields-grid">
+          <app-input
+            label="Nome"
+            id="name"
+            formControlName="name"
+            [required]="true"
+            placeholder="Digite o nome completo"
+          />
+
+          @switch (type()) {
+            @case ("Produtos") {
+              <app-input
+                label="Descrição"
+                id="description"
+                formControlName="description"
+                placeholder="Descreva as propriedades do produto"
+              />
+              <app-select
+                label="Categoria"
+                id="category"
+                formControlName="categoryName"
+                [options]="categoryNames()"
+              />
+              <app-select
+                label="Fornecedor"
+                id="supplier"
+                formControlName="supplierName"
+                [options]="supplierNames()"
+              />
+              <app-input
+                label="Sabores (Separados por vírgula)"
+                id="flavours"
+                formControlName="flavours"
+                placeholder="Ex: Chocolate, Morango"
+              />
+            }
+            @case ("Usuários") {
+              <app-input
+                label="Email"
+                id="email"
+                formControlName="email"
+                type="email"
+                placeholder="email@fitoherb.com"
+              />
+              <app-select
+                label="Nível de Acesso"
+                id="role"
+                formControlName="role"
+                [options]="roleOptions"
+              />
+              <app-input
+                label="Data de Nascimento (dd-mm-aaaa)"
+                id="birthDate"
+                formControlName="birthDate"
+                placeholder="Ex: 25-10-1995"
+              />
+            }
+            @case ("Fornecedores") {
+              <div class="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="isHighlighted"
+                  formControlName="isHighlighted"
+                />
+                <label for="isHighlighted">Fornecedor em Destaque?</label>
+              </div>
+            }
+          }
+        </div>
+
+        <footer class="modal-footer">
+          <app-button
+            label="Cancelar"
+            variant="outline"
+            type="button"
+            (btnClick)="close.emit()"
+          />
+          <app-button
+            [label]="mode() === 'create' ? 'Cadastrar' : 'Salvar Alterações'"
+            variant="primary"
+            type="submit"
+            [disabled]="entityForm.invalid || !isImageValid"
+          />
+        </footer>
+      </form>
+    }
+  </div>
+</div>

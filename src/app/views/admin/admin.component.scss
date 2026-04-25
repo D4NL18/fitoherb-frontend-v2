@@ -1,0 +1,40 @@
+@use "../../../styles.scss";
+
+:host {
+  display: flex;
+}
+
+.admin-page-main {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 4rem;
+  width: 100%;
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0;
+  }
+  p {
+    font-size: 1rem;
+    color: styles.$gray-500;
+  }
+
+  .table-container {
+    display: flex;
+    flex-direction: column;
+    margin: 2rem 0;
+
+
+    .table-header-container {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+
+      .filters-box {
+        display: flex;
+        gap: 2rem;
+      }
+    }
+  }
+
+}

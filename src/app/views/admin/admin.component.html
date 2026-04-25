@@ -1,1 +1,67 @@
 <app-admin-nav></app-admin-nav>
+
+<section class="admin-page-main">
+  <header>
+    <h1>Gerenciar {{ pageTitle() }}</h1>
+    <p>Adicione, edite ou remova {{ pageTitle() | lowercase }}</p>
+  </header>
+
+  <div class="table-container">
+    <div class="table-header-container">
+      <div class="filters-box">
+        <app-input
+          [formControl]="search"
+          placeholder="Pesquisar..."
+          id="search"
+          icon="fa-solid fa-magnifying-glass"
+        ></app-input>
+
+        <app-select
+          id="order"
+          class="select"
+          [formControl]="orderBy"
+          [options]="orderOptions"
+        ></app-select>
+      </div>
+
+      <app-button
+        [label]="'Adicionar ' + (pageTitle() | lowercase)"
+        icon="fa-solid fa-plus"
+        (btnClick)="openAddModal()"
+      ></app-button>
+    </div>
+
+    <app-dynamic-table
+      [columns]="columns()"
+      [data]="tableData()"
+      (edit)="onEdit($event)"
+      (delete)="onDelete($event)"
+    ></app-dynamic-table>
+  </div>
+</section>
+
+@if (isEntityModalOpen()) {
+  <app-modal-entity
+    [type]="pageTitle()"
+    [mode]="modalMode()"
+    [data]="selectedItem()"
+    (close)="isEntityModalOpen.set(false)"
+    (save)="handleSave($event)"
+  ></app-modal-entity>
+}
+
+@if (isConfirmModalOpen()) {
+  <app-modal-confirm
+    [itemName]="selectedItem()?.name"
+    (close)="isConfirmModalOpen.set(false)"
+    (confirm)="confirmDelete()"
+  ></app-modal-confirm>
+}
+
+@if (isResponseModalOpen()) {
+  <app-modal-response
+    [status]="responseStatus()"
+    [message]="responseMessage()"
+    (close)="isResponseModalOpen.set(false)"
+  ></app-modal-response>
+}

@@ -1,0 +1,54 @@
+<div class="table-responsive">
+  <table>
+    <thead>
+      <tr>
+        @for (col of columns(); track col.label) {
+          <th>{{ col.label }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of data(); track row) {
+        <tr>
+          @for (col of columns(); track col.key) {
+            <td>
+              @switch (col.type) {
+
+                @case ('image') {
+                  <img [src]="row[col.key]" [alt]="row.name" class="product-img">
+                }
+
+                @case ('price') {
+                  <span class="price-text">{{ row[col.key] | currency:'BRL' }}</span>
+                }
+
+                @case ('badge') {
+                  <span class="badge-category">{{ row[col.key] }}</span>
+                }
+
+                @case ('stock') {
+                  <span class="badge-stock">{{ row[col.key] }}</span>
+                }
+
+                @case ('actions') {
+                  <div class="actions-box">
+                    <button class="btn-icon edit" (click)="onEdit(row)">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn-icon delete" (click)="onDelete(row)">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                }
+
+                @default {
+                  <span class="default-text">{{ row[col.key] }}</span>
+                }
+              }
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

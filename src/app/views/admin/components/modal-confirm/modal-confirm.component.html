@@ -1,0 +1,20 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="icon-container">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+
+    <div class="modal-body">
+      <h3>Você tem certeza?</h3>
+      <p>
+        Esta ação não pode ser desfeita. Você está prestes a excluir:
+        <span class="highlight">"{{ itemName() }}"</span>
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <app-button label="Cancelar" variant="outline" (btnClick)="onClose()" />
+      <app-button label="Sim, excluir" variant="primary" class="btn-danger" (btnClick)="onConfirm()" />
+    </div>
+  </div>
+</div>

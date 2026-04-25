@@ -1,0 +1,86 @@
+@use "../../../../../styles.scss";
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: 15px;
+  border: 1px solid styles.$gray-200;
+  margin-top: 1.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  thead {
+    background-color: styles.$gray-100;
+    tr th {
+      padding: 1.2rem 1rem;
+      font-size: 0.9rem;
+      color: styles.$gray-900;
+      font-weight: 600;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid styles.$gray-100;
+      transition: background 0.2s;
+
+      &:hover { background-color: #fafafa; }
+      &:last-child { border-bottom: none; }
+
+      td {
+        padding: 1rem;
+        vertical-align: middle;
+        font-size: 0.95rem;
+        color: styles.$gray-700;
+      }
+    }
+  }
+}
+
+.product-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid styles.$gray-200;
+}
+
+.badge-category {
+  background-color: styles.$green-50;
+  color: styles.$green-700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-stock {
+  background-color: styles.$green-800;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.actions-box {
+  display: flex;
+  gap: 15px;
+
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: transform 0.2s;
+
+    &.edit { color: styles.$gray-900; }
+    &.delete { color: styles.$error; }
+    &:hover { transform: scale(1.2); }
+  }
+}

@@ -1,0 +1,47 @@
+@use "../../../../../styles.scss";
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-card {
+  background: styles.$white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  max-width: 400px;
+  text-align: center;
+
+  .icon-container i {
+    font-size: 3rem;
+    color: styles.$error;
+    margin-bottom: 1rem;
+  }
+
+  .highlight {
+    display: block;
+    font-weight: bold;
+    color: styles.$gray-900;
+    margin-top: 5px;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: center;
+
+  .btn-danger {
+    :host ::ng-deep .custom-btn.primary {
+      background-color: styles.$error;
+      border-color: styles.$error;
+    }
+  }
+}
