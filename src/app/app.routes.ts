@@ -6,6 +6,7 @@ import { GalleryComponent } from './views/gallery/gallery.component';
 import { ContactComponent } from './views/contact/contact.component';
 import { LoginComponent } from './views/login/login.component';
 import { AdminComponent } from './views/admin/admin.component';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -42,5 +43,6 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminComponent,
     title: 'Admin - Fitoherb',
+    canActivate: [authGuard],
   },
 ];
