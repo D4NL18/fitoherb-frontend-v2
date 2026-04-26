@@ -1,4 +1,4 @@
-import { Component, input, forwardRef } from '@angular/core';
+import { Component, input, forwardRef, signal, effect } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -21,11 +21,20 @@ export class InputComponent implements ControlValueAccessor {
   errorMsg = input<string | null>(null);
   showError = input<boolean>(false);
 
+  isPasswordVisible = signal(false);
+  currentType = signal(this.type());
+
   value: any = '';
   disabled = false;
 
-  onChange: any = () => {};
-  onTouched: any = () => {};
+  onChange: any = () => { };
+  onTouched: any = () => { };
+
+  constructor() {
+    effect(() => {
+      this.currentType.set(this.type());
+    }, { allowSignalWrites: true });
+  }
 
   writeValue(val: any): void { this.value = val; }
   registerOnChange(fn: any): void { this.onChange = fn; }
@@ -36,5 +45,10 @@ export class InputComponent implements ControlValueAccessor {
     const val = (event.target as HTMLInputElement).value;
     this.value = val;
     this.onChange(val);
+  }
+
+  togglePasswordVisibility() {
+    this.isPasswordVisible.update(v => !v);
+    this.currentType.set(this.isPasswordVisible() ? 'text' : 'password');
   }
 }

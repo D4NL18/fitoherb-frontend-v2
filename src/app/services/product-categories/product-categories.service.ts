@@ -50,7 +50,7 @@ export class ProductCategoriesService {
     );
   }
 
-  update(slug: string, categoryReq: ProductCategoryReq, image: File): Observable<void> {
+  update(slug: string, categoryReq: ProductCategoryReq, image: File | null): Observable<void> {
     const formData = this.buildFormData(categoryReq, image);
     return this.http.put<void>(`${this.API_URL}/${slug}`, formData);
   }
@@ -61,13 +61,15 @@ export class ProductCategoriesService {
     );
   }
 
-  private buildFormData(categoryReq: ProductCategoryReq, image: File): FormData {
+  private buildFormData(categoryReq: ProductCategoryReq, image: File | null): FormData {
     const formData = new FormData();
-
     const categoryBlob = new Blob([JSON.stringify(categoryReq)], { type: 'application/json' });
 
     formData.append('product_category', categoryBlob);
-    formData.append('image', image);
+
+    if (image) {
+      formData.append('image', image);
+    }
 
     return formData;
   }

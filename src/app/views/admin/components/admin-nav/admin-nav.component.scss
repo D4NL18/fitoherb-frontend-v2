@@ -3,10 +3,70 @@
 :host {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   background-color: styles.$primary-color;
   height: 100vh;
   width: 300px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.mobile-header {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: styles.$primary-color;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+
+  .mobile-logo {
+    height: 30px;
+  }
+
+  .hamburger-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+}
+
+.nav-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  transition: all 0.3s ease;
+
+  @media (max-width: 768px) {
+    display: none;
+    height: auto;
+    
+    &.open {
+      display: flex;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: styles.$primary-color;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+  }
 }
 
 .nav-container {
@@ -14,9 +74,16 @@
   display: flex;
   flex-direction: column;
 
-  .logo {
+  @media (max-width: 768px) {
+    padding: 1rem 1.5rem;
+  }
+
+  .desktop-only {
     display: block;
     width: 80%;
+    @media (max-width: 768px) {
+      display: none;
+    }
   }
 
   .list-container {
@@ -24,22 +91,35 @@
     padding: 0;
     margin-top: 2rem;
 
+    @media (max-width: 768px) {
+      margin-top: 0;
+    }
+
     li {
       margin-bottom: 1rem;
 
       a {
         text-decoration: none;
         font-weight: bold;
-        transition: color 0.3s;
+        transition: all 0.3s;
         color: styles.$white;
         display: flex;
-        gap: 0.5rem;
+        align-items: center;
+        gap: 0.8rem;
         border-radius: 0.5rem;
-        padding: 0.5rem;
-        &:hover {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+        
+        &:hover, &.active {
           background-color: styles.$green-900;
           color: white;
           transform: scale(1.05);
+        }
+
+        i {
+          font-size: 1.2rem;
+          width: 20px;
+          text-align: center;
         }
       }
     }
@@ -56,6 +136,11 @@
   justify-content: center;
   border-top: 1px solid styles.$footer-separator;
 
+  @media (max-width: 768px) {
+    height: 70px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
   button {
     width: 100%;
     font-size: 1rem;
@@ -68,6 +153,7 @@
     text-align: center;
     align-items: center;
     justify-content: center;
+    transition: transform 0.3s;
 
     &:hover {
       transform: scale(1.05);

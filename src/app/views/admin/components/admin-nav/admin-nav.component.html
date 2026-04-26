@@ -1,29 +1,30 @@
-<nav class="nav-container">
-  <img
-    src="/assets/images/fitoherb-logo-white.png"
-    alt="Fitoherb Logo"
-    class="logo"
-  />
-  <ul class="list-container">
-    <li>
-      <a href="/admin/users"><i class="fas fa-users"></i>Usuários</a>
-    </li>
-    <li>
-      <a href="/admin/products"><i class="fas fa-box"></i>Produtos</a>
-    </li>
-    <li>
-      <a href="/admin/product-categories"
-        ><i class="fas fa-tags"></i>Categorias de Produtos</a
-      >
-    </li>
-    <li>
-      <a href="/admin/suppliers"><i class="fas fa-truck"></i>Fornecedores</a>
-    </li>
-  </ul>
-</nav>
-
-<div class="logout-box">
-  <button (click)="logout()">
-    <i class="fa-solid fa-arrow-right-from-bracket"></i>Voltar ao site
+<div class="mobile-header">
+  <img src="assets/images/fitoherb-logo-white.png" alt="Fitoherb Logo" class="mobile-logo">
+  <button class="hamburger-btn" (click)="toggleMenu()">
+    <i class="fa-solid" [class.fa-bars]="!isMenuOpen()" [class.fa-xmark]="isMenuOpen()"></i>
   </button>
+</div>
+
+<div class="nav-content" [class.open]="isMenuOpen()">
+  <div class="nav-container">
+    <img src="assets/images/fitoherb-logo-white.png" alt="Fitoherb Logo" class="logo desktop-only">
+
+    <ul class="list-container">
+      @for (tab of tabs; track tab.label) {
+      <li>
+        <a href="javascript:void(0)" (click)="selectTab(tab.label)" [class.active]="activeTab() === tab.label">
+          <i [class]="tab.icon"></i>
+          {{ tab.label }}
+        </a>
+      </li>
+      }
+    </ul>
+  </div>
+
+  <div class="logout-box">
+    <button (click)="logout()">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      Sair
+    </button>
+  </div>
 </div>

@@ -1,28 +1,29 @@
 <div class="form-group">
   @if (label()) {
-    <label [for]="id()"
-      >{{ label() }}
-      @if (required()) {
-        <span>*</span>
-      }
-    </label>
-  }
-  <div class="input-wrapper" [class.has-icon]="icon()">
-    @if (icon()) {
-      <i [class]="icon()"></i>
+  <label [for]="id()">{{ label() }}
+    @if (required()) {
+    <span>*</span>
     }
-    <input
-      [id]="id()"
-      [type]="type()"
-      [placeholder]="placeholder()"
-      [value]="value"
-      [disabled]="disabled"
-      [class.invalid]="showError()"
-      (input)="onInput($event)"
-      (blur)="onTouched()"
-    />
+  </label>
+  }
+
+  <div class="input-wrapper" [class.has-icon]="icon()" [class.is-password]="type() === 'password'">
+    @if (icon()) {
+    <i [class]="icon()" class="prefix-icon"></i>
+    }
+
+    <input [id]="id()" [type]="currentType()" [placeholder]="placeholder()" [value]="value" [disabled]="disabled"
+      [class.invalid]="showError()" (input)="onInput($event)" (blur)="onTouched()" />
+
+    @if (type() === 'password') {
+    <button type="button" class="toggle-password-btn" (click)="togglePasswordVisibility()" tabindex="-1"
+      title="Mostrar senha">
+      <i class="fa-solid" [class.fa-eye]="!isPasswordVisible()" [class.fa-eye-slash]="isPasswordVisible()"></i>
+    </button>
+    }
   </div>
+
   @if (showError() && errorMsg()) {
-    <span class="error-msg">{{ errorMsg() }}</span>
+  <span class="error-msg">{{ errorMsg() }}</span>
   }
 </div>

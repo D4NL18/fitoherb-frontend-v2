@@ -2,6 +2,10 @@
 
 :host {
   display: flex;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
 .admin-page-main {
@@ -9,14 +13,29 @@
   flex-direction: column;
   padding: 2rem 4rem;
   width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 
   h1 {
     font-size: 2rem;
     margin-bottom: 0;
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
   }
+
   p {
     font-size: 1rem;
     color: styles.$gray-500;
+
+    @media (max-width: 768px) {
+      font-size: 0.9rem;
+    }
   }
 
   .table-container {
@@ -24,17 +43,84 @@
     flex-direction: column;
     margin: 2rem 0;
 
+    @media (max-width: 768px) {
+      margin: 1rem 0;
+    }
 
     .table-header-container {
       display: flex;
       width: 100%;
       justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+
+      @media (max-width: 992px) {
+        flex-direction: column;
+        align-items: stretch;
+      }
 
       .filters-box {
         display: flex;
         gap: 2rem;
+        flex: 1;
+
+        @media (max-width: 768px) {
+          flex-direction: column;
+          gap: 1rem;
+        }
       }
     }
   }
+}
 
+.password-container {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-start;
+
+  @media (max-width: 768px) {
+    justify-content: center;
+  }
+
+  .password-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    border: 1px solid styles.$gray-200;
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+
+    @media (max-width: 768px) {
+      padding: 1.5rem;
+    }
+
+    .error-msg {
+      color: styles.$error;
+      font-weight: 600;
+      margin-top: -10px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1rem;
+
+      @media (max-width: 768px) {
+        justify-content: stretch;
+
+        ::ng-deep app-button {
+          width: 100%;
+
+          button {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
 }

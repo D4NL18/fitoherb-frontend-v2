@@ -57,11 +57,17 @@ export class ModalEntityComponent implements OnInit {
   categoryNames = computed(() => this.categories().map((c) => c.name));
   supplierNames = computed(() => this.suppliers().map((s) => s.name));
 
-  isLoading = computed(() => {
-    if (this.type() === 'Produtos') {
-      return this.categories().length === 0 || this.suppliers().length === 0;
-    }
-    return false;
+  missingDependenciesMessage = computed(() => {
+    if (this.type() !== 'Produtos' || this.mode() === 'edit') return '';
+
+    const noCat = this.categories().length === 0;
+    const noSup = this.suppliers().length === 0;
+
+    if (noCat && noSup) return 'Você precisa cadastrar Categorias e Fornecedores antes de criar um produto.';
+    if (noCat) return 'Você precisa cadastrar pelo menos uma Categoria antes de criar um produto.';
+    if (noSup) return 'Você precisa cadastrar pelo menos um Fornecedor antes de criar um produto.';
+
+    return '';
   });
 
   roleOptions = ['USER', 'ADMIN'];

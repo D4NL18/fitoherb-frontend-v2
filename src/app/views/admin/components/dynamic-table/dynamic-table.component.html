@@ -1,54 +1,73 @@
-<div class="table-responsive">
-  <table>
-    <thead>
-      <tr>
-        @for (col of columns(); track col.label) {
-          <th>{{ col.label }}</th>
-        }
-      </tr>
-    </thead>
-    <tbody>
-      @for (row of data(); track row) {
+<div class="table-wrapper">
+  <div class="table-responsive">
+    <table>
+      <thead>
         <tr>
-          @for (col of columns(); track col.key) {
-            <td>
-              @switch (col.type) {
-
-                @case ('image') {
-                  <img [src]="row[col.key]" [alt]="row.name" class="product-img">
-                }
-
-                @case ('price') {
-                  <span class="price-text">{{ row[col.key] | currency:'BRL' }}</span>
-                }
-
-                @case ('badge') {
-                  <span class="badge-category">{{ row[col.key] }}</span>
-                }
-
-                @case ('stock') {
-                  <span class="badge-stock">{{ row[col.key] }}</span>
-                }
-
-                @case ('actions') {
-                  <div class="actions-box">
-                    <button class="btn-icon edit" (click)="onEdit(row)">
-                      <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button class="btn-icon delete" (click)="onDelete(row)">
-                      <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                  </div>
-                }
-
-                @default {
-                  <span class="default-text">{{ row[col.key] }}</span>
-                }
-              }
-            </td>
+          @for (col of columns(); track col.label) {
+          <th>{{ col.label }}</th>
           }
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (row of data(); track row) {
+        <tr>
+          @for (col of columns(); track col.key) {
+          <td>
+            @switch (col.type) {
+            @case ('image') {
+            <img [src]="row[col.key]" [alt]="row.name" class="product-img">
+            }
+            @case ('price') {
+            <span class="price-text">{{ row[col.key] | currency:'BRL' }}</span>
+            }
+            @case ('badge') {
+            <span class="badge-category">{{ row[col.key] }}</span>
+            }
+            @case ('stock') {
+            <span class="badge-stock">{{ row[col.key] }}</span>
+            }
+            @case ('actions') {
+            <div class="actions-box">
+              <button class="btn-icon edit" (click)="onEdit(row)">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn-icon delete" (click)="onDelete(row)">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+            }
+            @default {
+            <span class="default-text">{{ row[col.key] }}</span>
+            }
+            }
+          </td>
+          }
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (totalElements() > 0) {
+  <div class="pagination-footer">
+    <span class="pagination-info">
+      Exibindo <strong>{{ startItem() }}</strong> a <strong>{{ endItem() }}</strong> de <strong>{{ totalElements()
+        }}</strong> registros
+    </span>
+
+    <div class="pagination-controls">
+      <button class="btn-page" [disabled]="currentPage() === 0" (click)="changePage(currentPage() - 1)">
+        <i class="fa-solid fa-chevron-left"></i> Anterior
+      </button>
+
+      <span class="page-number">
+        Página {{ currentPage() + 1 }} de {{ totalPages() }}
+      </span>
+
+      <button class="btn-page" [disabled]="currentPage() >= totalPages() - 1" (click)="changePage(currentPage() + 1)">
+        Próxima <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+  }
 </div>

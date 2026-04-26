@@ -1,5 +1,11 @@
 @use "../../../../../styles.scss";
 
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;
@@ -7,20 +13,24 @@
   border-radius: 15px;
   border: 1px solid styles.$gray-200;
   margin-top: 1.5rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  min-width: 700px;
 
   thead {
     background-color: styles.$gray-100;
+
     tr th {
       padding: 1.2rem 1rem;
       font-size: 0.9rem;
       color: styles.$gray-900;
       font-weight: 600;
+      white-space: nowrap;
     }
   }
 
@@ -29,8 +39,13 @@ table {
       border-bottom: 1px solid styles.$gray-100;
       transition: background 0.2s;
 
-      &:hover { background-color: #fafafa; }
-      &:last-child { border-bottom: none; }
+      &:hover {
+        background-color: #fafafa;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
 
       td {
         padding: 1rem;
@@ -57,6 +72,7 @@ table {
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .badge-stock {
@@ -66,6 +82,7 @@ table {
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .actions-box {
@@ -79,8 +96,89 @@ table {
     font-size: 1.1rem;
     transition: transform 0.2s;
 
-    &.edit { color: styles.$gray-900; }
-    &.delete { color: styles.$error; }
-    &:hover { transform: scale(1.2); }
+    &.edit {
+      color: styles.$gray-900;
+    }
+
+    &.delete {
+      color: styles.$error;
+    }
+
+    &:hover {
+      transform: scale(1.2);
+    }
+  }
+}
+
+.pagination-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  .pagination-info {
+    font-size: 0.9rem;
+    color: styles.$gray-500;
+
+    strong {
+      color: styles.$gray-900;
+    }
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .page-number {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: styles.$gray-700;
+    }
+
+    .btn-page {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: white;
+      border: 1px solid styles.$gray-200;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: styles.$gray-700;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover:not(:disabled) {
+        background-color: styles.$gray-100;
+        border-color: styles.$gray-300;
+        color: styles.$primary-color;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: styles.$gray-100;
+      }
+
+      i {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+
+    .pagination-controls {
+      width: 100%;
+      justify-content: space-between;
+    }
   }
 }

@@ -1,5 +1,6 @@
 <div class="modal-overlay" (click)="close.emit()">
   <div class="modal-card" (click)="$event.stopPropagation()">
+    
     <header class="modal-header">
       <h2>{{ mode() === "create" ? "Adicionar" : "Editar" }} {{ type() }}</h2>
       <button class="btn-close" (click)="close.emit()">
@@ -7,12 +8,21 @@
       </button>
     </header>
 
-    @if (isLoading()) {
-      <div class="loading-container">
-        <div class="spinner"></div>
-        <p>Carregando informações...</p>
+    @if (missingDependenciesMessage()) {
+      <div class="missing-dependencies-container">
+        <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+        <h3>Ação Necessária</h3>
+        <p>{{ missingDependenciesMessage() }}</p>
+        <div class="action-btn">
+          <app-button 
+            label="Entendi" 
+            variant="primary" 
+            (btnClick)="close.emit()">
+          </app-button>
+        </div>
       </div>
-    } @else {
+    } 
+    @else {
       <form
         [formGroup]="entityForm"
         (ngSubmit)="onSubmit()"
@@ -26,7 +36,7 @@
               [class.error-border]="submitAttempted && !isImageValid"
             >
               @if (imagePreview) {
-                <img [src]="imagePreview" alt="Preview" />
+                <img [src]="imagePreview" alt="Preview da Imagem" />
               } @else {
                 <i class="fa-solid fa-cloud-arrow-up"></i>
               }
@@ -42,12 +52,7 @@
             </label>
 
             @if (submitAttempted && !isImageValid) {
-              <small
-                class="error-msg"
-                style="color: #d93025; margin-top: 8px; font-weight: 500"
-              >
-                A imagem é obrigatória para o cadastro.
-              </small>
+              <small class="error-msg">A imagem é obrigatória para o cadastro.</small>
             }
           </div>
         }

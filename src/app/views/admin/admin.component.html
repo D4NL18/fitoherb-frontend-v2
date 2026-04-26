@@ -1,67 +1,68 @@
-<app-admin-nav></app-admin-nav>
+<app-admin-nav [activeTab]="pageTitle()" (tabChange)="pageTitle.set($event)">
+</app-admin-nav>
 
 <section class="admin-page-main">
   <header>
-    <h1>Gerenciar {{ pageTitle() }}</h1>
-    <p>Adicione, edite ou remova {{ pageTitle() | lowercase }}</p>
+    <h1>{{ pageTitle() === 'Alterar Senha' ? 'Segurança' : 'Gerenciar ' + pageTitle() }}</h1>
+    <p>{{ pageTitle() === 'Alterar Senha' ? 'Atualize suas credenciais de acesso' : 'Adicione, edite ou remova ' +
+      (pageTitle() | lowercase) }}</p>
   </header>
 
+  @if (pageTitle() === 'Alterar Senha') {
+  <div class="password-container">
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="password-card">
+
+      <app-input label="Senha Atual" id="currentPassword" type="password" formControlName="currentPassword"
+        placeholder="Digite sua senha atual"></app-input>
+
+      <app-input label="Nova Senha" id="newPassword" type="password" formControlName="newPassword"
+        placeholder="Mínimo 8 caracteres, letras, números e símbolos"></app-input>
+
+      <app-input label="Confirme a Nova Senha" id="confirmPassword" type="password" formControlName="confirmPassword"
+        placeholder="Repita a nova senha"></app-input>
+
+      @if (passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched) {
+      <small class="error-msg">As senhas não coincidem.</small>
+      }
+
+      <div class="form-actions">
+        <app-button label="Salvar Nova Senha" variant="primary" type="submit"
+          [disabled]="passwordForm.invalid"></app-button>
+      </div>
+    </form>
+  </div>
+  }
+  @else {
   <div class="table-container">
     <div class="table-header-container">
       <div class="filters-box">
-        <app-input
-          [formControl]="search"
-          placeholder="Pesquisar..."
-          id="search"
-          icon="fa-solid fa-magnifying-glass"
-        ></app-input>
+        <app-input [formControl]="search" placeholder="Pesquisar..." id="search"
+          icon="fa-solid fa-magnifying-glass"></app-input>
 
-        <app-select
-          id="order"
-          class="select"
-          [formControl]="orderBy"
-          [options]="orderOptions"
-        ></app-select>
+        <app-select id="order" class="select" [formControl]="orderBy" [options]="orderOptions()"></app-select>
       </div>
 
-      <app-button
-        [label]="'Adicionar ' + (pageTitle() | lowercase)"
-        icon="fa-solid fa-plus"
-        (btnClick)="openAddModal()"
-      ></app-button>
+      <app-button [label]="'Adicionar ' + (pageTitle() | lowercase)" icon="fa-solid fa-plus"
+        (btnClick)="openAddModal()"></app-button>
     </div>
 
-    <app-dynamic-table
-      [columns]="columns()"
-      [data]="tableData()"
-      (edit)="onEdit($event)"
-      (delete)="onDelete($event)"
-    ></app-dynamic-table>
+    <app-dynamic-table [columns]="columns()" [data]="tableData()" (edit)="onEdit($event)"
+      (delete)="onDelete($event)"></app-dynamic-table>
   </div>
+  }
 </section>
 
-@if (isEntityModalOpen()) {
-  <app-modal-entity
-    [type]="pageTitle()"
-    [mode]="modalMode()"
-    [data]="selectedItem()"
-    (close)="isEntityModalOpen.set(false)"
-    (save)="handleSave($event)"
-  ></app-modal-entity>
+@if (isEntityModalOpen() && pageTitle() !== 'Alterar Senha') {
+<app-modal-entity [type]="$any(pageTitle())" [mode]="modalMode()" [data]="selectedItem()"
+  (close)="isEntityModalOpen.set(false)" (save)="handleSave($event)"></app-modal-entity>
 }
 
 @if (isConfirmModalOpen()) {
-  <app-modal-confirm
-    [itemName]="selectedItem()?.name"
-    (close)="isConfirmModalOpen.set(false)"
-    (confirm)="confirmDelete()"
-  ></app-modal-confirm>
+<app-modal-confirm [itemName]="selectedItem()?.name" (close)="isConfirmModalOpen.set(false)"
+  (confirm)="confirmDelete()"></app-modal-confirm>
 }
 
 @if (isResponseModalOpen()) {
-  <app-modal-response
-    [status]="responseStatus()"
-    [message]="responseMessage()"
-    (close)="isResponseModalOpen.set(false)"
-  ></app-modal-response>
+<app-modal-response [status]="responseStatus()" [message]="responseMessage()"
+  (close)="isResponseModalOpen.set(false)"></app-modal-response>
 }

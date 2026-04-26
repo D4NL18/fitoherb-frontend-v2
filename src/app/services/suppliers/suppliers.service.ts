@@ -50,7 +50,7 @@ export class SuppliersService {
     );
   }
 
-  update(slug: string, supplierReq: SupplierReq, image: File): Observable<void> {
+  update(slug: string, supplierReq: SupplierReq, image: File | null): Observable<void> {
     const formData = this.buildFormData(supplierReq, image);
     return this.http.put<void>(`${this.API_URL}/${slug}`, formData);
   }
@@ -62,14 +62,16 @@ export class SuppliersService {
   }
 
 
-  private buildFormData(supplierReq: SupplierReq, image: File): FormData {
+  private buildFormData(supplierReq: SupplierReq, image: File | null): FormData {
     const formData = new FormData();
-
     const supplierBlob = new Blob([JSON.stringify(supplierReq)], { type: 'application/json' });
-
+    
     formData.append('supplier', supplierBlob);
-    formData.append('image', image);
-
+    
+    if (image) {
+      formData.append('image', image);
+    }
+    
     return formData;
   }
 }

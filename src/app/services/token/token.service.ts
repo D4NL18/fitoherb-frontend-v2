@@ -22,4 +22,27 @@ export class TokenService {
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
+
+  getUserEmail(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const payloadBase64Url = token.split('.')[1];
+      
+      const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+      
+      const payloadJson = decodeURIComponent(window.atob(payloadBase64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const payload = JSON.parse(payloadJson);
+      
+      return payload.sub || payload.email || null;
+      
+    } catch (e) {
+      console.error('Erro ao decodificar o token', e);
+      return null;
+    }
+  }
 }
