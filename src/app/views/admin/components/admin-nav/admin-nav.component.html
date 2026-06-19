@@ -1,5 +1,6 @@
 <div class="mobile-header">
-  <img src="assets/images/fitoherb-logo-white.png" alt="Fitoherb Logo" class="mobile-logo">
+  <button class="logo-button" (click)="router.navigate(['/'])"><img src="assets/images/fitoherb-logo-white.png"
+      alt="Fitoherb Logo" class="mobile-logo"></button>
   <button class="hamburger-btn" (click)="toggleMenu()">
     <i class="fa-solid" [class.fa-bars]="!isMenuOpen()" [class.fa-xmark]="isMenuOpen()"></i>
   </button>
@@ -7,7 +8,8 @@
 
 <div class="nav-content" [class.open]="isMenuOpen()">
   <div class="nav-container">
-    <img src="assets/images/fitoherb-logo-white.png" alt="Fitoherb Logo" class="logo desktop-only">
+    <button (click)="router.navigate(['/'])" class="logo-button"><img src="assets/images/fitoherb-logo-white.png"
+        alt="Fitoherb Logo" class="logo desktop-only"></button>
 
     <ul class="list-container">
       @for (tab of tabs; track tab.label) {

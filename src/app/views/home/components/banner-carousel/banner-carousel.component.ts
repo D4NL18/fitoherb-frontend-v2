@@ -1,5 +1,7 @@
-import { Component, OnInit, OnDestroy, HostListener, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, Inject, PLATFORM_ID, inject, effect } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { BannersService } from '../../../../services/banners/banners.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-banner-carousel',
@@ -9,13 +11,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './banner-carousel.component.scss'
 })
 export class BannerCarouselComponent implements OnInit, OnDestroy {
-  originalImages = [
-    '/assets/images/banner/Banner-image-1.jpg',
-    '/assets/images/banner/Banner-image-2.jpg',
-    '/assets/images/banner/Banner-image-3.jpg',
-    '/assets/images/banner/Banner-image-4.jpg',
-    '/assets/images/banner/Banner-image-5.jpg'
-  ];
+  bannersService = inject(BannersService);
+
+  originalImages: string[] = [];
 
   displayImages: string[] = [];
 
@@ -30,16 +28,40 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
 
   autoplayInterval: any;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    effect(() => {
+      const banners = this.bannersService.activeBanners();
+      const baseUrl = environment.apiUrl.replace('/api', '');
+      
+      if (banners.length > 0) {
+        this.originalImages = banners.map(b => {
+          let url = b.imagePath;
+          if (url && !url.startsWith('http')) {
+            url = `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+          }
+          return url;
+        });
+      } else {
+        this.originalImages = [
+          '/assets/images/banner/Banner-image-1.jpg',
+          '/assets/images/banner/Banner-image-2.jpg',
+          '/assets/images/banner/Banner-image-3.jpg',
+          '/assets/images/banner/Banner-image-4.jpg',
+          '/assets/images/banner/Banner-image-5.jpg'
+        ];
+      }
+
+      if (this.originalImages.length > 0) {
+        const first = this.originalImages[0];
+        const last = this.originalImages[this.originalImages.length - 1];
+        this.displayImages = [last, ...this.originalImages, first];
+        this.updateCarousel(false);
+      }
+    });
+  }
 
   ngOnInit() {
-    if (this.originalImages.length > 0) {
-      const first = this.originalImages[0];
-      const last = this.originalImages[this.originalImages.length - 1];
-      this.displayImages = [last, ...this.originalImages, first];
-
-      this.updateCarousel(false);
-    }
+    this.bannersService.getActive();
     this.startAutoplay();
   }
 

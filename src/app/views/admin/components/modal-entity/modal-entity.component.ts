@@ -36,7 +36,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class ModalEntityComponent implements OnInit {
   type = input.required<
-    'Usuários' | 'Produtos' | 'Categorias de Produtos' | 'Fornecedores'
+    'Usuários' | 'Produtos' | 'Categorias de Produtos' | 'Fornecedores' | 'Banners'
   >();
   mode = input<'create' | 'edit'>('create');
   data = input<any>(null);
@@ -88,8 +88,8 @@ export class ModalEntityComponent implements OnInit {
 
       this.entityForm.patchValue(initialData);
 
-      if (this.data().imageUrl) {
-        const url = this.data().imageUrl;
+      if (this.data().imageUrl || this.data().imagePath) {
+        const url = this.data().imageUrl || this.data().imagePath;
         const baseUrl = environment.apiUrl.replace('/api', '');
         this.imagePreview = url.startsWith('http')
           ? url
@@ -135,6 +135,14 @@ export class ModalEntityComponent implements OnInit {
 
       case 'Categorias de Produtos':
         this.entityForm = this.fb.group(common);
+        break;
+
+      case 'Banners':
+        this.entityForm = this.fb.group({
+          title: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+          position: [1, [Validators.required, Validators.min(1)]],
+          isActive: [true],
+        });
         break;
     }
   }

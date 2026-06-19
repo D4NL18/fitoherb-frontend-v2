@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../../services/auth/auth.service';
 
-export type AdminTab = 'Usuários' | 'Produtos' | 'Categorias de Produtos' | 'Fornecedores' | 'Alterar Senha';
+export type AdminTab = 'Usuários' | 'Produtos' | 'Categorias de Produtos' | 'Fornecedores' | 'Banners' | 'Alterar Senha';
 
 @Component({
   selector: 'app-admin-nav',
@@ -25,6 +25,7 @@ export class AdminNavComponent {
     { label: 'Produtos', icon: 'fa-solid fa-box' },
     { label: 'Categorias de Produtos', icon: 'fa-solid fa-tags' },
     { label: 'Fornecedores', icon: 'fa-solid fa-truck-fast' },
+    { label: 'Banners', icon: 'fa-solid fa-image' },
     { label: 'Usuários', icon: 'fa-solid fa-users' },
     { label: 'Alterar Senha', icon: 'fa-solid fa-lock' }
   ];

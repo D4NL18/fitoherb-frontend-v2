@@ -58,13 +58,23 @@
         }
 
         <div class="fields-grid">
-          <app-input
-            label="Nome"
-            id="name"
-            formControlName="name"
-            [required]="true"
-            placeholder="Digite o nome completo"
-          />
+          @if (type() !== 'Banners') {
+            <app-input
+              label="Nome"
+              id="name"
+              formControlName="name"
+              [required]="true"
+              placeholder="Digite o nome completo"
+            />
+          } @else {
+            <app-input
+              label="Título do Banner"
+              id="title"
+              formControlName="title"
+              [required]="true"
+              placeholder="Promoção de Inverno"
+            />
+          }
 
           @switch (type()) {
             @case ("Produtos") {
@@ -122,6 +132,22 @@
                   formControlName="isHighlighted"
                 />
                 <label for="isHighlighted">Fornecedor em Destaque?</label>
+              </div>
+            }
+            @case ("Banners") {
+              <app-input
+                label="Posição (Ordem)"
+                id="position"
+                formControlName="position"
+                type="number"
+              />
+              <div class="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  formControlName="isActive"
+                />
+                <label for="isActive">Banner Ativo?</label>
               </div>
             }
           }

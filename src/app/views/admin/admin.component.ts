@@ -22,6 +22,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { TableColumn } from './types/TableColumn.interface';
 import { TokenService } from '../../services/token/token.service';
 import { environment } from '../../../environments/environment';
+import { BannersService } from '../../services/banners/banners.service';
 
 @Component({
   selector: 'app-admin',
@@ -49,8 +50,9 @@ export class AdminComponent implements OnInit {
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
   private tokenService = inject(TokenService);
+  private bannersService = inject(BannersService);
 
-  pageTitle = signal<'Usuários' | 'Produtos' | 'Categorias de Produtos' | 'Fornecedores' | 'Alterar Senha'>('Produtos');
+  pageTitle = signal<'Usuários' | 'Produtos' | 'Categorias de Produtos' | 'Fornecedores' | 'Banners' | 'Alterar Senha'>('Produtos');
 
   isEntityModalOpen = signal(false);
   isConfirmModalOpen = signal(false);
@@ -76,6 +78,8 @@ export class AdminComponent implements OnInit {
       case 'Categorias de Produtos':
       case 'Fornecedores':
         return ['Nome (A-Z)', 'Nome (Z-A)'];
+      case 'Banners':
+        return ['Posição (Menor-Maior)', 'Posição (Maior-Menor)', 'Mais recentes'];
       default:
         return [];
     }
@@ -88,7 +92,8 @@ export class AdminComponent implements OnInit {
       'Produtos': this.productsService.adminProducts(),
       'Fornecedores': this.suppliersService.paginatedSuppliers(),
       'Categorias de Produtos': this.categoryService.paginatedCategories(),
-      'Usuários': this.usersService.paginatedUsers()
+      'Usuários': this.usersService.paginatedUsers(),
+      'Banners': this.bannersService.paginatedBanners()
     };
 
     const data = sourceMap[this.pageTitle()];
@@ -116,6 +121,7 @@ export class AdminComponent implements OnInit {
   ngOnInit() {
     this.categoryService.getAll();
     this.suppliersService.getAll();
+    this.bannersService.getActive();
 
     this.search.valueChanges
       .pipe(debounceTime(400), distinctUntilChanged())
@@ -139,7 +145,7 @@ export class AdminComponent implements OnInit {
     let sortField = 'name';
     let dir = 'ASC';
 
-    if (orderValue.includes('(Z-A)')) {
+    if (orderValue.includes('(Z-A)') || orderValue.includes('(Maior-Menor)')) {
       dir = 'DESC';
     }
 
@@ -149,6 +155,11 @@ export class AdminComponent implements OnInit {
       sortField = 'supplier.name';
     } else if (orderValue.startsWith('E-mail')) {
       sortField = 'email';
+    } else if (orderValue.startsWith('Posição')) {
+      sortField = 'position';
+    } else if (orderValue === 'Mais recentes') {
+      sortField = 'createdAt';
+      dir = 'DESC';
     } else {
       sortField = 'name';
     }
@@ -157,7 +168,8 @@ export class AdminComponent implements OnInit {
       'Produtos': () => this.productsService.getPaginated(term, this.currentPage(), sortField, dir),
       'Fornecedores': () => this.suppliersService.getPaginated(term, this.currentPage(), sortField, dir),
       'Categorias de Produtos': () => this.categoryService.getPaginated(term, this.currentPage(), sortField, dir),
-      'Usuários': () => this.usersService.getPaginated(term, this.currentPage(), sortField, dir)
+      'Usuários': () => this.usersService.getPaginated(term, this.currentPage(), sortField, dir),
+      'Banners': () => this.bannersService.getPaginated(term, this.currentPage(), sortField, dir)
     };
 
     actions[this.pageTitle()]?.();
@@ -195,6 +207,13 @@ export class AdminComponent implements OnInit {
         { label: 'Nome', key: 'name', type: 'text' },
         { label: 'Destaque', key: 'isHighlighted', type: 'badge' },
         { label: 'Ações', key: '', type: 'actions' }
+      ],
+      'Banners': [
+        { label: 'Imagem', key: 'imageUrl', type: 'image' },
+        { label: 'Título', key: 'title', type: 'text' },
+        { label: 'Posição', key: 'position', type: 'text' },
+        { label: 'Ativo', key: 'isActive', type: 'badge' },
+        { label: 'Ações', key: '', type: 'actions' }
       ]
     };
     return cols[this.pageTitle()] || [];
@@ -207,7 +226,8 @@ export class AdminComponent implements OnInit {
       'Produtos': this.productsService.adminProducts(),
       'Fornecedores': this.suppliersService.paginatedSuppliers(),
       'Categorias de Produtos': this.categoryService.paginatedCategories(),
-      'Usuários': this.usersService.paginatedUsers()
+      'Usuários': this.usersService.paginatedUsers(),
+      'Banners': this.bannersService.paginatedBanners()
     };
 
     const data = sourceMap[this.pageTitle()];
@@ -216,7 +236,7 @@ export class AdminComponent implements OnInit {
     const baseUrl = environment.apiUrl.replace('/api', '');
 
     return data.content.map((item: any) => {
-      let formattedImageUrl = item.imageUrl;
+      let formattedImageUrl = item.imageUrl || item.imagePath;
       if (formattedImageUrl && !formattedImageUrl.startsWith('http')) {
         formattedImageUrl = `${baseUrl}${formattedImageUrl.startsWith('/') ? '' : '/'}${formattedImageUrl}`;
       }
@@ -256,7 +276,7 @@ export class AdminComponent implements OnInit {
   handleSave(payload: { form: any; image?: File }) {
     const type = this.pageTitle();
     const isEdit = this.modalMode() === 'edit';
-    const id = this.selectedItem()?.slug || this.selectedItem()?.email;
+    const id = this.selectedItem()?.id || this.selectedItem()?.slug || this.selectedItem()?.email;
 
     let request$;
 
@@ -290,6 +310,12 @@ export class AdminComponent implements OnInit {
           ? this.usersService.update(id, payload.form)
           : this.authService.register(payload.form);
         break;
+
+      case 'Banners':
+        request$ = isEdit
+          ? this.bannersService.update(id, payload.form, payload.image || null)
+          : this.bannersService.create(payload.form, payload.image!);
+        break;
     }
 
     request$?.subscribe({
@@ -308,7 +334,7 @@ export class AdminComponent implements OnInit {
   }
 
   confirmDelete() {
-    const id = this.selectedItem()?.slug || this.selectedItem()?.email;
+    const id = this.selectedItem()?.id || this.selectedItem()?.slug || this.selectedItem()?.email;
     let delete$;
 
     switch (this.pageTitle()) {
@@ -323,6 +349,9 @@ export class AdminComponent implements OnInit {
         break;
       case 'Usuários':
         delete$ = this.usersService.delete(id);
+        break;
+      case 'Banners':
+        delete$ = this.bannersService.delete(id);
         break;
     }
 

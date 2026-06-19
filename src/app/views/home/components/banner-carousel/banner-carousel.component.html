@@ -26,6 +26,8 @@
 
   <button
     class="nav-btn prev-btn"
+    (mousedown)="$event.stopPropagation()"
+    (touchstart)="$event.stopPropagation()"
     (click)="prev(); $event.stopPropagation()"
     aria-label="Banner anterior"
   >
@@ -33,6 +35,8 @@
   </button>
   <button
     class="nav-btn next-btn"
+    (mousedown)="$event.stopPropagation()"
+    (touchstart)="$event.stopPropagation()"
     (click)="next(); $event.stopPropagation()"
     aria-label="Próximo banner"
   >
