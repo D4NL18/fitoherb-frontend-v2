@@ -44,7 +44,7 @@ export class SuppliersComponent implements OnInit, AfterViewInit {
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.3 });
+    }, { threshold: 0 });
 
     if (this.suppliersGrid) {
       observer.observe(this.suppliersGrid.nativeElement);

@@ -10,11 +10,13 @@
       <span class="badge highlight">Destaque</span>
     }
 
-    <img
-      [src]="backendUrl + product().imageUrl"
-      [alt]="product().name"
-      draggable="false"
-    />
+    @if (product().imageUrl) {
+      <img
+        [src]="backendUrl + product().imageUrl"
+        [alt]="product().name"
+        draggable="false"
+      />
+    }
   </div>
 
   <div class="content">

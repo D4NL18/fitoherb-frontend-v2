@@ -20,7 +20,9 @@
         }
 
         <div class="image-box">
-          <img [src]="backendUrl + item.imageUrl" [alt]="item.name" draggable="false">
+          @if (item.imageUrl) {
+            <img [src]="backendUrl + item.imageUrl" [alt]="item.name" draggable="false">
+          }
         </div>
 
         <div class="info">

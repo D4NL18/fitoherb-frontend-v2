@@ -46,7 +46,8 @@
         (btnClick)="openAddModal()"></app-button>
     </div>
 
-    <app-dynamic-table [columns]="columns()" [data]="tableData()" (edit)="onEdit($event)"
+    <app-dynamic-table [columns]="columns()" [data]="tableData()" [currentPage]="currentPage()"
+      [totalElements]="totalElements()" (pageChange)="onPageChange($event)" (edit)="onEdit($event)"
       (delete)="onDelete($event)"></app-dynamic-table>
   </div>
   }

@@ -7,7 +7,8 @@
   height: 100vh;
   width: 300px;
   flex-shrink: 0;
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 100;
 
   @media (max-width: 768px) {
@@ -55,7 +56,7 @@
   @media (max-width: 768px) {
     display: none;
     height: auto;
-    
+
     &.open {
       display: flex;
       position: absolute;
@@ -63,8 +64,8 @@
       left: 0;
       width: 100%;
       background-color: styles.$primary-color;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-      border-top: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
   }
 }
@@ -81,6 +82,7 @@
   .desktop-only {
     display: block;
     width: 80%;
+
     @media (max-width: 768px) {
       display: none;
     }
@@ -109,8 +111,9 @@
         border-radius: 0.5rem;
         padding: 0.8rem 1rem;
         font-size: 0.9rem;
-        
-        &:hover, &.active {
+
+        &:hover,
+        &.active {
           background-color: styles.$green-900;
           color: white;
           transform: scale(1.05);
