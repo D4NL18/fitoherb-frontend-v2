@@ -17,7 +17,7 @@
         <div class="checkbox-group">
           @for (cat of categories(); track cat.slug) {
             <div class="checkbox-item" (click)="toggleCategory(cat.slug)">
-              <input type="checkbox" [checked]="selectedCategory() === cat.slug" readonly>
+              <input type="checkbox" [checked]="selectedCategories().includes(cat.slug)" readonly>
               <label>{{ cat.name }}</label>
               <span class="count">{{ cat.count }}</span> </div>
           }
@@ -29,7 +29,7 @@
         <div class="checkbox-group">
           @for (sup of suppliers(); track sup.slug) {
             <div class="checkbox-item" (click)="toggleSupplier(sup.slug)">
-              <input type="checkbox" [checked]="selectedSupplier() === sup.slug" readonly>
+              <input type="checkbox" [checked]="selectedSuppliers().includes(sup.slug)" readonly>
               <label>{{ sup.name }}</label>
               <span class="count">{{ sup.count }}</span>
             </div>

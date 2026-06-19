@@ -45,8 +45,8 @@ export class GalleryComponent implements OnInit, AfterViewInit {
 
   orderOptions = ['A-Z', 'Z-A'];
 
-  selectedCategory = signal<string | null>(null);
-  selectedSupplier = signal<string | null>(null);
+  selectedCategories = signal<string[]>([]);
+  selectedSuppliers = signal<string[]>([]);
   currentPage = signal(0);
   selectedProduct = signal<ProductRes | null>(null);
   isModalOpen = signal(false);
@@ -63,8 +63,11 @@ export class GalleryComponent implements OnInit, AfterViewInit {
     this.supplierService.getAll();
 
     this.route.queryParams.subscribe((params) => {
-      this.selectedCategory.set(params['category'] || null);
-      this.selectedSupplier.set(params['supplier'] || null);
+      let cats = params['category'];
+      let sups = params['supplier'];
+
+      this.selectedCategories.set(cats ? (Array.isArray(cats) ? cats : [cats]) : []);
+      this.selectedSuppliers.set(sups ? (Array.isArray(sups) ? sups : [sups]) : []);
 
       this.resetAndSearch();
     });
@@ -86,8 +89,8 @@ export class GalleryComponent implements OnInit, AfterViewInit {
     this.productsService.getGallery(
       {
         search: this.search.value,
-        category: this.selectedCategory(),
-        supplier: this.selectedSupplier(),
+        category: this.selectedCategories().length ? this.selectedCategories() : null,
+        supplier: this.selectedSuppliers().length ? this.selectedSuppliers() : null,
         page: this.currentPage(),
         direction: direction,
       },
@@ -101,16 +104,18 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   }
 
   toggleCategory(slug: string) {
-    const nextValue = this.selectedCategory() === slug ? null : slug;
-    this.updateUrl('category', nextValue);
+    const current = this.selectedCategories();
+    const nextValue = current.includes(slug) ? current.filter(c => c !== slug) : [...current, slug];
+    this.updateUrl('category', nextValue.length > 0 ? nextValue : null);
   }
 
   toggleSupplier(slug: string) {
-    const nextValue = this.selectedSupplier() === slug ? null : slug;
-    this.updateUrl('supplier', nextValue);
+    const current = this.selectedSuppliers();
+    const nextValue = current.includes(slug) ? current.filter(s => s !== slug) : [...current, slug];
+    this.updateUrl('supplier', nextValue.length > 0 ? nextValue : null);
   }
 
-  private updateUrl(key: string, value: string | null) {
+  private updateUrl(key: string, value: string[] | null) {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { [key]: value },

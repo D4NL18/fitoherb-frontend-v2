@@ -75,7 +75,13 @@ export class ProductsService {
     let httpParams = new HttpParams();
     Object.keys(params).forEach((key) => {
       if (params[key] !== null && params[key] !== undefined) {
-        httpParams = httpParams.set(key, params[key]);
+        if (Array.isArray(params[key])) {
+          params[key].forEach((val: any) => {
+            httpParams = httpParams.append(key, val);
+          });
+        } else {
+          httpParams = httpParams.set(key, params[key]);
+        }
       }
     });
     return httpParams;
