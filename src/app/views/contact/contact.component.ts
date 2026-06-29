@@ -2,7 +2,7 @@ import { Component, inject, OnInit, ElementRef, ViewChild, AfterViewInit } from 
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MailService } from '../../services/mail/mail.service';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { MailReq } from '../../types/mail/MailReq.interface';
 import { ButtonComponent } from '../../shared/button/button.component';
 import { InputComponent } from '../../shared/input/input.component';

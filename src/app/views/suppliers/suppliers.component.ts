@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, ElementRef, ViewChild, AfterViewInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SuppliersService } from '../../services/suppliers/suppliers.service';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
 
 @Component({

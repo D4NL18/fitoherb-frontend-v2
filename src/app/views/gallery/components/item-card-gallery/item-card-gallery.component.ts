@@ -1,7 +1,7 @@
 import { Component, input, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductRes } from '../../../../types/products/productRes.interface';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-item-card-gallery',

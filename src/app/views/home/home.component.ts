@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { BannerCarouselComponent } from './components/banner-carousel/banner-carousel.component';
 import { ProductCategoriesService } from '../../services/product-categories/product-categories.service';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { ButtonComponent } from '../../shared/button/button.component';
 import { Router } from '@angular/router';
 
