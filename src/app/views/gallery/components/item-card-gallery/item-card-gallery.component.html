@@ -12,7 +12,7 @@
 
     @if (product().imageUrl) {
       <img
-        [src]="backendUrl + product().imageUrl"
+        [src]="product().imageUrl"
         [alt]="product().name"
         draggable="false"
       />
