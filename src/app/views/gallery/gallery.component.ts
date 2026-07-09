@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { InputComponent } from './../../shared/input/input.component';
@@ -42,6 +43,7 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   private supplierService = inject(SuppliersService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
 
   orderOptions = ['A-Z', 'Z-A'];
 
@@ -109,13 +111,17 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   toggleCategory(slug: string) {
     const current = this.selectedCategories();
     const nextValue = current.includes(slug) ? current.filter(c => c !== slug) : [...current, slug];
+    this.selectedCategories.set(nextValue);
     this.updateUrl('category', nextValue.length > 0 ? nextValue : null);
+    this.resetAndSearch();
   }
 
   toggleSupplier(slug: string) {
     const current = this.selectedSuppliers();
     const nextValue = current.includes(slug) ? current.filter(s => s !== slug) : [...current, slug];
+    this.selectedSuppliers.set(nextValue);
     this.updateUrl('supplier', nextValue.length > 0 ? nextValue : null);
+    this.resetAndSearch();
   }
 
   toggleCategoriesExpand() {
@@ -127,11 +133,12 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   }
 
   private updateUrl(key: string, value: string[] | null) {
-    this.router.navigate([], {
+    const urlTree = this.router.createUrlTree([], {
       relativeTo: this.route,
       queryParams: { [key]: value },
       queryParamsHandling: 'merge',
     });
+    this.location.replaceState(this.router.serializeUrl(urlTree));
   }
 
   private initInfiniteScroll() {

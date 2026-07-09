@@ -17,16 +17,14 @@
           CATEGORIA
           <i class="fas" [class.fa-chevron-down]="categoriesExpanded()" [class.fa-chevron-right]="!categoriesExpanded()"></i>
         </label>
-        @if (categoriesExpanded()) {
-          <div class="checkbox-group">
-            @for (cat of categories(); track cat.slug) {
-              <div class="checkbox-item" (click)="toggleCategory(cat.slug)">
-                <input type="checkbox" [checked]="selectedCategories().includes(cat.slug)" readonly>
-                <label>{{ cat.name }}</label>
-                <span class="count">{{ cat.count }}</span> </div>
-            }
-          </div>
-        }
+        <div class="checkbox-group" [class.expanded]="categoriesExpanded()">
+          @for (cat of categories(); track cat.slug) {
+            <div class="checkbox-item" (click)="toggleCategory(cat.slug)">
+              <input type="checkbox" [checked]="selectedCategories().includes(cat.slug)" readonly>
+              <label>{{ cat.name }}</label>
+              <span class="count">{{ cat.count }}</span> </div>
+          }
+        </div>
       </div>
 
       <div class="filter-box">
@@ -34,17 +32,15 @@
           FORNECEDOR
           <i class="fas" [class.fa-chevron-down]="suppliersExpanded()" [class.fa-chevron-right]="!suppliersExpanded()"></i>
         </label>
-        @if (suppliersExpanded()) {
-          <div class="checkbox-group">
-            @for (sup of suppliers(); track sup.slug) {
-              <div class="checkbox-item" (click)="toggleSupplier(sup.slug)">
-                <input type="checkbox" [checked]="selectedSuppliers().includes(sup.slug)" readonly>
-                <label>{{ sup.name }}</label>
-                <span class="count">{{ sup.count }}</span>
-              </div>
-            }
-          </div>
-        }
+        <div class="checkbox-group" [class.expanded]="suppliersExpanded()">
+          @for (sup of suppliers(); track sup.slug) {
+            <div class="checkbox-item" (click)="toggleSupplier(sup.slug)">
+              <input type="checkbox" [checked]="selectedSuppliers().includes(sup.slug)" readonly>
+              <label>{{ sup.name }}</label>
+              <span class="count">{{ sup.count }}</span>
+            </div>
+          }
+        </div>
       </div>
     </aside>
 
