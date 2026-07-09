@@ -55,11 +55,11 @@
 
 @if (isEntityModalOpen() && pageTitle() !== 'Alterar Senha') {
 <app-modal-entity [type]="$any(pageTitle())" [mode]="modalMode()" [data]="selectedItem()"
-  (close)="isEntityModalOpen.set(false)" (save)="handleSave($event)"></app-modal-entity>
+  [isLoading]="isSaving()" (close)="isEntityModalOpen.set(false)" (save)="handleSave($event)"></app-modal-entity>
 }
 
 @if (isConfirmModalOpen()) {
-<app-modal-confirm [itemName]="selectedItem()?.name" (close)="isConfirmModalOpen.set(false)"
+<app-modal-confirm [itemName]="selectedItem()?.name" [isLoading]="isSaving()" (close)="isConfirmModalOpen.set(false)"
   (confirm)="confirmDelete()"></app-modal-confirm>
 }
 

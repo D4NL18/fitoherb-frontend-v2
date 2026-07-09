@@ -15,7 +15,7 @@ export class InputComponent implements ControlValueAccessor {
   label = input<string>();
   id = input.required<string>();
   placeholder = input<string>('');
-  type = input<'text' | 'email' | 'tel' | 'number' | 'password'>('text');
+  type = input<'text' | 'email' | 'tel' | 'number' | 'password' | 'date'>('text');
   required = input<boolean>(false);
   icon = input<string | null>(null);
   errorMsg = input<string | null>(null);

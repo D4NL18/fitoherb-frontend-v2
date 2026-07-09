@@ -118,10 +118,10 @@
                 [options]="roleOptions"
               />
               <app-input
-                label="Data de Nascimento (dd-mm-aaaa)"
+                label="Data de Nascimento"
                 id="birthDate"
                 formControlName="birthDate"
-                placeholder="Ex: 25-10-1995"
+                type="date"
               />
             }
             @case ("Fornecedores") {
@@ -171,6 +171,7 @@
             [label]="mode() === 'create' ? 'Cadastrar' : 'Salvar Alterações'"
             variant="primary"
             type="submit"
+            [loading]="isLoading()"
           />
         </footer>
       </form>

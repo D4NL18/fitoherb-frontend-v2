@@ -14,11 +14,12 @@ export class ButtonComponent {
   icon = input<string | null>(null);
   fullWidth = input<boolean>(false);
   disabled = input<boolean>(false);
+  loading = input<boolean>(false);
 
   btnClick = output<void>();
 
   onClick() {
-    if (!this.disabled()) {
+    if (!this.disabled() && !this.loading()) {
       this.btnClick.emit();
     }
   }

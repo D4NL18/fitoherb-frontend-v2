@@ -99,16 +99,10 @@
 
           <div class="btn-group">
             <app-button
-              [label]="
-                mailService.isLoading() ? 'Enviando...' : 'Enviar mensagem'
-              "
+              label="Enviar mensagem"
               variant="primary"
-              [icon]="
-                mailService.isLoading()
-                  ? 'fas fa-spinner fa-spin'
-                  : 'fas fa-comment-dots'
-              "
-              [disabled]="mailService.isLoading()"
+              icon="fas fa-comment-dots"
+              [loading]="mailService.isLoading()"
               type="submit"
             ></app-button>
           </div>

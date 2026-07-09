@@ -60,6 +60,8 @@ export class AdminComponent implements OnInit {
   isConfirmModalOpen = signal(false);
   modalMode = signal<'create' | 'edit'>('create');
   selectedItem = signal<any>(null);
+  
+  isSaving = signal(false);
 
   isResponseModalOpen = signal(false);
   responseStatus = signal<number>(200);
@@ -331,14 +333,17 @@ export class AdminComponent implements OnInit {
         break;
     }
 
+    this.isSaving.set(true);
     request$?.subscribe({
       next: () => {
+        this.isSaving.set(false);
         this.isEntityModalOpen.set(false);
         this.loadData();
         const msgSucesso = isEdit ? 'Atualizado com sucesso!' : 'Cadastrado com sucesso!';
         this.showFeedback(200, msgSucesso);
       },
       error: (err) => {
+        this.isSaving.set(false);
         const status = err.status;
         if (status === 0) {
           this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
@@ -372,13 +377,16 @@ export class AdminComponent implements OnInit {
         break;
     }
 
+    this.isSaving.set(true);
     delete$?.subscribe({
       next: () => {
+        this.isSaving.set(false);
         this.isConfirmModalOpen.set(false);
         this.loadData();
         this.showFeedback(200, 'Excluído permanentemente com sucesso!');
       },
       error: (err) => {
+        this.isSaving.set(false);
         this.isConfirmModalOpen.set(false);
         const status = err.status;
         if (status === 0) {
@@ -411,12 +419,15 @@ export class AdminComponent implements OnInit {
       return;
     }
 
+    this.isSaving.set(true);
     this.usersService.updatePassword(currentUserEmail, { password: newPassword }).subscribe({
       next: () => {
+        this.isSaving.set(false);
         this.showFeedback(200, 'Senha atualizada com sucesso!');
         this.passwordForm.reset();
       },
       error: (err) => {
+        this.isSaving.set(false);
         const status = err.status;
         if (status === 0) {
           this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');

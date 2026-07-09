@@ -14,7 +14,7 @@
 
     <div class="modal-footer">
       <app-button label="Cancelar" variant="outline" (btnClick)="onClose()" />
-      <app-button label="Sim, excluir" variant="primary" class="btn-danger" (btnClick)="onConfirm()" />
+      <app-button label="Sim, excluir" variant="primary" class="btn-danger" [loading]="isLoading()" (btnClick)="onConfirm()" />
     </div>
   </div>
 </div>

@@ -1,10 +1,13 @@
 <button
   [class]="'custom-btn ' + variant()"
   [class.full-width]="fullWidth()"
-  [disabled]="disabled()"
+  [class.is-loading]="loading()"
+  [disabled]="disabled() || loading()"
   (click)="onClick()"
 >
-  @if (icon()) {
+  @if (loading()) {
+    <i class="fas fa-circle-notch fa-spin"></i>
+  } @else if (icon()) {
     <i [class]="icon()"></i>
   }
   <span>{{ label() }}</span>

@@ -32,6 +32,16 @@
     }
   }
 
+  &.is-loading {
+    cursor: wait;
+    opacity: 0.8;
+    filter: none;
+    
+    &:hover {
+      filter: none;
+    }
+  }
+
   i { font-size: 1.1rem; }
 
   &.primary {

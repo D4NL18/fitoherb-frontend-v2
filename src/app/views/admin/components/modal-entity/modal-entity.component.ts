@@ -41,6 +41,7 @@ export class ModalEntityComponent implements OnInit {
   >();
   mode = input<'create' | 'edit'>('create');
   data = input<any>(null);
+  isLoading = input<boolean>(false);
 
   close = output<void>();
   save = output<{ form: any; image?: File }>();
@@ -86,6 +87,13 @@ export class ModalEntityComponent implements OnInit {
         initialData.supplierName =
           this.data().supplier?.name || this.data().supplierName;
         initialData.flavours = this.data().flavours?.join(', ');
+      }
+
+      if (this.type() === 'Usuários' && initialData.birthDate) {
+        const parts = initialData.birthDate.split('-');
+        if (parts.length === 3 && parts[0].length === 2) {
+          initialData.birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
       }
 
       this.entityForm.patchValue(initialData);
@@ -198,8 +206,18 @@ export class ModalEntityComponent implements OnInit {
           image: this.selectedFile || undefined,
         });
       } else {
+        const finalPayload = { ...rawValue };
+
+        if (this.type() === 'Usuários' && finalPayload.birthDate) {
+          const parts = finalPayload.birthDate.split('-');
+          if (parts.length === 3 && parts[0].length === 4) {
+            // Convert yyyy-MM-dd to dd-MM-yyyy for the backend
+            finalPayload.birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          }
+        }
+
         this.save.emit({
-          form: rawValue,
+          form: finalPayload,
           image: this.selectedFile || undefined,
         });
       }
