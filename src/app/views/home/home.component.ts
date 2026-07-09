@@ -65,7 +65,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   private initScrollObserver() {
-    const options = { threshold: 0.3 };
+    const options = { threshold: 0.1 };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
