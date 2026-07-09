@@ -51,6 +51,9 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   selectedProduct = signal<ProductRes | null>(null);
   isModalOpen = signal(false);
 
+  categoriesExpanded = signal(true);
+  suppliersExpanded = signal(true);
+
   search = new FormControl('');
   orderBy = new FormControl('A-Z');
 
@@ -113,6 +116,14 @@ export class GalleryComponent implements OnInit, AfterViewInit {
     const current = this.selectedSuppliers();
     const nextValue = current.includes(slug) ? current.filter(s => s !== slug) : [...current, slug];
     this.updateUrl('supplier', nextValue.length > 0 ? nextValue : null);
+  }
+
+  toggleCategoriesExpand() {
+    this.categoriesExpanded.update(v => !v);
+  }
+
+  toggleSuppliersExpand() {
+    this.suppliersExpanded.update(v => !v);
   }
 
   private updateUrl(key: string, value: string[] | null) {
