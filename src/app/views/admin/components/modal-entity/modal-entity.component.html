@@ -153,6 +153,13 @@
           }
         </div>
 
+        @if (formError()) {
+          <div class="form-error-alert">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            {{ formError() }}
+          </div>
+        }
+
         <footer class="modal-footer">
           <app-button
             label="Cancelar"
@@ -164,7 +171,6 @@
             [label]="mode() === 'create' ? 'Cadastrar' : 'Salvar Alterações'"
             variant="primary"
             type="submit"
-            [disabled]="entityForm.invalid || !isImageValid"
           />
         </footer>
       </form>

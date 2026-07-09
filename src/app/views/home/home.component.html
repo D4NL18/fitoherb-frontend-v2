@@ -78,20 +78,21 @@
       track category.slug;
       let i = $index
     ) {
-      <div
-        class="category reveal-left"
-        [style.backgroundImage]="'url(' + category.imageUrl + ')'"
-        [style.transition-delay]="i * 0.3 + 0.4 + 's'"
-      >
-        <h3>{{ category.name }}</h3>
-
-        <app-button
-          label="Ver Produtos"
-          variant="primary"
-          [fullWidth]="true"
-          (btnClick)="goToCategory(category.slug)"
+      <div class="category-wrapper reveal-left" [style.transition-delay]="i * 0.3 + 0.4 + 's'">
+        <div
+          class="category"
+          [style.backgroundImage]="'url(' + category.imageUrl + ')'"
         >
-        </app-button>
+          <h3>{{ category.name }}</h3>
+
+          <app-button
+            label="Ver Produtos"
+            variant="primary"
+            [fullWidth]="true"
+            (btnClick)="goToCategory(category.slug)"
+          >
+          </app-button>
+        </div>
       </div>
     }
   </div>

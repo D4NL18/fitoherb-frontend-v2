@@ -67,3 +67,7 @@
 <app-modal-response [status]="responseStatus()" [message]="responseMessage()"
   (close)="isResponseModalOpen.set(false)"></app-modal-response>
 }
+
+@if (isToastOpen()) {
+  <app-toast [message]="toastMessage()"></app-toast>
+}

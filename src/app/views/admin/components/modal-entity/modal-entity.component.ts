@@ -5,6 +5,7 @@ import {
   output,
   OnInit,
   computed,
+  signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -50,6 +51,7 @@ export class ModalEntityComponent implements OnInit {
   imagePreview: string | null = null;
 
   submitAttempted = false;
+  formError = signal<string>('');
 
   categories = inject(ProductCategoriesService).productCategories;
   suppliers = inject(SuppliersService).suppliers;
@@ -169,6 +171,7 @@ export class ModalEntityComponent implements OnInit {
 
   onSubmit() {
     this.submitAttempted = true;
+    this.formError.set('');
 
     if (this.entityForm.valid && this.isImageValid) {
       const rawValue = this.entityForm.getRawValue();
@@ -202,6 +205,7 @@ export class ModalEntityComponent implements OnInit {
       }
     } else {
       this.entityForm.markAllAsTouched();
+      this.formError.set('Por favor, verifique os campos destacados em vermelho e tente novamente.');
     }
   }
 }

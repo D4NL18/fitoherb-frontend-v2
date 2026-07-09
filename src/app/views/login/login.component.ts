@@ -34,6 +34,8 @@ export class LoginComponent {
   onSubmit() {
     if (!this.email || !this.password) {
       this.errorMessage.set('Preencha todos os campos corretamente.');
+      this.errorStatus.set(400);
+      this.modalResponseOpen.set(true);
       return;
     }
 
@@ -49,14 +51,23 @@ export class LoginComponent {
         error: (err) => {
           this.isLoading.set(false);
           const backendError = err.error as AuthError;
-          if (backendError && backendError.message) {
+          const status = err.status;
+          
+          if (status === 0) {
+            this.errorMessage.set('Não foi possível conectar ao servidor. Verifique sua conexão.');
+            this.errorStatus.set(0);
+          } else if (status === 401 || status === 403 || status === 400) {
+            this.errorMessage.set('Usuário ou senha incorretos.');
+            this.errorStatus.set(status);
+          } else if (backendError && backendError.message) {
             this.errorMessage.set(backendError.message);
-            this.errorStatus.set(backendError.status);
+            this.errorStatus.set(status);
           } else {
             this.errorMessage.set('Erro inesperado no servidor.');
-            this.errorStatus.set(500);
+            this.errorStatus.set(status || 500);
           }
-          if (backendError.errors) {
+
+          if (backendError?.errors) {
             console.log('Campos com erro:', backendError.errors);
           }
           this.modalResponseOpen.set(true);

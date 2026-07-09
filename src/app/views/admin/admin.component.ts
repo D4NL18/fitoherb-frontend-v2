@@ -12,6 +12,7 @@ import { DynamicTableComponent } from './components/dynamic-table/dynamic-table.
 import { ModalEntityComponent } from './components/modal-entity/modal-entity.component';
 import { ModalConfirmComponent } from './components/modal-confirm/modal-confirm.component';
 import { ModalResponseComponent } from '../../shared/modal-response/modal-response.component';
+import { ToastComponent } from '../../shared/toast/toast.component';
 
 import { ProductsService } from '../../services/products/products.service';
 import { SuppliersService } from '../../services/suppliers/suppliers.service';
@@ -37,7 +38,8 @@ import { BannersService } from '../../services/banners/banners.service';
     DynamicTableComponent,
     ModalEntityComponent,
     ModalConfirmComponent,
-    ModalResponseComponent
+    ModalResponseComponent,
+    ToastComponent
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
@@ -62,6 +64,9 @@ export class AdminComponent implements OnInit {
   isResponseModalOpen = signal(false);
   responseStatus = signal<number>(200);
   responseMessage = signal<string>('');
+
+  isToastOpen = signal(false);
+  toastMessage = signal<string>('');
 
   search = new FormControl('');
   orderBy = new FormControl('Nome (A-Z)');
@@ -268,9 +273,17 @@ export class AdminComponent implements OnInit {
   }
 
   showFeedback(status: number, message: string) {
-    this.responseStatus.set(status);
-    this.responseMessage.set(message);
-    this.isResponseModalOpen.set(true);
+    if (status >= 200 && status < 300) {
+      this.toastMessage.set(message);
+      this.isToastOpen.set(true);
+      setTimeout(() => {
+        this.isToastOpen.set(false);
+      }, 4000);
+    } else {
+      this.responseStatus.set(status);
+      this.responseMessage.set(message);
+      this.isResponseModalOpen.set(true);
+    }
   }
 
   handleSave(payload: { form: any; image?: File }) {
@@ -326,9 +339,13 @@ export class AdminComponent implements OnInit {
         this.showFeedback(200, msgSucesso);
       },
       error: (err) => {
-        const status = err.status || 500;
-        const msgErro = err.error?.message || 'Ocorreu um erro interno. Verifique os dados.';
-        this.showFeedback(status, msgErro);
+        const status = err.status;
+        if (status === 0) {
+          this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
+        } else {
+          const msgErro = err.error?.message || 'Ocorreu um erro interno. Verifique os dados.';
+          this.showFeedback(status || 500, msgErro);
+        }
       },
     });
   }
@@ -363,9 +380,13 @@ export class AdminComponent implements OnInit {
       },
       error: (err) => {
         this.isConfirmModalOpen.set(false);
-        const status = err.status || 500;
-        const msgErro = err.error?.message || 'Erro ao tentar excluir. O registro pode estar vinculado a outras tabelas.';
-        this.showFeedback(status, msgErro);
+        const status = err.status;
+        if (status === 0) {
+          this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
+        } else {
+          const msgErro = err.error?.message || 'Erro ao tentar excluir. O registro pode estar vinculado a outras tabelas.';
+          this.showFeedback(status || 500, msgErro);
+        }
       },
     });
   }
@@ -396,9 +417,13 @@ export class AdminComponent implements OnInit {
         this.passwordForm.reset();
       },
       error: (err) => {
-        const status = err.status || 500;
-        const msg = err.error?.message || 'Erro ao atualizar a senha. Verifique seus dados.';
-        this.showFeedback(status, msg);
+        const status = err.status;
+        if (status === 0) {
+          this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
+        } else {
+          const msgErro = err.error?.message || 'Erro ao atualizar a senha. Verifique seus dados.';
+          this.showFeedback(status || 500, msgErro);
+        }
       }
     });
   }
