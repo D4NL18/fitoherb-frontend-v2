@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 export class ButtonComponent {
   label = input.required<string>();
   variant = input<'primary' | 'outline' | 'white'>('primary');
+  size = input<'small' | 'medium' | 'large'>('medium');
   icon = input<string | null>(null);
   fullWidth = input<boolean>(false);
   disabled = input<boolean>(false);

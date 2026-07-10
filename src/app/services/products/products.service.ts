@@ -39,12 +39,15 @@ export class ProductsService {
       });
   }
 
-  getPaginated(search: string = '', page: number = 0, sortField: string = 'name', direction: string = 'ASC') {
-    const params = new HttpParams()
+  getPaginated(search: string = '', page: number = 0, sortField: string = 'name', direction: string = 'ASC', categories: string[] = [], suppliers: string[] = []) {
+    let params = new HttpParams()
       .set('search', search)
       .set('page', page.toString())
       .set('sortField', sortField)
       .set('direction', direction);
+
+    categories.forEach(c => { params = params.append('category', c); });
+    suppliers.forEach(s => { params = params.append('supplier', s); });
 
     this.http.get<PageResponse<ProductRes>>(this.API_URL, { params }).subscribe({
       next: (res) => this.adminProductsState.set(res),

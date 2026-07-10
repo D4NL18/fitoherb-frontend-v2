@@ -1,18 +1,54 @@
-<div class="form-group">
-      @if (label()) { <label [for]="id()">{{ label() }} @if (required()) { <span>*</span> }</label> }
-      <div class="select-wrapper">
-        <select
-          [id]="id()"
-          [disabled]="disabled"
-          [class.invalid]="showError()"
-          (change)="onChangeSelect($event)"
-          (blur)="onTouched()"
-        >
-          <option value="" disabled [selected]="!value">{{ placeholder() }}</option>
-          @for (opt of options(); track opt) {
-            <option [value]="opt">{{ opt }}</option>
-          }
-        </select>
-      </div>
-      @if (showError() && errorMsg()) { <span class="error-msg">{{ errorMsg() }}</span> }
+<div class="form-group" [class.disabled]="disabled">
+  @if (label()) { <label [for]="id()">{{ label() }} @if (required()) { <span>*</span> }</label> }
+  <div class="select-wrapper" (click)="toggleOpen($event)">
+    <div 
+      class="selected-value" 
+      [id]="id()" 
+      [class.invalid]="showError()"
+      [class.placeholder-text]="!value"
+      tabindex="0"
+      (blur)="onTouched()"
+    >
+      {{ value || placeholder() }}
     </div>
+
+    @if (isOpen) {
+      <div class="dropdown-list" (click)="$event.stopPropagation()">
+        @if (searchable()) {
+          <div class="search-box">
+            <input 
+              type="text" 
+              placeholder="Buscar..." 
+              [value]="searchTerm()"
+              (input)="onSearch($event)"
+              (click)="$event.stopPropagation()"
+            >
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </div>
+        }
+        <div class="options-container">
+          <div 
+            class="option placeholder-option" 
+            [class.selected]="!value"
+            (click)="selectOption('', $event)"
+          >
+            {{ placeholder() }}
+          </div>
+          @for (opt of filteredOptions(); track opt) {
+            <div 
+              class="option" 
+              [class.selected]="opt === value"
+              (click)="selectOption(opt, $event)"
+            >
+              {{ opt }}
+            </div>
+          }
+          @if (filteredOptions().length === 0) {
+            <div class="no-options">Nenhuma opção encontrada</div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+  @if (showError() && errorMsg()) { <span class="error-msg">{{ errorMsg() }}</span> }
+</div>

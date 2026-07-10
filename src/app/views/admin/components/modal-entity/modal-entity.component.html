@@ -89,12 +89,14 @@
                 id="category"
                 formControlName="categoryName"
                 [options]="categoryNames()"
+                [searchable]="true"
               />
               <app-select
                 label="Fornecedor"
                 id="supplier"
                 formControlName="supplierName"
                 [options]="supplierNames()"
+                [searchable]="true"
               />
               <app-input
                 label="Sabores (Separados por vírgula)"

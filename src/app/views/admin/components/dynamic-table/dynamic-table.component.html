@@ -4,7 +4,18 @@
       <thead>
         <tr>
           @for (col of columns(); track col.label) {
-          <th>{{ col.label }}</th>
+          <th>
+            <div class="th-content">
+              <span>{{ col.label }}</span>
+              @if (col.filterable && col.filterOptions) {
+                <app-table-filter 
+                  [options]="col.filterOptions"
+                  [selectedValues]="activeFilters()[col.key] || []"
+                  (applyFilter)="onFilterApply(col.key, $event)"
+                ></app-table-filter>
+              }
+            </div>
+          </th>
           }
         </tr>
       </thead>

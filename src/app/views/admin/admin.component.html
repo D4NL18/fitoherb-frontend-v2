@@ -40,6 +40,8 @@
           icon="fa-solid fa-magnifying-glass"></app-input>
 
         <app-select id="order" class="select" [formControl]="orderBy" [options]="orderOptions()"></app-select>
+
+        <app-button label="Limpar Filtros" variant="outline" size="small" (btnClick)="clearFilters()"></app-button>
       </div>
 
       <app-button [label]="'Adicionar ' + (pageTitle() | lowercase)" icon="fa-solid fa-plus"
@@ -48,7 +50,7 @@
 
     <app-dynamic-table [columns]="columns()" [data]="tableData()" [currentPage]="currentPage()"
       [totalElements]="totalElements()" (pageChange)="onPageChange($event)" (edit)="onEdit($event)"
-      (delete)="onDelete($event)"></app-dynamic-table>
+      (delete)="onDelete($event)" [activeFilters]="activeFilters()" (filterApply)="onFilterApply($event)"></app-dynamic-table>
   </div>
   }
 </section>

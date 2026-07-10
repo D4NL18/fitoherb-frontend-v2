@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal, effect, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, effect, OnInit, untracked } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
@@ -74,6 +75,7 @@ export class AdminComponent implements OnInit {
   orderBy = new FormControl('Nome (A-Z)');
 
   currentPage = signal<number>(0);
+  activeFilters = signal<Record<string, string[]>>({});
 
   orderOptions = computed(() => {
     const title = this.pageTitle();
@@ -119,9 +121,13 @@ export class AdminComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      this.orderBy.setValue('Nome (A-Z)', { emitEvent: false });
-      this.currentPage.set(0);
-      this.loadData();
+      const title = this.pageTitle();
+      untracked(() => {
+        this.orderBy.setValue('Nome (A-Z)', { emitEvent: false });
+        this.currentPage.set(0);
+        this.activeFilters.set({});
+        this.loadData();
+      });
     }, { allowSignalWrites: true });
   }
 
@@ -172,7 +178,11 @@ export class AdminComponent implements OnInit {
     }
 
     const actions: Record<string, () => void> = {
-      'Produtos': () => this.productsService.getPaginated(term, this.currentPage(), sortField, dir),
+      'Produtos': () => {
+        const categories = this.activeFilters()['categoryName'] || [];
+        const suppliers = this.activeFilters()['supplierName'] || [];
+        this.productsService.getPaginated(term, this.currentPage(), sortField, dir, categories, suppliers);
+      },
       'Fornecedores': () => this.suppliersService.getPaginated(term, this.currentPage(), sortField, dir),
       'Categorias de Produtos': () => this.categoryService.getPaginated(term, this.currentPage(), sortField, dir),
       'Usuários': () => this.usersService.getPaginated(term, this.currentPage(), sortField, dir),
@@ -184,6 +194,34 @@ export class AdminComponent implements OnInit {
 
   onPageChange(page: number) {
     this.currentPage.set(page);
+    this.loadData();
+  }
+
+  onFilterApply(event: {key: string, values: string[]}) {
+    this.activeFilters.update(filters => ({
+      ...filters,
+      [event.key]: event.values
+    }));
+    this.currentPage.set(0);
+    this.loadData();
+  }
+
+  searchValue = toSignal(this.search.valueChanges, { initialValue: this.search.value });
+  orderValueSignal = toSignal(this.orderBy.valueChanges, { initialValue: this.orderBy.value });
+
+  hasActiveFilters = computed(() => {
+    const hasSearch = !!this.searchValue();
+    const hasOrder = this.orderValueSignal() !== 'Nome (A-Z)';
+    const filters = this.activeFilters();
+    const hasTableFilters = Object.values(filters).some(arr => arr && arr.length > 0);
+    return hasSearch || hasOrder || hasTableFilters;
+  });
+
+  clearFilters() {
+    this.search.setValue('', { emitEvent: false });
+    this.orderBy.setValue('Nome (A-Z)', { emitEvent: false });
+    this.activeFilters.set({});
+    this.currentPage.set(0);
     this.loadData();
   }
 
@@ -200,8 +238,20 @@ export class AdminComponent implements OnInit {
       'Produtos': [
         { label: 'Imagem', key: 'imageUrl', type: 'image' },
         { label: 'Nome', key: 'name', type: 'text' },
-        { label: 'Categoria', key: 'categoryName', type: 'badge' },
-        { label: 'Fornecedor', key: 'supplierName', type: 'text' },
+        { 
+          label: 'Categoria', 
+          key: 'categoryName', 
+          type: 'badge',
+          filterable: true,
+          filterOptions: this.categoryService.productCategories().map(c => ({ label: c.name, value: c.slug }))
+        },
+        { 
+          label: 'Fornecedor', 
+          key: 'supplierName', 
+          type: 'text',
+          filterable: true,
+          filterOptions: this.suppliersService.suppliers().map(s => ({ label: s.name, value: s.slug }))
+        },
         { label: 'Ações', key: '', type: 'actions' }
       ],
       'Categorias de Produtos': [

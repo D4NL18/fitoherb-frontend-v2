@@ -1,0 +1,32 @@
+<div class="filter-icon" (click)="toggleOpen($event)" [class.active]="selectedValues().length > 0">
+  <i class="fa-solid fa-filter"></i>
+</div>
+
+@if (isOpen()) {
+  <div class="dropdown-list" (click)="$event.stopPropagation()">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Buscar..." 
+        [(ngModel)]="searchTerm"
+        (click)="$event.stopPropagation()"
+      >
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+    <div class="options-container">
+      @for (opt of filteredOptions(); track opt.value) {
+        <div class="option" (click)="toggleSelection(opt.value, $event)">
+          <input type="checkbox" [checked]="pendingSelected().has(opt.value)">
+          <span>{{ opt.label }}</span>
+        </div>
+      }
+      @if (filteredOptions().length === 0) {
+        <div class="no-options">Nenhuma opção encontrada</div>
+      }
+    </div>
+    <div class="actions">
+      <button class="btn-clear" (click)="onClear($event)">Limpar</button>
+      <button class="btn-apply" (click)="onApply($event)">Aplicar</button>
+    </div>
+  </div>
+}

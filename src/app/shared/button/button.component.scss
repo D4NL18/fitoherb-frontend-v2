@@ -16,7 +16,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-  border: none;
+  border: 2px solid transparent; /* default transparent border to prevent height shift */
+  box-sizing: border-box; /* ensure border doesn't add to total height */
   width: 100%;
 
   &:disabled {
@@ -44,6 +45,21 @@
 
   i { font-size: 1.1rem; }
 
+  &.small {
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+
+  &.large {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.1rem;
+  }
+
+  span {
+    white-space: nowrap;
+  }
+
   &.primary {
     background-color: styles.$primary-color;
     color: white;
@@ -62,12 +78,13 @@
     background: transparent;
     color: styles.$primary-color;
     border: 2px solid styles.$primary-color;
+    box-shadow: 0 10px 20px rgba(styles.$primary-color, 0.1);
 
-    &:disabled { background-color: #ccc; color: #666; } // Estilo neutro para primary disabled
+    &:disabled { background-color: #ccc; color: #666; border-color: #ccc; box-shadow: none; }
 
     &:hover {
-      background-color: styles.$primary-color;
-      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 15px 25px rgba(styles.$primary-color, 0.2);
     }
   }
 

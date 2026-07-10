@@ -31,6 +31,12 @@ table {
       color: styles.$gray-900;
       font-weight: 600;
       white-space: nowrap;
+
+      .th-content {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
     }
   }
 
