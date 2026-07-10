@@ -41,7 +41,9 @@
 
         <app-select id="order" class="select" [formControl]="orderBy" [options]="orderOptions()"></app-select>
 
-        <app-button label="Limpar Filtros" variant="outline" size="small" (btnClick)="clearFilters()"></app-button>
+        @if (pageTitle() === 'Produtos') {
+          <app-button label="Limpar Filtros" variant="outline" size="small" (btnClick)="clearFilters()"></app-button>
+        }
       </div>
 
       <app-button [label]="'Adicionar ' + (pageTitle() | lowercase)" icon="fa-solid fa-plus"

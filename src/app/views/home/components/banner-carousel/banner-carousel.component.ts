@@ -73,7 +73,7 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       this.autoplayInterval = setInterval(() => {
         this.next();
-      }, 5000);
+      }, 8000);
     }
   }
 

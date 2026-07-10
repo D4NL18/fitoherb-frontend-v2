@@ -33,11 +33,24 @@
     </div>
 
     <ul>
-      <li><a routerLink="/" draggable="false" (click)="closeMenu()">Home</a></li>
-      <li><a routerLink="/quem-somos" draggable="false" (click)="closeMenu()">Quem Somos</a></li>
-      <li><a routerLink="/produtos" draggable="false" (click)="closeMenu()">Produtos</a></li>
-      <li><a routerLink="/fornecedores" draggable="false" (click)="closeMenu()">Fornecedores</a></li>
-      <li><a routerLink="/contato" draggable="false" (click)="closeMenu()">Fale Conosco</a></li>
+      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" draggable="false" (click)="closeMenu()">Home</a></li>
+      <li><a routerLink="/quem-somos" routerLinkActive="active" draggable="false" (click)="closeMenu()">Quem Somos</a></li>
+      <li class="dropdown" (mouseenter)="isProductsDropdownOpen = true" (mouseleave)="isProductsDropdownOpen = false">
+        <a routerLink="/produtos" routerLinkActive="active" draggable="false" (click)="closeMenu()">
+          Produtos <i class="fa-solid fa-chevron-down"></i>
+        </a>
+        @if (isProductsDropdownOpen) {
+          <ul class="dropdown-menu">
+            @for (cat of categories(); track cat.slug) {
+              <li><a [routerLink]="['/produtos']" [queryParams]="{category: cat.slug}" (click)="closeMenu()">{{ cat.name }}</a></li>
+            }
+            <li class="divider"></li>
+            <li><a routerLink="/produtos" (click)="closeMenu()"><strong>Ver todos os produtos</strong></a></li>
+          </ul>
+        }
+      </li>
+      <li><a routerLink="/fornecedores" routerLinkActive="active" draggable="false" (click)="closeMenu()">Fornecedores</a></li>
+      <li><a routerLink="/contato" routerLinkActive="active" draggable="false" (click)="closeMenu()">Fale Conosco</a></li>
     </ul>
 
     <button class="admin-btn" routerLink="/login" (click)="closeMenu()">

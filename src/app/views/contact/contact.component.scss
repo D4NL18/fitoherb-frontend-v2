@@ -25,7 +25,7 @@
   align-items: center;
   text-align: center;
   justify-content: center;
-  padding: 14rem 2rem 12rem;
+  padding: 10rem 2rem 6rem;
   background: linear-gradient(180deg, styles.$forest-mid 0%, styles.$forest-light 100%);
   position: relative;
   overflow: hidden;
@@ -153,5 +153,8 @@
 
 @media (max-width: 768px) {
   .contact-section .contact-form-wrapper form .form-row { grid-template-columns: 1fr; }
-  .title-section h1 { font-size: 3rem; }
+  .title-section {
+    padding: 8rem 1rem 4rem;
+    h1 { font-size: 3rem; }
+  }
 }
