@@ -5,62 +5,65 @@
 </section>
 
 <section class="gallery-container">
-  <div class="container-wrapper">
-    <aside class="filters-sidebar">
-      <div class="filter-box">
-        <label><i class="fas fa-search"></i> BUSCAR</label>
-        <app-input [formControl]="search" placeholder="Nome do produto..." id="search" icon="fa-brands fa-sistrix"></app-input>
+  <!-- Horizontal Toolbar -->
+  <div class="filters-toolbar">
+    <div class="toolbar-top">
+      <div class="search-wrapper">
+         <app-input [formControl]="search" placeholder="Buscar produtos..." id="search" icon="fa-brands fa-sistrix"></app-input>
       </div>
 
-      <div class="filter-box">
-        <label (click)="toggleCategoriesExpand()" class="collapsible-label">
-          CATEGORIA
-          <i class="fas" [class.fa-chevron-down]="categoriesExpanded()" [class.fa-chevron-right]="!categoriesExpanded()"></i>
-        </label>
-        <div class="checkbox-group" [class.expanded]="categoriesExpanded()">
-          @for (cat of categories(); track cat.slug) {
-            <div class="checkbox-item" (click)="toggleCategory(cat.slug)">
-              <input type="checkbox" [checked]="selectedCategories().includes(cat.slug)" readonly>
-              <label>{{ cat.name }}</label>
-              <span class="count">{{ cat.count }}</span> </div>
-          }
-        </div>
+      <div class="actions-wrapper">
+        <button class="filter-btn" (click)="toggleSuppliersPanel()" [class.active]="suppliersExpanded() || selectedSuppliers().length > 0">
+           <i class="fas fa-sliders-h"></i> Fornecedores 
+           @if(selectedSuppliers().length > 0) {
+              <span class="badge">{{selectedSuppliers().length}}</span>
+           }
+        </button>
       </div>
+    </div>
 
-      <div class="filter-box">
-        <label (click)="toggleSuppliersExpand()" class="collapsible-label">
-          FORNECEDOR
-          <i class="fas" [class.fa-chevron-down]="suppliersExpanded()" [class.fa-chevron-right]="!suppliersExpanded()"></i>
-        </label>
-        <div class="checkbox-group" [class.expanded]="suppliersExpanded()">
-          @for (sup of suppliers(); track sup.slug) {
-            <div class="checkbox-item" (click)="toggleSupplier(sup.slug)">
-              <input type="checkbox" [checked]="selectedSuppliers().includes(sup.slug)" readonly>
-              <label>{{ sup.name }}</label>
-              <span class="count">{{ sup.count }}</span>
-            </div>
-          }
-        </div>
-      </div>
-    </aside>
+    <!-- Suppliers expandable panel -->
+    <div class="suppliers-panel" [class.open]="suppliersExpanded()">
+       <div class="chips-group">
+            @for (sup of suppliers(); track sup.slug) {
+              <button class="filter-chip" [class.active]="selectedSuppliers().includes(sup.slug)" (click)="toggleSupplier(sup.slug)">
+                {{ sup.name }} <span class="count">{{ sup.count }}</span>
+              </button>
+            }
+       </div>
+    </div>
 
-    <main class="products-main">
-      <div class="gallery-header">
-        <p>Mostrando <strong>{{ products().content.length }}</strong> de <strong>{{ products().totalElements }}</strong> produtos</p>
-        <app-select id="order" class="select" [formControl]="orderBy" [options]="orderOptions"></app-select>
-      </div>
-
-      <div class="products-grid">
-        @for (product of products().content; track product.name) {
-          <app-item-card-gallery [product]="product" (productClicked)="onOpenProductDetails($event)"></app-item-card-gallery>
-        }
-      </div>
-
-      <div #scrollAnchor class="scroll-anchor">
-        @if (!products().last) { <i class="fas fa-spinner fa-spin"></i> }
-      </div>
-    </main>
+    <!-- Categories as Horizontal Scrollable Tabs -->
+    <div class="categories-tabs">
+      <button class="tab-btn" [class.active]="selectedCategories().length === 0" (click)="clearCategories()">
+        Todos
+      </button>
+      @for (cat of categories(); track cat.slug) {
+        <button class="tab-btn" [class.active]="selectedCategories().includes(cat.slug)" (click)="toggleCategory(cat.slug)">
+          {{ cat.name }} <span class="count">{{ cat.count }}</span>
+        </button>
+      }
+    </div>
   </div>
+
+  <main class="products-main full-width">
+    <div class="gallery-header">
+      <p>Mostrando <strong>{{ products().content.length }}</strong> de <strong>{{ products().totalElements }}</strong> produtos</p>
+    </div>
+
+    <div class="products-grid">
+      @for (product of products().content; track product.name) {
+        <app-item-card-gallery [product]="product" (productClicked)="onOpenProductDetails($event)"></app-item-card-gallery>
+      }
+      @if (isLoading()) {
+        @for (i of [1,2,3,4,5,6,7,8]; track i) {
+          <app-skeleton-card></app-skeleton-card>
+        }
+      }
+    </div>
+
+    <div #scrollAnchor class="scroll-anchor"></div>
+  </main>
 </section>
 
 <app-modal-gallery

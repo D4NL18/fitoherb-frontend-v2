@@ -16,6 +16,7 @@ import { InputComponent } from './../../shared/input/input.component';
 import { SelectComponent } from '../../shared/select/select.component';
 import { ItemCardGalleryComponent } from './components/item-card-gallery/item-card-gallery.component';
 import { ModalGalleryComponent } from './components/modal-gallery/modal-gallery.component';
+import { SkeletonCardComponent } from '../../shared/skeleton-card/skeleton-card.component';
 
 import { ProductsService } from '../../services/products/products.service';
 import { ProductCategoriesService } from '../../services/product-categories/product-categories.service';
@@ -31,6 +32,7 @@ import { ProductRes } from '../../types/products/productRes.interface';
     SelectComponent,
     ItemCardGalleryComponent,
     ModalGalleryComponent,
+    SkeletonCardComponent,
   ],
   templateUrl: './gallery.component.html',
   styleUrl: './gallery.component.scss',
@@ -45,8 +47,6 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   private router = inject(Router);
   private location = inject(Location);
 
-  orderOptions = ['A-Z', 'Z-A'];
-
   selectedCategories = signal<string[]>([]);
   selectedSuppliers = signal<string[]>([]);
   currentPage = signal(0);
@@ -54,14 +54,14 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   isModalOpen = signal(false);
 
   categoriesExpanded = signal(true);
-  suppliersExpanded = signal(true);
+  suppliersExpanded = signal(false);
 
   search = new FormControl('');
-  orderBy = new FormControl('A-Z');
 
   categories = this.categoryService.productCategories;
   suppliers = this.supplierService.suppliers;
   products = this.productsService.productGallery;
+  isLoading = this.productsService.isGalleryLoading;
 
   ngOnInit(): void {
     this.categoryService.getAll();
@@ -80,8 +80,6 @@ export class GalleryComponent implements OnInit, AfterViewInit {
     this.search.valueChanges
       .pipe(debounceTime(1000), distinctUntilChanged())
       .subscribe(() => this.resetAndSearch());
-
-    this.orderBy.valueChanges.subscribe(() => this.resetAndSearch());
   }
 
   ngAfterViewInit() {
@@ -89,15 +87,12 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   }
 
   loadProducts(append: boolean) {
-    const direction = this.orderBy.value === 'A-Z' ? 'ASC' : 'DESC';
-
     this.productsService.getGallery(
       {
         search: this.search.value,
         category: this.selectedCategories().length ? this.selectedCategories() : null,
         supplier: this.selectedSuppliers().length ? this.selectedSuppliers() : null,
         page: this.currentPage(),
-        direction: direction,
       },
       append,
     );
@@ -130,6 +125,16 @@ export class GalleryComponent implements OnInit, AfterViewInit {
 
   toggleSuppliersExpand() {
     this.suppliersExpanded.update(v => !v);
+  }
+
+  toggleSuppliersPanel() {
+    this.suppliersExpanded.update(v => !v);
+  }
+
+  clearCategories() {
+    this.selectedCategories.set([]);
+    this.updateUrl('category', null);
+    this.resetAndSearch();
   }
 
   private updateUrl(key: string, value: string[] | null) {

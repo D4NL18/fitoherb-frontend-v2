@@ -21,8 +21,13 @@ export class ProductsService {
   private adminProductsState = signal<PageResponse<ProductRes> | null>(null);
   public adminProducts = this.adminProductsState.asReadonly();
 
+  private isGalleryLoadingState = signal<boolean>(false);
+  public isGalleryLoading = this.isGalleryLoadingState.asReadonly();
+
   getGallery(params: any, append: boolean = false) {
     let httpParams = this.buildHttpParams(params);
+
+    this.isGalleryLoadingState.set(true);
 
     this.http.get<PageResponse<ProductRes>>(`${this.API_URL}/gallery`, { params: httpParams })
       .subscribe({
@@ -35,7 +40,11 @@ export class ProductsService {
           } else {
             this.productGalleryState.set(res);
           }
+          this.isGalleryLoadingState.set(false);
         },
+        error: () => {
+          this.isGalleryLoadingState.set(false);
+        }
       });
   }
 

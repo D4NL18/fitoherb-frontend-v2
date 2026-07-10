@@ -6,10 +6,11 @@
 }
 .product-card {
   background: white;
-  border-radius: 20px;
+  border-radius: 24px;
   overflow: hidden;
-  transition: all 0.4s ease;
-  border: 1px solid #f0f0f0;
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
 
   height: 100%;
   width: 100%;
@@ -40,6 +41,7 @@
       position: absolute;
       top: 15px;
       left: 15px;
+      z-index: 2;
       padding: 4px 12px;
       border-radius: 6px;
       font-size: 0.65rem;
@@ -53,7 +55,7 @@
   }
 
   .content {
-    padding: 1.5rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -110,8 +112,9 @@
   }
 
   &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    border-color: rgba(0,0,0,0.08);
     img { transform: scale(1.1); }
   }
 }
