@@ -18,13 +18,19 @@ export class SuppliersComponent implements OnInit, AfterViewInit {
   @ViewChild('suppliersGrid') suppliersGrid!: ElementRef;
 
   public suppliers = this.supplierService.suppliers;
-  public backendUrl = environment.apiUrl;
+  public backendUrl = environment.imagesBaseUrl;
 
   public sortedSuppliers = computed(() => {
     return [...this.supplierService.suppliers()].sort((a, b) => {
       if (a.isHighlighted && !b.isHighlighted) return -1;
       if (!a.isHighlighted && b.isHighlighted) return 1;
       return 0;
+    }).map(s => {
+      let url = s.imageUrl;
+      if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
+        url = this.backendUrl + (url.startsWith('/') ? '' : '/') + url;
+      }
+      return { ...s, imageUrl: url };
     });
   });
 

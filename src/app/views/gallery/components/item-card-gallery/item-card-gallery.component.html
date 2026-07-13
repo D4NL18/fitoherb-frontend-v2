@@ -10,9 +10,9 @@
       <span class="badge highlight">Destaque</span>
     }
 
-    @if (product().imageUrl) {
+    @if (formattedImageUrl()) {
       <img
-        [src]="product().imageUrl"
+        [src]="formattedImageUrl()"
         [alt]="product().name"
         draggable="false"
       />

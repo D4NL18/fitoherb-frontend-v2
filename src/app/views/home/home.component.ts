@@ -5,6 +5,7 @@ import {
   inject,
   OnInit,
   signal,
+  computed,
   ViewChild,
 } from '@angular/core';
 import { BannerCarouselComponent } from './components/banner-carousel/banner-carousel.component';
@@ -36,9 +37,17 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   private animatedStats = false;
 
-  public backendUrl = environment.apiUrl;
+  public backendUrl = environment.imagesBaseUrl;
 
-  public productCategories = this.productCategoriesService.productCategories;
+  public productCategories = computed(() => {
+    return this.productCategoriesService.productCategories().map(c => {
+      let url = c.imageUrl;
+      if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
+        url = this.backendUrl + (url.startsWith('/') ? '' : '/') + url;
+      }
+      return { ...c, imageUrl: url };
+    });
+  });
 
   ngOnInit(): void {
     this.productCategoriesService.getAll();

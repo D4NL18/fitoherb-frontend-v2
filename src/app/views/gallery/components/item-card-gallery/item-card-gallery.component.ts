@@ -12,8 +12,16 @@ import { environment } from '../../../../../environments/environment';
 })
 export class ItemCardGalleryComponent{
   product = input.required<ProductRes>();
-  backendUrl = environment.apiUrl;
+  backendUrl = environment.imagesBaseUrl;
   productClicked = output<string>();
+
+  formattedImageUrl = computed(() => {
+    let url = this.product().imageUrl;
+    if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
+      url = this.backendUrl + (url.startsWith('/') ? '' : '/') + url;
+    }
+    return url;
+  });
 
   isNew = computed(() => {
     const dateStr = this.product().createdAt;

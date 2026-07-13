@@ -16,7 +16,15 @@ export class ModalGalleryComponent {
 
   close = output();
 
-  backendUrl = environment.apiUrl;
+  backendUrl = environment.imagesBaseUrl;
+
+  formattedImageUrl = computed(() => {
+    let url = this.product()?.imageUrl;
+    if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
+      url = this.backendUrl + (url.startsWith('/') ? '' : '/') + url;
+    }
+    return url;
+  });
 
   formattedDescription = computed(() => {
     const text = this.product()?.description;

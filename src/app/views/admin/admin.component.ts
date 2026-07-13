@@ -290,12 +290,18 @@ export class AdminComponent implements OnInit {
     const data = sourceMap[this.pageTitle()];
     if (!data || !data.content) return [];
 
-    const baseUrl = environment.apiUrl.replace('/api', '');
+    const baseUrl = environment.imagesBaseUrl;
 
     return data.content.map((item: any) => {
       let formattedImageUrl = item.imageUrl || item.imagePath;
-      if (formattedImageUrl && !formattedImageUrl.startsWith('http')) {
-        formattedImageUrl = `${baseUrl}${formattedImageUrl.startsWith('/') ? '' : '/'}${formattedImageUrl}`;
+
+      if (formattedImageUrl) {
+        // Normaliza barras invertidas (Windows) para barras normais
+        formattedImageUrl = formattedImageUrl.replace(/\\/g, '/');
+        
+        if (!formattedImageUrl.startsWith('http')) {
+          formattedImageUrl = `${baseUrl}${formattedImageUrl.startsWith('/') ? '' : '/'}${formattedImageUrl}`;
+        }
       }
 
       return {

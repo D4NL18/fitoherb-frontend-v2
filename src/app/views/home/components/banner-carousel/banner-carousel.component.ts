@@ -31,7 +31,7 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     effect(() => {
       const banners = this.bannersService.activeBanners();
-      const baseUrl = environment.apiUrl.replace('/api', '');
+      const baseUrl = environment.imagesBaseUrl;
       
       if (banners.length > 0) {
         this.originalImages = banners.map(b => {
