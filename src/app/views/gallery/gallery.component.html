@@ -13,17 +13,23 @@
       </div>
 
       <div class="actions-wrapper">
-        <button class="filter-btn" (click)="toggleSuppliersPanel()" [class.active]="suppliersExpanded() || selectedSuppliers().length > 0">
+        <button #suppliersBtn class="filter-btn" (click)="toggleSuppliersPanel()" [class.active]="suppliersExpanded() || selectedSuppliers().length > 0">
            <i class="fas fa-sliders-h"></i> Fornecedores 
            @if(selectedSuppliers().length > 0) {
               <span class="badge">{{selectedSuppliers().length}}</span>
            }
         </button>
+
+        @if (selectedCategories().length > 0 || selectedSuppliers().length > 0 || search.value) {
+          <button class="clear-btn" (click)="clearAllFilters()" aria-label="Limpar filtros">
+            <i class="fas fa-times"></i> Limpar Filtros
+          </button>
+        }
       </div>
     </div>
 
     <!-- Suppliers expandable panel -->
-    <div class="suppliers-panel" [class.open]="suppliersExpanded()">
+    <div #suppliersPanel class="suppliers-panel" [class.open]="suppliersExpanded()">
        <div class="chips-group">
             @for (sup of suppliers(); track sup.slug) {
               <button class="filter-chip" [class.active]="selectedSuppliers().includes(sup.slug)" (click)="toggleSupplier(sup.slug)">
@@ -51,7 +57,7 @@
       <p>Mostrando <strong>{{ products().content.length }}</strong> de <strong>{{ products().totalElements }}</strong> produtos</p>
     </div>
 
-    <div class="products-grid">
+    <div class="products-grid" #productsGrid>
       @for (product of products().content; track product.name) {
         <app-item-card-gallery [product]="product" (productClicked)="onOpenProductDetails($event)"></app-item-card-gallery>
       }
@@ -69,5 +75,9 @@
 <app-modal-gallery
   [product]="selectedProduct()"
   [isOpen]="isModalOpen()"
-  (close)="onCloseModal()">
+  [hasPrev]="hasPrevProduct()"
+  [hasNext]="hasNextProduct()"
+  (close)="onCloseModal()"
+  (prev)="navigateProduct(-1)"
+  (next)="navigateProduct(1)">
 </app-modal-gallery>

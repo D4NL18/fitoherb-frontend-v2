@@ -16,6 +16,15 @@
   animation: fadeIn 0.3s ease;
 }
 
+.modal-positioner {
+  position: relative;
+  width: 100%;
+  max-width: 950px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .modal-container {
   background: white;
   width: 100%;
@@ -214,5 +223,44 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: 1px solid #eee;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #333;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #f5f5f5;
+    color: styles.$primary-color;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  &.left {
+    left: -4rem; // aprox 1rem do modal (se 1rem = 16px, 50px arrow + 16px gap = 66px ~ 4rem)
+    @media (max-width: 1150px) {
+      left: 10px;
+    }
+  }
+
+  &.right {
+    right: -4rem;
+    @media (max-width: 1150px) {
+      right: 10px;
+    }
   }
 }

@@ -1,6 +1,14 @@
 @if (isOpen() && product()) {
   <div class="modal-overlay" (click)="onClose()">
-    <div class="modal-container" (click)="$event.stopPropagation()">
+    
+    <div class="modal-positioner" (click)="$event.stopPropagation()">
+      @if (hasPrev()) {
+        <button class="nav-arrow left" (click)="prev.emit()" aria-label="Produto anterior">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      }
+
+      <div class="modal-container">
 
       <button class="close-btn" (click)="onClose()">
         <i class="fas fa-times"></i>
@@ -34,6 +42,14 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </div> <!-- fim do modal-container -->
+
+    @if (hasNext()) {
+      <button class="nav-arrow right" (click)="next.emit()" aria-label="Próximo produto">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    }
+    </div> <!-- fim do modal-positioner -->
+
+  </div> <!-- fim do modal-overlay -->
 }

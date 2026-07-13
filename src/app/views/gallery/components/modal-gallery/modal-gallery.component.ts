@@ -14,7 +14,12 @@ export class ModalGalleryComponent {
   product = input.required<ProductRes | null>();
   isOpen = input.required<boolean>();
 
+  hasPrev = input<boolean>(false);
+  hasNext = input<boolean>(false);
+
   close = output();
+  prev = output();
+  next = output();
 
   backendUrl = environment.imagesBaseUrl;
 

@@ -6,6 +6,8 @@ import {
   ElementRef,
   ViewChild,
   AfterViewInit,
+  HostListener,
+  computed,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -39,6 +41,9 @@ import { ProductRes } from '../../types/products/productRes.interface';
 })
 export class GalleryComponent implements OnInit, AfterViewInit {
   @ViewChild('scrollAnchor') scrollAnchor!: ElementRef;
+  @ViewChild('productsGrid') productsGrid!: ElementRef;
+  @ViewChild('suppliersBtn') suppliersBtn!: ElementRef;
+  @ViewChild('suppliersPanel') suppliersPanel!: ElementRef;
 
   private productsService = inject(ProductsService);
   private categoryService = inject(ProductCategoriesService);
@@ -63,6 +68,19 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   products = this.productsService.productGallery;
   isLoading = this.productsService.isGalleryLoading;
 
+  selectedIndex = computed(() => {
+    const p = this.selectedProduct();
+    if (!p) return -1;
+    return this.products().content.findIndex(x => x.slug === p.slug);
+  });
+
+  hasPrevProduct = computed(() => this.selectedIndex() > 0);
+
+  hasNextProduct = computed(() => {
+    const idx = this.selectedIndex();
+    return idx >= 0 && (idx < this.products().content.length - 1 || !this.products().last);
+  });
+
   ngOnInit(): void {
     this.categoryService.getAll();
     this.supplierService.getAll();
@@ -86,16 +104,39 @@ export class GalleryComponent implements OnInit, AfterViewInit {
     this.initInfiniteScroll();
   }
 
-  loadProducts(append: boolean) {
+  loadProducts(append: boolean, onSuccess?: () => void) {
+    const size = this.calculatePageSize();
+
     this.productsService.getGallery(
       {
         search: this.search.value,
         category: this.selectedCategories().length ? this.selectedCategories() : null,
         supplier: this.selectedSuppliers().length ? this.selectedSuppliers() : null,
         page: this.currentPage(),
+        size: size,
+        pageSize: size,
+        limit: size,
+        per_page: size
       },
       append,
+      onSuccess
     );
+  }
+
+  private calculatePageSize(): number {
+    if (!this.productsGrid) return 16;
+
+    const gridEl = this.productsGrid.nativeElement as HTMLElement;
+    const gridWidth = gridEl.clientWidth;
+    if (gridWidth === 0) return 16;
+
+    const minColWidth = 300;
+    const gap = 32;
+
+    const columns = Math.floor((gridWidth + gap) / (minColWidth + gap));
+    const safeColumns = Math.max(1, columns);
+
+    return safeColumns * Math.ceil(16 / safeColumns);
   }
 
   resetAndSearch() {
@@ -137,6 +178,36 @@ export class GalleryComponent implements OnInit, AfterViewInit {
     this.resetAndSearch();
   }
 
+  clearAllFilters() {
+    this.search.setValue('', { emitEvent: false });
+    this.selectedCategories.set([]);
+    this.selectedSuppliers.set([]);
+
+    const urlTree = this.router.createUrlTree([], {
+      relativeTo: this.route,
+      queryParams: { category: null, supplier: null },
+      queryParamsHandling: 'merge',
+    });
+    this.location.replaceState(this.router.serializeUrl(urlTree));
+
+    this.resetAndSearch();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.suppliersExpanded()) {
+      const target = event.target as HTMLElement;
+      if (
+        this.suppliersBtn &&
+        !this.suppliersBtn.nativeElement.contains(target) &&
+        this.suppliersPanel &&
+        !this.suppliersPanel.nativeElement.contains(target)
+      ) {
+        this.suppliersExpanded.set(false);
+      }
+    }
+  }
+
   private updateUrl(key: string, value: string[] | null) {
     const urlTree = this.router.createUrlTree([], {
       relativeTo: this.route,
@@ -175,5 +246,22 @@ export class GalleryComponent implements OnInit, AfterViewInit {
   onCloseModal() {
     this.isModalOpen.set(false);
     this.selectedProduct.set(null);
+  }
+
+  navigateProduct(direction: 1 | -1) {
+    const idx = this.selectedIndex();
+    if (idx < 0) return;
+    const newIdx = idx + direction;
+    
+    if (newIdx >= 0 && newIdx < this.products().content.length) {
+      this.selectedProduct.set(this.products().content[newIdx]);
+    } else if (direction === 1 && !this.products().last && !this.isLoading()) {
+      this.currentPage.update((p) => p + 1);
+      this.loadProducts(true, () => {
+        if (newIdx < this.products().content.length) {
+          this.selectedProduct.set(this.products().content[newIdx]);
+        }
+      });
+    }
   }
 }

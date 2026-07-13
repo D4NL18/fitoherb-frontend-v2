@@ -24,7 +24,7 @@ export class ProductsService {
   private isGalleryLoadingState = signal<boolean>(false);
   public isGalleryLoading = this.isGalleryLoadingState.asReadonly();
 
-  getGallery(params: any, append: boolean = false) {
+  getGallery(params: any, append: boolean = false, onSuccess?: () => void) {
     let httpParams = this.buildHttpParams(params);
 
     this.isGalleryLoadingState.set(true);
@@ -41,6 +41,7 @@ export class ProductsService {
             this.productGalleryState.set(res);
           }
           this.isGalleryLoadingState.set(false);
+          if (onSuccess) onSuccess();
         },
         error: () => {
           this.isGalleryLoadingState.set(false);
