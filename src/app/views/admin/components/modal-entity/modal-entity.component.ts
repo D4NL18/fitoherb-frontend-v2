@@ -89,13 +89,6 @@ export class ModalEntityComponent implements OnInit {
         initialData.flavours = this.data().flavours?.join(', ');
       }
 
-      if (this.type() === 'Usuários' && initialData.birthDate) {
-        const parts = initialData.birthDate.split('-');
-        if (parts.length === 3 && parts[0].length === 2) {
-          initialData.birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-      }
-
       this.entityForm.patchValue(initialData);
 
       if (this.data().imageUrl || this.data().imagePath) {
@@ -131,8 +124,7 @@ export class ModalEntityComponent implements OnInit {
             { value: '', disabled: this.mode() === 'edit' },
             [Validators.required, Validators.email],
           ],
-          role: ['USER', Validators.required],
-          birthDate: ['', Validators.required],
+          role: ['USER', Validators.required]
         });
         break;
 
@@ -207,14 +199,6 @@ export class ModalEntityComponent implements OnInit {
         });
       } else {
         const finalPayload = { ...rawValue };
-
-        if (this.type() === 'Usuários' && finalPayload.birthDate) {
-          const parts = finalPayload.birthDate.split('-');
-          if (parts.length === 3 && parts[0].length === 4) {
-            // Convert yyyy-MM-dd to dd-MM-yyyy for the backend
-            finalPayload.birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-          }
-        }
 
         this.save.emit({
           form: finalPayload,

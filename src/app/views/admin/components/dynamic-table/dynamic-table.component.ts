@@ -18,6 +18,7 @@ export class DynamicTableComponent {
   pageSize = input<number>(10);
   totalElements = input<number>(0);
   activeFilters = input<Record<string, string[]>>({});
+  disableActions = input<boolean>(false);
 
   edit = output<any>();
   delete = output<any>();

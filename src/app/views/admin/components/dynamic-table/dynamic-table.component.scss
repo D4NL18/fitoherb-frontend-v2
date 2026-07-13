@@ -110,8 +110,14 @@ table {
       color: styles.$error;
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
       transform: scale(1.2);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      filter: grayscale(100%);
     }
   }
 }

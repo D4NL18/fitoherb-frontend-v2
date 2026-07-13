@@ -39,11 +39,11 @@
             }
             @case ('actions') {
             <div class="actions-box">
-              <button class="btn-icon edit" (click)="onEdit(row)">
-                <i class="fa-solid fa-pen"></i>
+              <button class="btn-icon edit" [disabled]="disableActions()" [title]="disableActions() ? 'Acesso restrito (Apenas Admin)' : 'Editar'" (click)="onEdit(row)">
+                <i class="fa-solid" [ngClass]="disableActions() ? 'fa-lock' : 'fa-pen'"></i>
               </button>
-              <button class="btn-icon delete" (click)="onDelete(row)">
-                <i class="fa-solid fa-trash-can"></i>
+              <button class="btn-icon delete" [disabled]="disableActions()" [title]="disableActions() ? 'Acesso restrito (Apenas Admin)' : 'Excluir'" (click)="onDelete(row)">
+                <i class="fa-solid" [ngClass]="disableActions() ? 'fa-lock' : 'fa-trash-can'"></i>
               </button>
             </div>
             }

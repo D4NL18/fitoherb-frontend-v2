@@ -61,6 +61,7 @@ export class AdminComponent implements OnInit {
   isConfirmModalOpen = signal(false);
   modalMode = signal<'create' | 'edit'>('create');
   selectedItem = signal<any>(null);
+  currentUserRole = signal<'ADMIN' | 'USER' | null>(null);
   
   isSaving = signal(false);
 
@@ -135,6 +136,14 @@ export class AdminComponent implements OnInit {
     this.categoryService.getAll();
     this.suppliersService.getAll();
     this.bannersService.getActive();
+
+    const email = this.tokenService.getUserEmail();
+    if (email) {
+      this.usersService.getByEmail(email).subscribe({
+        next: (user) => this.currentUserRole.set(user.role),
+        error: (err) => console.error('Failed to load user role', err)
+      });
+    }
 
     this.search.valueChanges
       .pipe(debounceTime(400), distinctUntilChanged())
@@ -224,6 +233,10 @@ export class AdminComponent implements OnInit {
     this.currentPage.set(0);
     this.loadData();
   }
+
+  disableUserActions = computed(() => {
+    return this.pageTitle() === 'Usuários' && this.currentUserRole() !== 'ADMIN';
+  });
 
   columns = computed<TableColumn[]>(() => {
     if (this.pageTitle() === 'Alterar Senha') return [];
@@ -395,6 +408,17 @@ export class AdminComponent implements OnInit {
         this.isSaving.set(false);
         this.isEntityModalOpen.set(false);
         this.loadData();
+
+        if (type === 'Usuários') {
+          const email = this.tokenService.getUserEmail();
+          if (email) {
+            this.usersService.getByEmail(email).subscribe({
+              next: (user) => this.currentUserRole.set(user.role),
+              error: (err) => console.error('Failed to load user role', err)
+            });
+          }
+        }
+
         const msgSucesso = isEdit ? 'Atualizado com sucesso!' : 'Cadastrado com sucesso!';
         this.showFeedback(200, msgSucesso);
       },
