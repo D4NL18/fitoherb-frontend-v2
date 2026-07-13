@@ -16,13 +16,23 @@ export class BannersService {
   private activeBannersState = signal<BannerRes[]>([]);
   public activeBanners = this.activeBannersState.asReadonly();
 
+  private isLoadingState = signal<boolean>(true);
+  public isLoading = this.isLoadingState.asReadonly();
+
   private paginatedBannersState = signal<PageResponse<BannerRes> | null>(null);
   public paginatedBanners = this.paginatedBannersState.asReadonly();
 
   getActive() {
+    this.isLoadingState.set(true);
     this.http.get<BannerRes[]>(`${this.API_URL}/active`).subscribe({
-      next: (res) => this.activeBannersState.set(res),
-      error: (err) => console.error('Erro ao carregar banners ativos', err),
+      next: (res) => {
+        this.activeBannersState.set(res);
+        this.isLoadingState.set(false);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar banners ativos', err);
+        this.isLoadingState.set(false);
+      },
     });
   }
 

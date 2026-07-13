@@ -22,47 +22,51 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
   transitionTime = 0.5;
   currentTranslate = -100;
   prevTranslate = -100;
+  isResetting = false;
 
   isDragging = false;
   startX = 0;
 
   autoplayInterval: any;
+  isLoading = true;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     effect(() => {
       const banners = this.bannersService.activeBanners();
       const baseUrl = environment.imagesBaseUrl;
       
-      if (banners.length > 0) {
-        this.originalImages = banners.map(b => {
-          let url = b.imagePath;
-          if (url && !url.startsWith('http')) {
-            url = `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
-          }
-          return url;
-        });
-      } else {
-        this.originalImages = [
-          '/assets/images/banner/Banner-image-1.jpg',
-          '/assets/images/banner/Banner-image-2.jpg',
-          '/assets/images/banner/Banner-image-3.jpg',
-          '/assets/images/banner/Banner-image-4.jpg',
-          '/assets/images/banner/Banner-image-5.jpg'
-        ];
-      }
+      this.isLoading = this.bannersService.isLoading();
 
-      if (this.originalImages.length > 0) {
-        const first = this.originalImages[0];
-        const last = this.originalImages[this.originalImages.length - 1];
-        this.displayImages = [last, ...this.originalImages, first];
-        this.updateCarousel(false);
+      if (!this.isLoading) {
+        if (banners.length > 0) {
+          this.originalImages = banners.map(b => {
+            let url = b.imagePath;
+            if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
+              url = `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+            }
+            return url;
+          });
+        } else {
+          this.originalImages = [];
+        }
+
+        if (this.originalImages.length > 0) {
+          const first = this.originalImages[0];
+          const last = this.originalImages[this.originalImages.length - 1];
+          this.displayImages = [last, ...this.originalImages, first];
+          this.currentIndex = 1;
+          this.updateCarousel(false);
+          this.stopAutoplay();
+          this.startAutoplay();
+        } else {
+          this.displayImages = [];
+        }
       }
     });
   }
 
   ngOnInit() {
     this.bannersService.getActive();
-    this.startAutoplay();
   }
 
   ngOnDestroy() {
@@ -70,10 +74,11 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
   }
 
   startAutoplay() {
-    if (isPlatformBrowser(this.platformId)) {
+    this.stopAutoplay();
+    if (isPlatformBrowser(this.platformId) && this.originalImages.length > 1) {
       this.autoplayInterval = setInterval(() => {
         this.next();
-      }, 8000);
+      }, 10000);
     }
   }
 
@@ -84,13 +89,13 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
   }
 
   next() {
-    if (this.isTransitioning) return;
+    if (this.isTransitioning || this.isResetting || this.originalImages.length <= 1) return;
     this.currentIndex++;
     this.updateCarousel(true);
   }
 
   prev() {
-    if (this.isTransitioning) return;
+    if (this.isTransitioning || this.isResetting || this.originalImages.length <= 1) return;
     this.currentIndex--;
     this.updateCarousel(true);
   }
@@ -102,20 +107,31 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
     this.prevTranslate = this.currentTranslate;
   }
 
-  onTransitionEnd() {
-    this.isTransitioning = false;
+  onTransitionEnd(event?: Event) {
+    if (event && event.target !== event.currentTarget) {
+      return;
+    }
 
-    if (this.currentIndex === 0) {
+    if (this.currentIndex <= 0) {
+      this.isResetting = true;
       this.currentIndex = this.originalImages.length;
       this.updateCarousel(false);
-    }
-    else if (this.currentIndex === this.displayImages.length - 1) {
+    } else if (this.currentIndex >= this.displayImages.length - 1) {
+      this.isResetting = true;
       this.currentIndex = 1;
       this.updateCarousel(false);
     }
+
+    // Use a small timeout to let the browser apply the transition: none
+    // before allowing the user to click next/prev again.
+    setTimeout(() => {
+      this.isTransitioning = false;
+      this.isResetting = false;
+    }, 50);
   }
 
   onDragStart(event: MouseEvent | TouchEvent) {
+    if (this.originalImages.length <= 1 || this.isTransitioning || this.isResetting) return;
     this.isDragging = true;
     this.isTransitioning = false;
     this.stopAutoplay();
