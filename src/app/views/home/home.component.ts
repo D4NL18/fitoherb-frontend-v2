@@ -100,9 +100,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.animatedStats = true;
     const fastDuration = 800;
 
-    this.counter(500, 'products', fastDuration);
-    this.counter(12, 'years', fastDuration);
-    this.counter(150, 'clients', fastDuration);
+    this.counter(1800, 'products', fastDuration);
+    this.counter(28, 'years', fastDuration);
+    this.counter(2000, 'clients', fastDuration);
   }
 
   private counter(

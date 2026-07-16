@@ -3,29 +3,14 @@
     <h3>Fitoherb Nordeste</h3>
     <p>
       Distribuidora líder em suplementos alimentares e nutrição esportiva.
-      Qualidade e confiança há mais de 30 anos.
+      Qualidade e confiança há 28 anos.
     </p>
     <div class="social-networks">
-      <a
-        href="https://www.instagram.com/fitoherbnordeste"
-        target="_blank"
-        aria-label="Instagram"
-      >
+      <a href="https://www.instagram.com/fitoherb" target="_blank" aria-label="Instagram">
         <i class="fab fa-instagram"></i>
       </a>
-      <a
-        href="https://wa.me/5571992419709"
-        target="_blank"
-        aria-label="WhatsApp"
-      >
+      <a href="https://wa.me/5571992419709" target="_blank" aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
-      </a>
-      <a
-        href="https://www.linkedin.com/company/fitoherb-nordeste"
-        target="_blank"
-        aria-label="LinkedIn"
-      >
-        <i class="fab fa-linkedin-in"></i>
       </a>
     </div>
   </section>
@@ -45,11 +30,11 @@
     <h3>Categorias</h3>
     <ul>
       @for (category of productCategories(); track category.slug) {
-        <li>
-          <a [routerLink]="['/categorias', category.slug]">{{
-            category.name
+      <li>
+        <a [routerLink]="['/categorias', category.slug]">{{
+          category.name
           }}</a>
-        </li>
+      </li>
       }
     </ul>
   </section>
@@ -66,14 +51,16 @@
       <p class="contact-links">
         <span class="contact-item">
           <i class="fas fa-phone-alt" aria-hidden="true"></i>
+          <a href="tel:+557133797717">(71) 3379-7717</a>
+        </span>
+        <span class="contact-item">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i>
           <a href="tel:+5571992419709">(71) 99241-9709</a>
         </span>
 
         <span class="contact-item">
           <i class="fas fa-envelope" aria-hidden="true"></i>
-          <a href="mailto:contato@fitoherbnordeste.com.br"
-            >contato&#64;fitoherbnordeste.com.br</a
-          >
+          <a href="mailto:contato@fitoherbnordeste.com.br">comercial&#64;fitoherbnordeste.com.br</a>
         </span>
       </p>
     </address>

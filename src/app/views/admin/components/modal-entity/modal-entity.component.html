@@ -121,14 +121,7 @@
               />
             }
             @case ("Fornecedores") {
-              <div class="checkbox-group">
-                <input
-                  type="checkbox"
-                  id="isHighlighted"
-                  formControlName="isHighlighted"
-                />
-                <label for="isHighlighted">Fornecedor em Destaque?</label>
-              </div>
+              <!-- O checkbox de fornecedor em destaque foi removido a pedido -->
             }
             @case ("Banners") {
               <app-input
@@ -140,10 +133,10 @@
               <div class="checkbox-group">
                 <input
                   type="checkbox"
-                  id="isActive"
-                  formControlName="isActive"
+                  id="active"
+                  formControlName="active"
                 />
-                <label for="isActive">Banner Ativo?</label>
+                <label for="active">Banner Ativo?</label>
               </div>
             }
           }

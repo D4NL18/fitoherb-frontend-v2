@@ -7,7 +7,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 10rem 2rem 6rem;
+  padding: 6rem 2rem 3.6rem;
   background: linear-gradient(180deg, styles.$forest-mid 0%, styles.$forest-light 100%);
   color: white;
 
@@ -28,13 +28,12 @@
     font-weight: 600;
     letter-spacing: 1.5px;
     font-size: 0.875rem;
-    margin-bottom: 1rem;
   }
 
   h1 {
     font-size: 4rem;
     font-family: "Playfair Display", serif;
-    margin-bottom: 1.5rem;
+    margin: 1rem 0 3rem;
   }
 
   p {

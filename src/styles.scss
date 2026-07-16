@@ -37,18 +37,31 @@ p {
   margin: 0;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Playfair Display', serif;
 }
 
-a, button, input, select, textarea {
+a,
+button,
+input,
+select,
+textarea {
   font-family: 'Outfit', sans-serif;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   &:focus {
     outline: none;
   }
+
   &:focus-visible {
     outline: 2px solid rgba(56, 88, 47, 0.4); // Soft primary color outline
     outline-offset: 2px;
@@ -59,4 +72,49 @@ button, input, select, textarea {
   padding-top: 100px;
 
   min-height: calc(100vh - 100px);
+}
+
+.scroll-to-top-btn {
+  position: fixed;
+  top: 108px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  background-color: #38582f;
+  color: white;
+  border: none;
+  outline: none;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  animation: fade-in 0.3s ease-out forwards;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  &:hover,
+  &:focus {
+    background-color: #2e4f24;
+    transform: translate(-50%, -5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    outline: none;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
 }
