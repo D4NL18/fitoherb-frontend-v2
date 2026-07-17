@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavComponent } from './shared/nav/nav.component';
 import { FooterComponent } from "./shared/footer/footer.component";
@@ -15,6 +15,16 @@ export class AppComponent {
   private router = inject(Router);
 
   showLayout = signal(true);
+  showScrollTop = signal(false);
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    this.showScrollTop.set(this.router.url === '/produtos' && window.scrollY > 300);
+  }
+
+  scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   private hideLayoutRoutes = ['/login', '/admin'];
 

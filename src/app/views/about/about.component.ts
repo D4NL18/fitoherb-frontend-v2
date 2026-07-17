@@ -12,6 +12,8 @@ export class AboutComponent implements AfterViewInit {
   @ViewChild('statsSection') statsSection!: ElementRef;
   @ViewChild('historySection') historySection!: ElementRef;
   @ViewChild('mvvSection') mvvSection!: ElementRef;
+  @ViewChild('gallerySection') gallerySection!: ElementRef;
+  @ViewChild('videoSection') videoSection!: ElementRef;
 
   stats = {
     years: signal(0),
@@ -48,6 +50,8 @@ export class AboutComponent implements AfterViewInit {
     if (this.statsSection) observer.observe(this.statsSection.nativeElement);
     if (this.historySection) observer.observe(this.historySection.nativeElement);
     if (this.mvvSection) observer.observe(this.mvvSection.nativeElement);
+    if (this.gallerySection) observer.observe(this.gallerySection.nativeElement);
+    if (this.videoSection) observer.observe(this.videoSection.nativeElement);
   }
 
   private animateNumbers() {
@@ -57,7 +61,7 @@ export class AboutComponent implements AfterViewInit {
     this.counter(28, 'years', duration);
     this.counter(1800, 'products', duration);
     this.counter(2000, 'partners', duration);
-    this.counter(20, 'brands', duration);
+    this.counter(40, 'brands', duration);
   }
 
   private counter(endValue: number, key: keyof typeof this.stats, duration: number) {

@@ -88,6 +88,10 @@ export class ModalEntityComponent implements OnInit {
           this.data().supplier?.name || this.data().supplierName;
         initialData.flavours = this.data().flavours?.join(', ');
       }
+      
+      if (this.type() === 'Fornecedores') {
+        initialData.isHighlighted = false;
+      }
 
       this.entityForm.patchValue(initialData);
 
@@ -143,7 +147,7 @@ export class ModalEntityComponent implements OnInit {
         this.entityForm = this.fb.group({
           title: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
           position: [1, [Validators.required, Validators.min(1)]],
-          isActive: [true],
+          active: [true],
         });
         break;
     }

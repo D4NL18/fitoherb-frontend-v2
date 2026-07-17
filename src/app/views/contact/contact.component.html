@@ -15,96 +15,49 @@
 
         <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
           <div class="form-row">
-            <app-input
-              id="nomeCompleto"
-              formControlName="nomeCompleto"
-              label="Nome completo"
-              placeholder="Seu nome"
-              [required]="true"
-              [showError]="
+            <app-input id="nomeCompleto" formControlName="nomeCompleto" label="Nome completo" placeholder="Seu nome"
+              [required]="true" [showError]="
                 (f['nomeCompleto'].touched || formSubmitted) &&
                 f['nomeCompleto'].invalid
-              "
-              errorMsg="O nome completo é obrigatório."
-            ></app-input>
+              " errorMsg="O nome completo é obrigatório."></app-input>
 
-            <app-input
-              id="empresa"
-              formControlName="empresa"
-              label="Empresa"
-              placeholder="Nome da empresa"
-            ></app-input>
+            <app-input id="empresa" formControlName="empresa" label="Empresa" placeholder="Nome da empresa"></app-input>
           </div>
 
           <div class="form-row">
-            <app-input
-              id="email"
-              type="email"
-              formControlName="email"
-              label="E-mail"
-              placeholder="seu@email.com"
-              [required]="true"
-              [showError]="
+            <app-input id="email" type="email" formControlName="email" label="E-mail" placeholder="seu@email.com"
+              [required]="true" [showError]="
                 (f['email'].touched || formSubmitted) && f['email'].invalid
-              "
-              [errorMsg]="
+              " [errorMsg]="
                 f['email'].errors?.['required']
                   ? 'E-mail obrigatório.'
                   : 'E-mail inválido.'
-              "
-            ></app-input>
+              "></app-input>
 
-            <app-input
-              id="telefone"
-              type="tel"
-              formControlName="telefone"
-              label="Telefone"
-              placeholder="(71) 9 0000-0000"
-              [required]="true"
-              [showError]="
+            <app-input id="telefone" type="tel" formControlName="telefone" label="Telefone"
+              placeholder="(71) 9 0000-0000" [required]="true" [showError]="
                 (f['telefone'].touched || formSubmitted) &&
                 f['telefone'].invalid
-              "
-              errorMsg="Telefone inválido."
-            ></app-input>
+              " errorMsg="Telefone inválido."></app-input>
           </div>
 
-          <app-select
-            id="assunto"
-            formControlName="assunto"
-            label="Assunto"
-            [options]="assuntos"
-            [required]="true"
+          <app-select id="assunto" formControlName="assunto" label="Assunto" [options]="assuntos" [required]="true"
             [showError]="
               (f['assunto'].touched || formSubmitted) && f['assunto'].invalid
-            "
-            errorMsg="Selecione um assunto."
-          ></app-select>
+            " errorMsg="Selecione um assunto."></app-select>
 
-          <app-textarea
-            id="mensagem"
-            formControlName="mensagem"
-            label="Mensagem"
-            placeholder="Descreva como podemos ajudá-lo..."
-            [required]="true"
-            [showError]="
+          <app-textarea id="mensagem" formControlName="mensagem" label="Mensagem"
+            placeholder="Descreva como podemos ajudá-lo..." [required]="true" [showError]="
               (f['mensagem'].touched || formSubmitted) && f['mensagem'].invalid
-            "
-            [errorMsg]="
+            " [errorMsg]="
               f['mensagem'].errors?.['required']
                 ? 'Mensagem obrigatória.'
                 : 'Mínimo de 10 caracteres.'
-            "
-          ></app-textarea>
+            "></app-textarea>
 
           <div class="btn-group">
-            <app-button
-              label="Enviar mensagem"
-              variant="primary"
-              icon="fas fa-comment-dots"
-              [loading]="mailService.isLoading()"
-              type="submit"
-            ></app-button>
+            <app-button label="Enviar mensagem" variant="primary" icon="fas fa-comment-dots"
+              [loading]="mailService.isLoading()" type="submit"></app-button>
           </div>
         </form>
       </div>
@@ -115,8 +68,8 @@
             <div class="icon-box"><i class="fas fa-phone-alt"></i></div>
             <div class="texts">
               <h3>Telefone</h3>
-              <p>(71) 3344-5566</p>
-              <p>(71) 9 8800-4422</p>
+              <p>(71) 3379-7717</p>
+              <p>(71) 99241-9709</p>
             </div>
           </div>
 
@@ -124,7 +77,7 @@
             <div class="icon-box"><i class="fas fa-envelope"></i></div>
             <div class="texts">
               <h3>E-mail</h3>
-              <p>contato&#64;fitoherb.com.br</p>
+              <p>comercial&#64;fitoherbnordeste.com.br</p>
             </div>
           </div>
 
@@ -139,12 +92,7 @@
           <div class="map-container highlighted">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.3444431818274!2d-38.33618302403983!3d-12.88514598742217!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x71615f4e73b22cb%3A0xc47e3a9c7929456e!2sRua%20Itaet%C3%A9%2C%20434%20-%20Pitangueiras%2C%20Lauro%20de%20Freitas%20-%20BA%2C%2042701-360!5e0!3m2!1spt-BR!2sbr!4v1714420000000!5m2!1spt-BR!2sbr"
-              width="100%"
-              height="300"
-              style="border: 0"
-              allowfullscreen="true"
-              loading="lazy"
-            >
+              width="100%" height="300" style="border: 0" allowfullscreen="true" loading="lazy">
             </iframe>
             <div class="map-footer">
               <i class="fas fa-map-marked-alt"></i>
@@ -158,10 +106,6 @@
 </section>
 
 @if (modalData) {
-  <app-modal-response
-    [status]="modalData.status"
-    [message]="modalData.message"
-    (close)="modalData = null"
-  >
-  </app-modal-response>
+<app-modal-response [status]="modalData.status" [message]="modalData.message" (close)="modalData = null">
+</app-modal-response>
 }
