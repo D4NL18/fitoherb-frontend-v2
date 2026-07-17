@@ -9,3 +9,9 @@
 @if (showLayout()) {
   <app-footer></app-footer>
 }
+
+@if (showScrollTop()) {
+  <button class="scroll-to-top-btn" (click)="scrollToTop()" aria-label="Voltar ao topo">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+}

@@ -6,7 +6,7 @@
   align-items: center;
   text-align: center;
   justify-content: center;
-  padding: 10rem 2rem 6rem;
+  padding: 6rem 2rem 3.6rem;
   background: linear-gradient(
     180deg,
     styles.$forest-mid 0%,
@@ -59,9 +59,8 @@
 }
 
 .filters-toolbar {
-  position: sticky;
-  top: 120px;
-  z-index: 50;
+  position: relative;
+  z-index: 10;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   padding: 1.5rem 2rem;

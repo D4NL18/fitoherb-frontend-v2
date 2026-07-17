@@ -282,7 +282,7 @@ export class AdminComponent implements OnInit {
         { label: 'Imagem', key: 'imageUrl', type: 'image' },
         { label: 'Título', key: 'title', type: 'text' },
         { label: 'Posição', key: 'position', type: 'text' },
-        { label: 'Ativo', key: 'isActive', type: 'badge' },
+        { label: 'Ativo', key: 'active', type: 'badge' },
         { label: 'Ações', key: '', type: 'actions' }
       ]
     };

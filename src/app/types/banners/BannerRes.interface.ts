@@ -2,7 +2,7 @@ export interface BannerRes {
   id: string;
   title: string;
   position: number;
-  isActive: boolean;
+  active: boolean;
   imagePath: string;
   createdAt?: string;
   updatedAt?: string;
