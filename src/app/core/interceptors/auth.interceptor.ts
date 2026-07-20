@@ -43,7 +43,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             catchError((refreshErr) => {
               isRefreshing = false;
               tokenService.removeToken();
-              router.navigate(['/login']);
+              if (router.url.startsWith('/admin')) {
+                router.navigate(['/login']);
+              }
               return throwError(() => refreshErr);
             })
           );

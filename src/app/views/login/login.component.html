@@ -30,6 +30,13 @@
       errorMsg="A senha é obrigatória."
     />
 
+    <div class="remember-me-container">
+      <label class="remember-me-label">
+        <input type="checkbox" name="rememberMe" [(ngModel)]="rememberMe" />
+        <span>Lembrar meus dados</span>
+      </label>
+    </div>
+
     <app-button
       [label]="isLoading() ? 'Autenticando...' : 'Entrar'"
       [disabled]="loginForm.invalid || isLoading()"

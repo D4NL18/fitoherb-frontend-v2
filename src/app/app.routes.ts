@@ -13,6 +13,7 @@ export const routes: Routes = [
     path: '',
     component: HomeComponent,
     title: 'Home - Fitoherb',
+    pathMatch: 'full',
   },
   {
     path: 'quem-somos',

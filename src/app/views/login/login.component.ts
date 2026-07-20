@@ -1,4 +1,4 @@
-import { Component, inject, Input, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
@@ -19,17 +19,34 @@ import { ModalResponseComponent } from '../../shared/modal-response/modal-respon
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
   email = '';
   password = '';
+  rememberMe = false;
   isLoading = signal(false);
   errorMessage = signal<string>('');
   errorStatus = signal<number>(0);
 
   modalResponseOpen = signal(false);
+
+  ngOnInit() {
+    const saved = localStorage.getItem('remember_login');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(atob(saved));
+        if (parsed.email && parsed.password) {
+          this.email = parsed.email;
+          this.password = parsed.password;
+          this.rememberMe = true;
+        }
+      } catch (e) {
+        localStorage.removeItem('remember_login');
+      }
+    }
+  }
 
   onSubmit() {
     if (!this.email || !this.password) {
@@ -46,6 +63,12 @@ export class LoginComponent {
       .login({ email: this.email, password: this.password })
       .subscribe({
         next: () => {
+          if (this.rememberMe) {
+            const data = btoa(JSON.stringify({ email: this.email, password: this.password }));
+            localStorage.setItem('remember_login', data);
+          } else {
+            localStorage.removeItem('remember_login');
+          }
           this.router.navigate(['/admin']);
         },
         error: (err) => {
