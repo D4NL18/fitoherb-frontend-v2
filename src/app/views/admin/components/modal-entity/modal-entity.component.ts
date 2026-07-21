@@ -86,7 +86,8 @@ export class ModalEntityComponent implements OnInit {
           this.data().category?.name || this.data().categoryName;
         initialData.supplierName =
           this.data().supplier?.name || this.data().supplierName;
-        initialData.flavours = this.data().flavours?.join(', ');
+        initialData.flavours = this.data().flavours ? this.data().flavours.join(', ') : '';
+        initialData.presentation = this.data().presentation ? this.data().presentation.join(', ') : '';
       }
       
       if (this.type() === 'Fornecedores') {
@@ -117,6 +118,7 @@ export class ModalEntityComponent implements OnInit {
           description: ['', [Validators.required, Validators.minLength(10)]],
           categoryName: ['', Validators.required],
           supplierName: ['', Validators.required],
+          presentation: [''],
           flavours: [''],
         });
         break;

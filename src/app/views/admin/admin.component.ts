@@ -372,6 +372,11 @@ export class AdminComponent implements OnInit {
         } else if (!prodData.flavours) {
           prodData.flavours = [];
         }
+        if (typeof prodData.presentation === 'string' && prodData.presentation.trim() !== '') {
+          prodData.presentation = prodData.presentation.split(',').map((s: string) => s.trim());
+        } else if (!prodData.presentation) {
+          prodData.presentation = [];
+        }
         request$ = isEdit
           ? this.productsService.update(id, prodData, payload.image || null)
           : this.productsService.create(prodData, payload.image!);

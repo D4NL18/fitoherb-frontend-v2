@@ -84,6 +84,18 @@
                 formControlName="description"
                 placeholder="Descreva as propriedades do produto"
               />
+              <app-input
+                label="Apresentação (Separados por vírgula)"
+                id="presentation"
+                formControlName="presentation"
+                placeholder="Ex: 100g, 250g, 500g"
+              />
+              <app-input
+                label="Sabores (Separados por vírgula)"
+                id="flavours"
+                formControlName="flavours"
+                placeholder="Ex: Chocolate, Morango"
+              />
               <app-select
                 label="Categoria"
                 id="category"
@@ -97,12 +109,6 @@
                 formControlName="supplierName"
                 [options]="supplierNames()"
                 [searchable]="true"
-              />
-              <app-input
-                label="Sabores (Separados por vírgula)"
-                id="flavours"
-                formControlName="flavours"
-                placeholder="Ex: Chocolate, Morango"
               />
             }
             @case ("Usuários") {
