@@ -57,35 +57,92 @@
 
 .supplier-card {
   background: white;
-  border-radius: 20px;
-  padding: 2rem;
+  border-radius: 24px;
+  padding: 2.5rem;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-  transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
   position: relative;
-  border: 1px solid transparent;
+  border: 1px solid rgba(0,0,0,0.03);
   cursor: pointer;
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 
   .image-box {
     height: 120px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.5rem;
+    transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transform: translateY(0);
 
     img {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
-      transition: all 0.4s ease;
+      mix-blend-mode: multiply;
+      transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
     }
+  }
+
+  .info {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
   }
 
   h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
-    color: #1a1a1a;
-    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    color: #2c3e24;
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .view-products-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background-color: styles.$primary-color;
+    color: white;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(styles.$primary-color, 0.3);
+
+    i {
+      font-size: 0.8rem;
+      transition: transform 0.3s ease;
+    }
+
+    &:hover {
+      background-color: darken(styles.$primary-color, 5%);
+      box-shadow: 0 6px 20px rgba(styles.$primary-color, 0.4);
+      transform: translateY(-2px);
+      
+      i {
+        transform: translateX(4px);
+      }
+    }
   }
 
   .category {
@@ -96,13 +153,23 @@
   }
 
   &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+    border-color: rgba(styles.$primary-color, 0.15);
+
+    .image-box {
+      transform: translateY(-55px) scale(0.9);
+    }
+
+    .info {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
 
     img {
       filter: grayscale(0%);
       opacity: 1;
-      transform: scale(1.1);
     }
   }
 
