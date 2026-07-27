@@ -65,6 +65,11 @@ export class ProductsService {
     });
   }
 
+  getProductsBySupplier(supplierSlug: string): Observable<PageResponse<ProductRes>> {
+    let params = new HttpParams().set('supplier', supplierSlug).set('size', '100');
+    return this.http.get<PageResponse<ProductRes>>(`${this.API_URL}/gallery`, { params });
+  }
+
   getBySlug(slug: string): Observable<ProductRes> {
     return this.http.get<ProductRes>(`${this.API_URL}/${slug}`);
   }

@@ -55,8 +55,12 @@ export class SuppliersService {
     return this.http.put<void>(`${this.API_URL}/${slug}`, formData);
   }
 
-  delete(slug: string): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/${slug}`).pipe(
+  delete(slug: string, deleteProducts?: boolean): Observable<void> {
+    let params = new HttpParams();
+    if (deleteProducts) {
+      params = params.set('deleteProducts', 'true');
+    }
+    return this.http.delete<void>(`${this.API_URL}/${slug}`, { params }).pipe(
       tap(() => this.getAll())
     );
   }

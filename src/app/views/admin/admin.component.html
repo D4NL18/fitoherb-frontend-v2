@@ -63,7 +63,7 @@
 }
 
 @if (isConfirmModalOpen()) {
-<app-modal-confirm [itemName]="selectedItem()?.name" [isLoading]="isSaving()" (close)="isConfirmModalOpen.set(false)"
+<app-modal-confirm [itemName]="selectedItem()?.name" [cascadeItems]="cascadeItems()" [isLoading]="isSaving()" (close)="isConfirmModalOpen.set(false)"
   (confirm)="confirmDelete()"></app-modal-confirm>
 }
 

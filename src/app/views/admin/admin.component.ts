@@ -59,6 +59,7 @@ export class AdminComponent implements OnInit {
 
   isEntityModalOpen = signal(false);
   isConfirmModalOpen = signal(false);
+  cascadeItems = signal<any[] | undefined>(undefined);
   modalMode = signal<'create' | 'edit'>('create');
   selectedItem = signal<any>(null);
   currentUserRole = signal<'ADMIN' | 'USER' | null>(null);
@@ -275,7 +276,6 @@ export class AdminComponent implements OnInit {
       'Fornecedores': [
         { label: 'Imagem', key: 'imageUrl', type: 'image' },
         { label: 'Nome', key: 'name', type: 'text' },
-        { label: 'Destaque', key: 'isHighlighted', type: 'badge' },
         { label: 'Ações', key: '', type: 'actions' }
       ],
       'Banners': [
@@ -340,7 +340,15 @@ export class AdminComponent implements OnInit {
 
   onDelete(item: any) {
     this.selectedItem.set(item);
+    this.cascadeItems.set(undefined);
     this.isConfirmModalOpen.set(true);
+
+    if (this.pageTitle() === 'Fornecedores' && item.count > 0) {
+      this.productsService.getProductsBySupplier(item.slug).subscribe({
+        next: (res) => this.cascadeItems.set(res.content),
+        error: (err) => console.error('Erro ao carregar produtos vinculados', err)
+      });
+    }
   }
 
   showFeedback(status: number, message: string) {
@@ -449,7 +457,8 @@ export class AdminComponent implements OnInit {
         delete$ = this.productsService.delete(id);
         break;
       case 'Fornecedores':
-        delete$ = this.suppliersService.delete(id);
+        const shouldCascade = !!(this.cascadeItems() && this.cascadeItems()!.length > 0);
+        delete$ = this.suppliersService.delete(id, shouldCascade);
         break;
       case 'Categorias de Produtos':
         delete$ = this.categoryService.delete(id);

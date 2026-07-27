@@ -10,6 +10,17 @@
         Esta ação não pode ser desfeita. Você está prestes a excluir:
         <span class="highlight">"{{ itemName() }}"</span>
       </p>
+      
+      @if (cascadeItems() && cascadeItems()!.length > 0) {
+        <div class="cascade-warning">
+          <p class="warning-text">Os seguintes {{cascadeItems()!.length}} produtos vinculados também serão <strong>excluídos permanentemente</strong>:</p>
+          <ul class="cascade-list">
+            @for (item of cascadeItems(); track item.id) {
+              <li>{{ item.name }}</li>
+            }
+          </ul>
+        </div>
+      }
     </div>
 
     <div class="modal-footer">

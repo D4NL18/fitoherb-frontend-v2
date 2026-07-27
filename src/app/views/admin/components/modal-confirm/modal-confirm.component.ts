@@ -10,6 +10,7 @@ import { ButtonComponent } from '../../../../shared/button/button.component';
 })
 export class ModalConfirmComponent {
   itemName = input.required<string>();
+  cascadeItems = input<any[]>();
   isLoading = input<boolean>(false);
   close = output<void>();
   confirm = output<void>();
