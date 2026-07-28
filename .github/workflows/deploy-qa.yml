@@ -24,11 +24,6 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Instalar Dependencias e Fazer Build do Angular
-        run: |
-          npm ci
-          npm run build -- --configuration qa
-
       - name: Autenticar no Google Cloud
         id: auth
         uses: 'google-github-actions/auth@v2'
@@ -44,7 +39,7 @@ jobs:
       - name: Criar Imagem Docker e Enviar pro GCP (Artifact Registry)
         run: |
           IMAGE_NAME="us-central1-docker.pkg.dev/$PROJECT_ID/fitoherb-repo/$SERVICE_NAME:${{ github.sha }}"
-          docker build -t $IMAGE_NAME .
+          docker build --build-arg CONFIGURATION=qa -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
       - name: Publicar no Cloud Run

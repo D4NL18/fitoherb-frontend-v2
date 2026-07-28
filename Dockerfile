@@ -8,8 +8,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy the rest of the source code and build
+# Copy the rest of the source code and build
 COPY . .
-RUN npm run build -- --configuration production
+ARG CONFIGURATION=production
+RUN npm run build -- --configuration ${CONFIGURATION}
 
 # Stage 2: Serve the app with Nginx
 FROM nginx:alpine
