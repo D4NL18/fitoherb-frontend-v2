@@ -53,6 +53,27 @@
               ],
               "outputHashing": "all"
             },
+            "qa": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "10MB",
+                  "maximumError": "20MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "10MB",
+                  "maximumError": "20MB"
+                }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.qa.ts"
+                }
+              ]
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -72,6 +93,9 @@
           "configurations": {
             "production": {
               "buildTarget": "fitoherb-frontend-v2:build:production"
+            },
+            "qa": {
+              "buildTarget": "fitoherb-frontend-v2:build:qa"
             },
             "development": {
               "buildTarget": "fitoherb-frontend-v2:build:development"
