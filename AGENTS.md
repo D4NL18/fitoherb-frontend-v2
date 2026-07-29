@@ -35,7 +35,9 @@ Todo prompt ou nova requisição deve obrigatoriamente seguir as seguintes etapa
    - O **Especialista de Segurança** varre o código aprovado atrás de vulnerabilidades e bloqueia se houver brechas (ex: Injections, LGPD).
 
 10. **Release via Pull Request (DevOps)**
-   - O **Engenheiro DevOps** configura os pipelines automáticos (CI/CD) e gera o PR da feature para a branch `develop`, com a descrição pré-preenchida. Commits diretos nas branches base são proibidos.
+   - O **Engenheiro DevOps** configura os pipelines automáticos (CI/CD) e gera o PR da feature **estritamente para a branch `develop`** (nunca para a `main`), com a descrição pré-preenchida. 
+   - **Regra Obrigatória para Geração de Links de PR:** O agente DEVE gerar a URL de criação do Pull Request garantindo que o branch base seja `develop`. Utilize OBRIGATORIAMENTE o formato de URL: `https://github.com/<owner>/<repo>/compare/develop...<feature-branch>?expand=1`. Links apontando para `main` por omissão de base estão proibidos.
+   - Commits diretos nas branches base são proibidos.
 
 ---
 
@@ -53,3 +55,20 @@ O **Orquestrador** não escreve código. Sua função é alternar entre os agent
 - `.agents/tester.md`
 - `.agents/security.md`
 - `.agents/devops.md`
+
+---
+
+## Atalhos (Slash Commands)
+
+Utilize os comandos abaixo no chat para invocar rapidamente os agentes e garantir que a IA assuma o contexto adequado para a tarefa:
+
+- `/orquestrador`: Inicia o fluxo completo de desenvolvimento. A IA atuará como Orquestrador, criará o `STATE.md` e conduzirá os 10 passos sequencialmente.
+- `/analyst`: Atua isoladamente como Analista, guiando-se pelas regras de negócio.
+- `/architect`: Atua isoladamente como Arquiteto, focando em modelagem e diagramação.
+- `/designer`: Atua isoladamente como Designer de UI/UX.
+- `/dba`: Atua isoladamente como DBA (foco em modelagem segura de banco e migrations).
+- `/developer`: Atua isoladamente como Desenvolvedor (foco em código).
+- `/reviewer`: Atua isoladamente como Revisor de Código.
+- `/tester`: Atua isoladamente como Testador (QA/TDD).
+- `/security`: Atua isoladamente focando em segurança (SecOps).
+- `/devops`: Atua isoladamente na configuração de PRs e pipelines.

@@ -1,4 +1,6 @@
-import { TestBed } from '@angular/core/testing';
+﻿import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { TokenService } from './token.service';
 
@@ -6,7 +8,7 @@ describe('TokenService', () => {
   let service: TokenService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     service = TestBed.inject(TokenService);
   });
 
@@ -14,3 +16,4 @@ describe('TokenService', () => {
     expect(service).toBeTruthy();
   });
 });
+

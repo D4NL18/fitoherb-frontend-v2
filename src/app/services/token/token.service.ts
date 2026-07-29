@@ -5,44 +5,32 @@ import { Injectable } from '@angular/core';
 })
 export class TokenService {
 
-  private readonly TOKEN_KEY = 'fitoherb_token';
+  private getCookie(name: string): string | null {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    if (match) return decodeURIComponent(match[2]);
+    return null;
+  }
 
   saveToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
+    // Kept for backward compatibility if needed, but handled by backend cookies now
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    // The JWT is HttpOnly, we can't access it here.
+    return null;
   }
 
   removeToken(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+    // To cleanly clear the frontend state immediately if needed, we can clear the email cookie
+    // The backend /auth/logout will clear the HttpOnly one.
+    document.cookie = 'fitoherb_user_email=; Max-Age=0; path=/';
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    return !!this.getCookie('fitoherb_user_email');
   }
 
   getUserEmail(): string | null {
-    const token = this.getToken();
-    if (!token) return null;
-
-    try {
-      const payloadBase64Url = token.split('.')[1];
-      
-      const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
-      
-      const payloadJson = decodeURIComponent(window.atob(payloadBase64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-
-      const payload = JSON.parse(payloadJson);
-      
-      return payload.sub || payload.email || null;
-      
-    } catch (e) {
-      console.error('Erro ao decodificar o token', e);
-      return null;
-    }
+    return this.getCookie('fitoherb_user_email');
   }
 }
