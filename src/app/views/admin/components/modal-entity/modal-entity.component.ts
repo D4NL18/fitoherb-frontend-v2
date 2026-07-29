@@ -20,6 +20,7 @@ import { SuppliersService } from '../../../../services/suppliers/suppliers.servi
 import { ButtonComponent } from '../../../../shared/button/button.component';
 import { InputComponent } from '../../../../shared/input/input.component';
 import { SelectComponent } from '../../../../shared/select/select.component';
+import { TextareaComponent } from '../../../../shared/textarea/textarea.component';
 import { environment } from '../../../../../environments/environment';
 
 @Component({
@@ -31,6 +32,7 @@ import { environment } from '../../../../../environments/environment';
     InputComponent,
     SelectComponent,
     ButtonComponent,
+    TextareaComponent,
   ],
   templateUrl: './modal-entity.component.html',
   styleUrl: './modal-entity.component.scss',

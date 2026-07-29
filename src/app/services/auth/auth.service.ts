@@ -32,6 +32,14 @@ export class AuthService {
   }
 
   logout() {
-    this.tokenService.removeToken();
+    this.http.post(`${this.apiUrl}/auth/logout`, {}, { withCredentials: true }).subscribe({
+      next: () => {
+        this.tokenService.removeToken();
+      },
+      error: () => {
+        // Even if the backend call fails, clear the frontend state
+        this.tokenService.removeToken();
+      }
+    });
   }
 }
