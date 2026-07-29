@@ -3,10 +3,10 @@
 Este documento é mantido exclusivamente pelo **Orquestrador**. Ele serve como uma memória persistente do estado exato onde a conversa e a funcionalidade se encontram, prevenindo que as diretrizes se percam em contextos (prompts) longos.
 
 ## Tarefa Atual em Foco
-- **Feature/Entidade:** Adicionar informações de apresentação do produto no modal da galeria.
-- **Branch Atual:** `feat/product-presentation-modal`
+- **Feature/Entidade:** Alterar input de descrição de produto para um Textarea fixo (5 linhas).
+- **Branch Atual:** `feat/admin-product-description-textarea`
 - **Etapa Atual do Fluxo:** 10. Geração do Pull Request para Develop (DevOps)
-- **Última Ação Realizada:** Adicionado `presentation?: string[]` ao `ProductRes` e atualizado `modal-gallery.component.html` para exibir a apresentação abaixo dos sabores.
+- **Última Ação Realizada:** Importação do `TextareaComponent` no `modal-entity`, ajuste no HTML para `<app-textarea>`, e `resize: none` no componente.
 - **Próximo Passo Imediato:** Gerar PR para `develop`.
 
 ## Progresso do Workflow (Checklist de Esteira 10-Steps)
