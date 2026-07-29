@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { ModalConfirmComponent } from './modal-confirm.component';
 
@@ -7,13 +9,14 @@ describe('ModalConfirmComponent', () => {
   let fixture: ComponentFixture<ModalConfirmComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()], 
       imports: [ModalConfirmComponent]
     })
     .compileComponents();
 
     fixture = TestBed.createComponent(ModalConfirmComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('itemName', 'test-item');
     fixture.detectChanges();
   });
 
@@ -21,3 +24,5 @@ describe('ModalConfirmComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+
+

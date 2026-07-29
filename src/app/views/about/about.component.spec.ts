@@ -1,4 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { AboutComponent } from './about.component';
 
@@ -7,7 +9,7 @@ describe('AboutComponent', () => {
   let fixture: ComponentFixture<AboutComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()], 
       imports: [AboutComponent]
     })
     .compileComponents();
@@ -21,3 +23,5 @@ describe('AboutComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+
+

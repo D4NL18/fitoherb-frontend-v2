@@ -1,4 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { SuppliersComponent } from './suppliers.component';
 
@@ -7,7 +9,7 @@ describe('SuppliersComponent', () => {
   let fixture: ComponentFixture<SuppliersComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()], 
       imports: [SuppliersComponent]
     })
     .compileComponents();
@@ -21,3 +23,5 @@ describe('SuppliersComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+
+
