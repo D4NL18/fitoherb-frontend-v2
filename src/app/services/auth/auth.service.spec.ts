@@ -74,6 +74,9 @@ describe('AuthService', () => {
 
   it('should remove token on logout', () => {
     service.logout();
+    const req = httpMock.expectOne(`${environment.apiUrl}/auth/logout`);
+    expect(req.request.method).toBe('POST');
+    req.flush({});
     expect(tokenServiceSpy.removeToken).toHaveBeenCalled();
   });
 });

@@ -17,6 +17,6 @@ Este documento é mantido exclusivamente pelo **Orquestrador**. Ele serve como u
 - [x] 5. Desenvolver Testes Unitários - TDD (Tester) - *N/A*
 - [x] 6. Executar Código na Branch (Desenvolvedor) - *Código implementado no Frontend e Backend.*
 - [x] 7. Code Review de Clean Code (Reviewer) - *Aprovado*
-- [ ] 8. Testar QA (Tester) - *Aguardando verificação manual de login e expiração de cookies.*
-- [ ] 9. Auditoria de Segurança (SecOps) - *Aguardando verificação de ausência do JWT no body e cabeçalhos.*
-- [ ] 10. Geração do Pull Request para Develop (DevOps) - *Pendente.*
+- [x] 8. Testar QA (Tester) - *Validação realizada pelo usuário (Login, admin redirect, cookies persistidos).*
+- [x] 9. Auditoria de Segurança (SecOps) - *LGPD mitigada, XSS risks mitigações ativas via HttpOnly cookies.*
+- [x] 10. Geração do Pull Request para Develop (DevOps) - *Branches `feat/secure-httponly-cookies` pushados para origin e links de PR gerados.*

@@ -35,7 +35,9 @@ Todo prompt ou nova requisição deve obrigatoriamente seguir as seguintes etapa
    - O **Especialista de Segurança** varre o código aprovado atrás de vulnerabilidades e bloqueia se houver brechas (ex: Injections, LGPD).
 
 10. **Release via Pull Request (DevOps)**
-   - O **Engenheiro DevOps** configura os pipelines automáticos (CI/CD) e gera o PR da feature para a branch `develop`, com a descrição pré-preenchida. Commits diretos nas branches base são proibidos.
+   - O **Engenheiro DevOps** configura os pipelines automáticos (CI/CD) e gera o PR da feature **estritamente para a branch `develop`** (nunca para a `main`), com a descrição pré-preenchida. 
+   - **Regra Obrigatória para Geração de Links de PR:** O agente DEVE gerar a URL de criação do Pull Request garantindo que o branch base seja `develop`. Utilize OBRIGATORIAMENTE o formato de URL: `https://github.com/<owner>/<repo>/compare/develop...<feature-branch>?expand=1`. Links apontando para `main` por omissão de base estão proibidos.
+   - Commits diretos nas branches base são proibidos.
 
 ---
 
