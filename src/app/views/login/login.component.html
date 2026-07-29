@@ -12,6 +12,7 @@
       [required]="true"
       email
       placeholder="exemplo@fitoherb.com"
+      autocomplete="username"
       #emailInput="ngModel"
       [showError]="!!(emailInput.invalid && emailInput.touched)"
       errorMsg="Insira um e-mail válido."
@@ -25,15 +26,16 @@
       name="password"
       [required]="true"
       placeholder="Sua senha"
+      autocomplete="current-password"
       #passwordInput="ngModel"
       [showError]="!!(passwordInput.invalid && passwordInput.touched)"
       errorMsg="A senha é obrigatória."
     />
 
     <div class="remember-me-container">
-      <label class="remember-me-label">
-        <input type="checkbox" name="rememberMe" [(ngModel)]="rememberMe" />
-        <span>Lembrar meus dados</span>
+      <label for="rememberMe" class="remember-me-label">
+        <input type="checkbox" id="rememberMe" name="rememberMe" [(ngModel)]="rememberMe" />
+        Mantenha-me logado
       </label>
     </div>
 

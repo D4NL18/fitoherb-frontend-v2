@@ -13,16 +13,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const addTokenHeader = (request: HttpRequest<any>, token: string) => {
-    return request.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
-  };
-
-  const token = tokenService.getToken();
-  let authReq = req;
-
-  if (token && !req.url.includes('/refresh')) {
-    authReq = addTokenHeader(req, token);
-  }
+  // Send cookies with all requests
+  const authReq = req.clone({
+    withCredentials: true
+  });
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -33,12 +27,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           refreshTokenSubject.next(null);
 
           return authService.refreshToken().pipe(
-            switchMap((response: any) => {
+            switchMap(() => {
               isRefreshing = false;
-              tokenService.saveToken(response.token);
-              refreshTokenSubject.next(response.token);
+              // Token and email are set via cookies by the backend
+              refreshTokenSubject.next('refreshed');
 
-              return next(addTokenHeader(req, response.token));
+              // Retry the request that failed (it will now have the new cookies)
+              return next(authReq);
             }),
             catchError((refreshErr) => {
               isRefreshing = false;
@@ -51,9 +46,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           );
         } else {
           return refreshTokenSubject.pipe(
-            filter(token => token !== null),
+            filter(status => status !== null),
             take(1),
-            switchMap(jwt => next(addTokenHeader(req, jwt as string)))
+            switchMap(() => next(authReq))
           );
         }
       }

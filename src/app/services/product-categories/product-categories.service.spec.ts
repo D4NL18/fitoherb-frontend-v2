@@ -1,4 +1,6 @@
-import { TestBed } from '@angular/core/testing';
+﻿import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { ProductCategoriesService } from './product-categories.service';
 
@@ -6,7 +8,7 @@ describe('ProductCategoriesService', () => {
   let service: ProductCategoriesService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     service = TestBed.inject(ProductCategoriesService);
   });
 
@@ -14,3 +16,4 @@ describe('ProductCategoriesService', () => {
     expect(service).toBeTruthy();
   });
 });
+

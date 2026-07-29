@@ -13,7 +13,7 @@
     }
 
     <input [id]="id()" [type]="currentType()" [placeholder]="placeholder()" [value]="value" [disabled]="disabled"
-      [class.invalid]="showError()" (input)="onInput($event)" (blur)="onTouched()" />
+      [class.invalid]="showError()" (input)="onInput($event)" (blur)="onTouched()" [attr.autocomplete]="autocomplete() || null" />
 
     @if (type() === 'password') {
     <button type="button" class="toggle-password-btn" (click)="togglePasswordVisibility()" tabindex="-1"

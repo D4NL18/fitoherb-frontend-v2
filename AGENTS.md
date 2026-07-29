@@ -1,0 +1,74 @@
+# Fluxo de Desenvolvimento com IA (AI Agents Workflow)
+
+Este documento define o fluxo obrigatório para qualquer tarefa de desenvolvimento assistida por Inteligência Artificial neste projeto. O diretório `.agents/` contém o detalhamento individual de cada papel.
+
+## Fluxo de Trabalho (Workflow - 10 Passos)
+
+Todo prompt ou nova requisição deve obrigatoriamente seguir as seguintes etapas na ordem estabelecida.
+
+1. **Especificar (Specification)**
+   - O **Analista** amarra regras de negócio (P-XXX) e define o escopo.
+
+2. **Projetar (Design & Architecture)**
+   - O **Arquiteto** define a arquitetura técnica, banco de dados, APIs (`api-contracts`).
+   - O **Designer** (se envolver Frontend) projeta as diretrizes visuais (UI/UX).
+
+3. **Modelagem de Dados Segura (DBA)**
+   - O **DBA** traduz o design em arquivos de *Migrations* seguras, aplicando travas contra perda de dados.
+
+4. **Planejar as Tarefas (Task Planning)**
+   - O **Arquiteto** decompõe a solução no checklist da Tarefa (em `docs/tasks/`).
+
+5. **Desenvolver Testes Unitários (TDD)**
+   - O **Tester** cria a suíte de testes (em código) antes de qualquer lógica produtiva.
+
+6. **Executar (Execution)**
+   - O **Desenvolvedor** programa focado em fazer os testes passarem em uma branch isolada da feature.
+
+7. **Code Review (Manutenibilidade)**
+   - O **Reviewer** inspeciona o código caçando falhas de Clean Code, complexidade cognitiva (SonarQube) e violações do Dicionário (`GLOSSARY.md`).
+
+8. **Testar (Validation & QA)**
+   - O **Tester** roda os testes automatizados e o plano de Auditoria manual para evitar regressões.
+
+9. **Auditoria de Segurança (SecOps)**
+   - O **Especialista de Segurança** varre o código aprovado atrás de vulnerabilidades e bloqueia se houver brechas (ex: Injections, LGPD).
+
+10. **Release via Pull Request (DevOps)**
+   - O **Engenheiro DevOps** configura os pipelines automáticos (CI/CD) e gera o PR da feature **estritamente para a branch `develop`** (nunca para a `main`), com a descrição pré-preenchida. 
+   - **Regra Obrigatória para Geração de Links de PR:** O agente DEVE gerar a URL de criação do Pull Request garantindo que o branch base seja `develop`. Utilize OBRIGATORIAMENTE o formato de URL: `https://github.com/<owner>/<repo>/compare/develop...<feature-branch>?expand=1`. Links apontando para `main` por omissão de base estão proibidos.
+   - Commits diretos nas branches base são proibidos.
+
+---
+
+## Papéis dos Agentes
+
+O **Orquestrador** não escreve código. Sua função é alternar entre os agentes e garantir que o `.agents/docs/STATE.md` esteja atualizado com o contexto atual.
+
+- `.agents/orchestrator.md`
+- `.agents/analyst.md`
+- `.agents/architect.md`
+- `.agents/designer.md`
+- `.agents/dba.md`
+- `.agents/developer.md`
+- `.agents/reviewer.md`
+- `.agents/tester.md`
+- `.agents/security.md`
+- `.agents/devops.md`
+
+---
+
+## Atalhos (Slash Commands)
+
+Utilize os comandos abaixo no chat para invocar rapidamente os agentes e garantir que a IA assuma o contexto adequado para a tarefa:
+
+- `/orquestrador`: Inicia o fluxo completo de desenvolvimento. A IA atuará como Orquestrador, criará o `STATE.md` e conduzirá os 10 passos sequencialmente.
+- `/analyst`: Atua isoladamente como Analista, guiando-se pelas regras de negócio.
+- `/architect`: Atua isoladamente como Arquiteto, focando em modelagem e diagramação.
+- `/designer`: Atua isoladamente como Designer de UI/UX.
+- `/dba`: Atua isoladamente como DBA (foco em modelagem segura de banco e migrations).
+- `/developer`: Atua isoladamente como Desenvolvedor (foco em código).
+- `/reviewer`: Atua isoladamente como Revisor de Código.
+- `/tester`: Atua isoladamente como Testador (QA/TDD).
+- `/security`: Atua isoladamente focando em segurança (SecOps).
+- `/devops`: Atua isoladamente na configuração de PRs e pipelines.

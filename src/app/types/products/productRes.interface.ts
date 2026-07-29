@@ -6,6 +6,7 @@ export interface ProductRes {
   imageUrl: string;
   description: string;
   flavours: string[];
+  presentation?: string[];
   slug: string;
   category: ProductCategoryRes;
   supplier: SupplierRes;
