@@ -78,11 +78,12 @@
 
           @switch (type()) {
             @case ("Produtos") {
-              <app-input
+              <app-textarea
                 label="Descrição"
                 id="description"
                 formControlName="description"
                 placeholder="Descreva as propriedades do produto"
+                [rows]="5"
               />
               <app-input
                 label="Apresentação (Separados por vírgula)"
