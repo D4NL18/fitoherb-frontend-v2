@@ -20,6 +20,7 @@ export class InputComponent implements ControlValueAccessor {
   icon = input<string | null>(null);
   errorMsg = input<string | null>(null);
   showError = input<boolean>(false);
+  autocomplete = input<string>();
 
   isPasswordVisible = signal(false);
   currentType = signal(this.type());
