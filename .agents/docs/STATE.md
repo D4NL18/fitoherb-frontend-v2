@@ -3,11 +3,11 @@
 Este documento é mantido exclusivamente pelo **Orquestrador**. Ele serve como uma memória persistente do estado exato onde a conversa e a funcionalidade se encontram, prevenindo que as diretrizes se percam em contextos (prompts) longos.
 
 ## Tarefa Atual em Foco
-- **Feature/Entidade:** Implementação de Autenticação 100% Segura usando Cookies HttpOnly (Backend e Frontend) e reintrodução do "Lembrar-me".
-- **Branch Atual:** `feat/secure-httponly-cookies`
-- **Etapa Atual do Fluxo:** 8. Testar QA (Tester) / 9. Auditoria de Segurança (SecOps)
-- **Última Ação Realizada:** Correção de bug no `SecurityFilter` para ignorar aspas duplas no JWT. Adição de redirect automático em `login.component.ts`. Criação da doc em `docs/tasks/LGPD-secure-login.md`.
-- **Próximo Passo Imediato:** Aguardando validação final de QA pelo usuário.
+- **Feature/Entidade:** Adicionar informações de apresentação do produto no modal da galeria.
+- **Branch Atual:** `feat/product-presentation-modal`
+- **Etapa Atual do Fluxo:** 10. Geração do Pull Request para Develop (DevOps)
+- **Última Ação Realizada:** Adicionado `presentation?: string[]` ao `ProductRes` e atualizado `modal-gallery.component.html` para exibir a apresentação abaixo dos sabores.
+- **Próximo Passo Imediato:** Gerar PR para `develop`.
 
 ## Progresso do Workflow (Checklist de Esteira 10-Steps)
 - [x] 1. Especificar (Analista) - *Migração para Cookies HttpOnly para prevenir XSS e gerir sessão.*

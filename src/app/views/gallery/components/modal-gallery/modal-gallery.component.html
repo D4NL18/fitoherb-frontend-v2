@@ -34,6 +34,15 @@
                 }
               </div>
             }
+
+            @if (product()?.presentation && product()?.presentation!.length > 0) {
+              <p><strong>Apresentação:</strong></p>
+              <div class="flavours-chips">
+                @for (pres of product()?.presentation; track pres) {
+                  <span class="chip">{{ pres }}</span>
+                }
+              </div>
+            }
           </div>
 
           <div class="description-section">
