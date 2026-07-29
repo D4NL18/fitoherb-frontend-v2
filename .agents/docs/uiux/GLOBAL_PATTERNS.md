@@ -1,24 +1,10 @@
-# Padrões Globais de UI/UX
+# UI/UX: Global Patterns
 
-Este documento contém os padrões visuais e as diretrizes de experiência de usuário (UX) que devem ser aplicados **por padrão** em toda a aplicação. Qualquer design específico de feature deve herdar e respeitar estas regras.
+Este documento lista as diretrizes e padrões de usabilidade que permeiam toda a aplicação Fitoherb Frontend, dividida em dois eixos: Área Pública e Administrativa.
 
-## 1. Identidade Visual (Design Tokens)
-- **Paleta de Cores:** [A ser preenchido pelo Designer]
-  - Primária: 
-  - Secundária:
-  - Alertas/Erros (Danger):
-  - Sucesso (Success):
-- **Tipografia:**
-  - Font Family Principal: 
-  - Títulos (H1, H2, H3):
-  - Corpo de texto (Body):
+## 1. Descrição Visual
+A aplicação adota um padrão limpo e responsivo. O layout público baseia-se em *landing pages* focadas em e-commerce institucional, enquanto o layout administrativo foca em Data Tables e formulários robustos para gestão eficiente de dados.
 
-## 2. Padrões de Interface (UI)
-- **Espaçamentos e Margens (Spacing):** [Ex: Padrão em múltiplos de 8px (8, 16, 24, 32)]
-- **Bordas e Sombras:** [Ex: Border-radius padrão de 4px, sombras de elevação para modais]
-- **Botões e Inputs:** [Ex: Estados obrigatórios para Hover, Focus, Active, Disabled]
-
-## 3. Experiência do Usuário (UX)
-- **Feedback Visual:** Toda ação assíncrona (ex: requisições HTTP) deve possuir indicador de loading. Erros devem sempre apresentar mensagens amigáveis via Toasts/Snackbars.
-- **Acessibilidade:** Garantir contraste adequado de cores e uso de tags semânticas (ARIA) para leitores de tela.
-- **Navegação:** [Ex: Padrões de uso de breadcrumbs, posição do menu lateral]
+## 2. Tratamento de Estados (State Management UX)
+- **Loading:** Utilização contínua de propriedades (ex: `isLoading`, `isGalleryLoading`) definidas nos *Signals* dos serviços para renderizar loaders (spinners/skeletons) bloqueando a UI de dupla submissão.
+- **Empty States:** Páginas ou tabelas com resposta `empty: true` (da paginação `PageResponse`) devem sempre expor mensagens de que os dados não foram encontrados, incentivando navegação reversa (público) ou botões de nova criação (admin).
