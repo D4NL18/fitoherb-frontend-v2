@@ -4,7 +4,7 @@ Este documento reflete a modelagem de domínio atual baseada nos tipos TypeScrip
 
 ### `ProductReq`
 - `name`: string
-- `description`: string
+- `description?`: string
 - `categorySlug`: string
 - `supplierSlug`: string
 - `flavours?`: string[]
@@ -12,7 +12,7 @@ Este documento reflete a modelagem de domínio atual baseada nos tipos TypeScrip
 ### `ProductRes`
 - `name`: string
 - `imageUrl`: string
-- `description`: string
+- `description?`: string
 - `flavours`: string[]
 - `slug`: string
 - `category`: `ProductCategoryRes` (Objeto aninhado)
