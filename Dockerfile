@@ -26,4 +26,11 @@ COPY --from=builder /app/dist/fitoherb-frontend-v2/browser /usr/share/nginx/html
 # Expose port 8080
 EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+# Install tools for Basic Auth (htpasswd)
+RUN apk add --no-cache apache2-utils
+
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+CMD ["/entrypoint.sh"]
