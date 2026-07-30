@@ -54,4 +54,4 @@ jobs:
           service: '${{ env.SERVICE_NAME }}'
           region: '${{ env.REGION }}'
           image: 'us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/fitoherb-repo/${{ env.SERVICE_NAME }}:${{ github.sha }}'
-          flags: '--allow-unauthenticated --port=8080'
+          flags: '--allow-unauthenticated --port=8080 --set-env-vars BASIC_AUTH_USER=${{ secrets.QA_BASIC_AUTH_USER }},BASIC_AUTH_PASS=${{ secrets.QA_BASIC_AUTH_PASS }}'
