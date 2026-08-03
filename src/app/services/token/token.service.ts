@@ -5,6 +5,8 @@ import { Injectable } from '@angular/core';
 })
 export class TokenService {
 
+  private readonly TOKEN_KEY = 'fitoherb_token';
+
   private getCookie(name: string): string | null {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
     if (match) return decodeURIComponent(match[2]);
@@ -12,22 +14,20 @@ export class TokenService {
   }
 
   saveToken(token: string): void {
-    // Kept for backward compatibility if needed, but handled by backend cookies now
+    localStorage.setItem(this.TOKEN_KEY, token);
   }
 
   getToken(): string | null {
-    // The JWT is HttpOnly, we can't access it here.
-    return null;
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   removeToken(): void {
-    // To cleanly clear the frontend state immediately if needed, we can clear the email cookie
-    // The backend /auth/logout will clear the HttpOnly one.
+    localStorage.removeItem(this.TOKEN_KEY);
     document.cookie = 'fitoherb_user_email=; Max-Age=0; path=/';
   }
 
   isAuthenticated(): boolean {
-    return !!this.getCookie('fitoherb_user_email');
+    return !!this.getToken() || !!this.getCookie('fitoherb_user_email');
   }
 
   getUserEmail(): string | null {
