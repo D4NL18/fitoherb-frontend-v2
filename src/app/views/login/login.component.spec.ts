@@ -19,6 +19,7 @@ describe('LoginComponent', () => {
     const authSpy = jasmine.createSpyObj('AuthService', ['login']);
     const tokenSpy = jasmine.createSpyObj('TokenService', ['isAuthenticated']);
     const navSpy = jasmine.createSpyObj('Router', ['navigate']);
+    navSpy.navigate.and.returnValue(Promise.resolve(true));
 
     tokenSpy.isAuthenticated.and.returnValue(false); // default
 

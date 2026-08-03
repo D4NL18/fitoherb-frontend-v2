@@ -55,8 +55,13 @@ export class LoginComponent implements OnInit {
       .login({ email: this.email, password: this.password, rememberMe: this.rememberMe })
       .subscribe({
         next: () => {
-
-          this.router.navigate(['/admin']);
+          this.router.navigate(['/admin']).then(success => {
+            if (!success) {
+              this.isLoading.set(false);
+              this.errorMessage.set('Falha ao redirecionar para o painel.');
+              this.modalResponseOpen.set(true);
+            }
+          });
         },
         error: (err) => {
           this.isLoading.set(false);
