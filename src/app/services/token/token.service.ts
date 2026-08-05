@@ -16,8 +16,8 @@ export class TokenService {
   saveToken(token: string, rememberMe: boolean = false): void {
     let cookieString = `${this.TOKEN_KEY}=${encodeURIComponent(token)}; path=/`;
     if (rememberMe) {
-      // Set to expire in 7 days (604800 seconds)
-      cookieString += '; max-age=604800';
+      // Set to expire in 1 month (30 days = 2592000 seconds)
+      cookieString += '; max-age=2592000';
     }
     document.cookie = cookieString;
   }
