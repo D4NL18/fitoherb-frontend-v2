@@ -35,12 +35,12 @@ describe('AuthService', () => {
   });
 
   it('should call login API and save token on success', () => {
-    const loginData = { email: 'test@test.com', password: 'password123' };
+    const loginData = { email: 'test@test.com', password: 'password123', rememberMe: undefined };
     const mockRes = { token: 'mock-jwt-token' };
 
     service.login(loginData).subscribe(res => {
       expect(res).toEqual(mockRes);
-      expect(tokenServiceSpy.saveToken).toHaveBeenCalledWith(mockRes.token);
+      expect(tokenServiceSpy.saveToken).toHaveBeenCalledWith(mockRes.token, loginData.rememberMe);
     });
 
     const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
