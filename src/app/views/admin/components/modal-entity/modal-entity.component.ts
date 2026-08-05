@@ -208,6 +208,10 @@ export class ModalEntityComponent implements OnInit {
       } else {
         const finalPayload = { ...rawValue };
 
+        if (this.type() === 'Banners') {
+          finalPayload.position = Number(finalPayload.position);
+        }
+
         this.save.emit({
           form: finalPayload,
           image: this.selectedFile || undefined,

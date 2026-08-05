@@ -13,16 +13,21 @@ export class TokenService {
     return null;
   }
 
-  saveToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
+  saveToken(token: string, rememberMe: boolean = false): void {
+    let cookieString = `${this.TOKEN_KEY}=${encodeURIComponent(token)}; path=/`;
+    if (rememberMe) {
+      // Set to expire in 1 month (30 days = 2592000 seconds)
+      cookieString += '; max-age=2592000';
+    }
+    document.cookie = cookieString;
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.getCookie(this.TOKEN_KEY);
   }
 
   removeToken(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+    document.cookie = `${this.TOKEN_KEY}=; Max-Age=0; path=/`;
     document.cookie = 'fitoherb_user_email=; Max-Age=0; path=/';
   }
 
