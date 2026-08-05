@@ -103,6 +103,8 @@
                 formControlName="categoryName"
                 [options]="categoryNames()"
                 [searchable]="true"
+                [showError]="submitAttempted && !!entityForm.get('categoryName')?.invalid"
+                errorMsg="A categoria é obrigatória."
               />
               <app-select
                 label="Fornecedor"
@@ -110,6 +112,8 @@
                 formControlName="supplierName"
                 [options]="supplierNames()"
                 [searchable]="true"
+                [showError]="submitAttempted && !!entityForm.get('supplierName')?.invalid"
+                errorMsg="O fornecedor é obrigatório."
               />
             }
             @case ("Usuários") {

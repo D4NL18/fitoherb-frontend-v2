@@ -120,6 +120,12 @@
       &.empty {
         background-color: styles.$gray-100;
       }
+
+      &.error-border {
+        border-color: #e74c3c;
+        background-color: #fff9f9;
+        i { color: #e74c3c; }
+      }
     }
 
     .upload-label {
