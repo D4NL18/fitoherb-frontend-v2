@@ -117,7 +117,7 @@ export class ModalEntityComponent implements OnInit {
       case 'Produtos':
         this.entityForm = this.fb.group({
           ...common,
-          description: [''],
+          description: ['', [Validators.minLength(3), Validators.maxLength(5000)]],
           categoryName: ['', Validators.required],
           supplierName: ['', Validators.required],
           presentation: [''],

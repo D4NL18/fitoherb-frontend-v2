@@ -84,6 +84,8 @@
                 formControlName="description"
                 placeholder="Descreva as propriedades do produto"
                 [rows]="5"
+                [showError]="submitAttempted && !!entityForm.get('description')?.invalid"
+                errorMsg="A descrição deve ter entre 3 e 5000 caracteres."
               />
               <app-input
                 label="Apresentação (Separados por vírgula)"
