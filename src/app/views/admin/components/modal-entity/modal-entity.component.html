@@ -65,6 +65,8 @@
               formControlName="name"
               [required]="true"
               placeholder="Digite o nome completo"
+              [showError]="submitAttempted && !!entityForm.get('name')?.invalid"
+              errorMsg="O nome é obrigatório e deve ter no mínimo 3 caracteres."
             />
           } @else {
             <app-input
@@ -73,6 +75,8 @@
               formControlName="title"
               [required]="true"
               placeholder="Promoção de Inverno"
+              [showError]="submitAttempted && !!entityForm.get('title')?.invalid"
+              errorMsg="O título é obrigatório e deve ter entre 2 e 100 caracteres."
             />
           }
 

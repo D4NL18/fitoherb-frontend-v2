@@ -139,6 +139,14 @@
         display: none;
       }
     }
+
+    .error-msg {
+      font-size: 0.8rem;
+      color: #e74c3c;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      animation: slideIn 0.2s ease-out;
+    }
   }
 
   .fields-grid {
