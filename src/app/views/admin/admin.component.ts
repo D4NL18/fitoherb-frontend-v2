@@ -440,6 +440,8 @@ export class AdminComponent implements OnInit {
         const status = err.status;
         if (status === 0) {
           this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
+        } else if (status === 409 && type === 'Produtos') {
+          this.showFeedback(409, 'Já existe um produto com este nome para este fornecedor.');
         } else {
           const msgErro = err.error?.message || 'Ocorreu um erro interno. Verifique os dados.';
           this.showFeedback(status || 500, msgErro);
