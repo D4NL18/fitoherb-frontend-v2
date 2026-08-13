@@ -14,6 +14,7 @@ export class AboutComponent implements AfterViewInit {
   @ViewChild('mvvSection') mvvSection!: ElementRef;
   @ViewChild('gallerySection') gallerySection!: ElementRef;
   @ViewChild('videoSection') videoSection!: ElementRef;
+  @ViewChild('teamSection') teamSection!: ElementRef;
 
   stats = {
     years: signal(0),
@@ -52,6 +53,7 @@ export class AboutComponent implements AfterViewInit {
     if (this.mvvSection) observer.observe(this.mvvSection.nativeElement);
     if (this.gallerySection) observer.observe(this.gallerySection.nativeElement);
     if (this.videoSection) observer.observe(this.videoSection.nativeElement);
+    if (this.teamSection) observer.observe(this.teamSection.nativeElement);
   }
 
   private animateNumbers() {
