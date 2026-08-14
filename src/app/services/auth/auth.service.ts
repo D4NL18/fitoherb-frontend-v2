@@ -28,7 +28,13 @@ export class AuthService {
   }
 
   refreshToken(): Observable<LoginRes> {
-    return this.http.post<LoginRes>(`${this.apiUrl}/auth/refresh`, {});
+    return this.http.post<LoginRes>(`${this.apiUrl}/auth/refresh`, {}).pipe(
+      tap(res => {
+        if (res && res.token) {
+          this.tokenService.saveToken(res.token);
+        }
+      })
+    );
   }
 
   logout() {

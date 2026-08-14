@@ -13,11 +13,26 @@ export class TokenService {
     return null;
   }
 
-  saveToken(token: string, rememberMe: boolean = false): void {
-    let cookieString = `${this.TOKEN_KEY}=${encodeURIComponent(token)}; path=/`;
+  saveToken(token: string, rememberMe?: boolean): void {
+    // Se rememberMe não for passado, tenta ler do cookie anterior
+    if (rememberMe === undefined) {
+      rememberMe = this.getCookie('fitoherb_remember') === 'true';
+    } else {
+      // Salva a preferência
+      let remCookie = `fitoherb_remember=${rememberMe}; path=/; SameSite=Strict`;
+      if (rememberMe) {
+        const d = new Date();
+        d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+        remCookie += `; expires=${d.toUTCString()}`;
+      }
+      document.cookie = remCookie;
+    }
+
+    let cookieString = `${this.TOKEN_KEY}=${encodeURIComponent(token)}; path=/; SameSite=Strict`;
     if (rememberMe) {
-      // Set to expire in 1 month (30 days = 2592000 seconds)
-      cookieString += '; max-age=2592000';
+      const d = new Date();
+      d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+      cookieString += `; expires=${d.toUTCString()}`;
     }
     document.cookie = cookieString;
   }
@@ -27,8 +42,9 @@ export class TokenService {
   }
 
   removeToken(): void {
-    document.cookie = `${this.TOKEN_KEY}=; Max-Age=0; path=/`;
-    document.cookie = 'fitoherb_user_email=; Max-Age=0; path=/';
+    document.cookie = `${this.TOKEN_KEY}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    document.cookie = 'fitoherb_user_email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'fitoherb_remember=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   }
 
   isAuthenticated(): boolean {
