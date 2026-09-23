@@ -667,6 +667,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.optimizationResult.set(res);
         this.activeSidebarTab.set('results');
         this.drawRouteOnMap(res.geojson_geometry);
+        this.renderMarkers();
         this.showToast('Rota otimizada com sucesso pelo Algoritmo Genético!');
       },
       error: (err) => {
@@ -677,54 +678,171 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Desenha os marcadores no Leaflet
+  // Mapa de referências de marcadores Leaflet
+  private stopMarkers: Map<string, any> = new Map();
+
+  // Foca e centraliza o mapa em uma parada específica ao clicar no itinerário
+  focusStopOnMap(step: OrderedStopDto) {
+    if (!this.map) return;
+    const lat = step.lat !== undefined ? step.lat : (step.action !== 'VISIT' ? this.depot().lat : this.stops().find(s => s.id === step.id)?.lat);
+    const lon = step.lon !== undefined ? step.lon : (step.action !== 'VISIT' ? this.depot().lon : this.stops().find(s => s.id === step.id)?.lon);
+    if (lat && lon) {
+      this.map.flyTo([lat, lon], 16, { animate: true, duration: 0.8 });
+      const marker = this.stopMarkers.get(step.id) || (step.action !== 'VISIT' ? this.stopMarkers.get('depot') : null);
+      if (marker) {
+        setTimeout(() => marker.openPopup(), 400);
+      }
+    }
+  }
+
+  // Desenha os marcadores no Leaflet com destaque visual para o roteiro IA
   private renderMarkers() {
     if (!this.markersLayer || !L) return;
     this.markersLayer.clearLayers();
+    this.stopMarkers.clear();
 
     const base = this.depot();
+    const optRes = this.optimizationResult();
+    const isOptimized = !!optRes && optRes.ordered_stops && optRes.ordered_stops.length > 0;
 
-    // Marcador da Base (Ponto de Partida)
+    // 1. Marcador da Base (Ponto de Partida)
     const baseIcon = L.divIcon({
-      className: 'custom-map-pin pin--depot',
-      html: `<div class="pin-circle pin-depot">🏢</div><div class="pin-label">${base.name}</div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 36]
+      className: 'custom-map-pin',
+      html: `
+        <div class="custom-pin-wrapper pin--depot">
+          <div class="pin-bubble">🏢</div>
+          <div class="pin-arrow"></div>
+          <div class="pin-label-pill">Partida: ${base.name}</div>
+        </div>
+      `,
+      iconSize: [40, 48],
+      iconAnchor: [20, 48]
     });
 
-    L.marker([base.lat, base.lon], { icon: baseIcon })
-      .bindPopup(`<b>Ponto de Partida:</b><br/>${base.name}<br/><small>${base.address?.full_address || ''}</small>`)
+    const baseMarker = L.marker([base.lat, base.lon], { icon: baseIcon })
+      .bindPopup(`
+        <div class="popup-card">
+          <div class="popup-card__header">
+            <span class="popup-step">Ponto de Partida</span>
+            <span class="popup-time"><i class="fa-solid fa-house-chimney"></i> Base</span>
+          </div>
+          <div class="popup-card__title">${base.name}</div>
+          <div class="popup-card__addr">${base.address?.full_address || ''}</div>
+          <div class="popup-card__footer">
+            <span class="popup-badge popup-badge--regular">Base Oficial</span>
+          </div>
+        </div>
+      `)
       .addTo(this.markersLayer);
+    
+    this.stopMarkers.set('depot', baseMarker);
 
-    // Marcadores das Paradas
+    // 2. Se o roteiro foi otimizado pela IA, desenha os pinos na sequência inteligente (#1, #2...)
+    if (isOptimized && optRes) {
+      optRes.ordered_stops.forEach((s) => {
+        if (s.action !== 'VISIT') return;
+
+        const lat = s.lat !== undefined ? s.lat : this.stops().find(x => x.id === s.id)?.lat;
+        const lon = s.lon !== undefined ? s.lon : this.stops().find(x => x.id === s.id)?.lon;
+        if (lat === undefined || lon === undefined) return;
+
+        let pinClass = 'pin--optimized';
+        if (s.priority === 'CRITICAL') pinClass += ' pin--critical';
+        else if (s.priority === 'HIGH') pinClass += ' pin--high';
+        if (s.is_fixed) pinClass += ' pin--fixed';
+
+        const priorityLabel = this.getPriorityLabel(s.priority);
+        const priorityBadgeClass = s.priority === 'CRITICAL' ? 'popup-badge--critical' : (s.priority === 'HIGH' ? 'popup-badge--high' : 'popup-badge--regular');
+
+        const pinIcon = L.divIcon({
+          className: 'custom-map-pin',
+          html: `
+            <div class="custom-pin-wrapper ${pinClass}">
+              <div class="pin-bubble">
+                ${s.is_fixed ? '🔒' : ''} #${s.step}
+              </div>
+              <div class="pin-arrow"></div>
+              <div class="pin-label-pill">#${s.step} ${s.name}</div>
+            </div>
+          `,
+          iconSize: [40, 48],
+          iconAnchor: [20, 48]
+        });
+
+        const stopMarker = L.marker([lat, lon], { icon: pinIcon })
+          .bindPopup(`
+            <div class="popup-card">
+              <div class="popup-card__header">
+                <span class="popup-step">Parada #${s.step}</span>
+                <span class="popup-time"><i class="fa-regular fa-clock"></i> +${s.arrival_time_minutes.toFixed(0)} min</span>
+              </div>
+              <div class="popup-card__title">${s.name}</div>
+              <div class="popup-card__addr">${s.address?.full_address || ''}</div>
+              <div class="popup-card__footer">
+                <span class="popup-badge ${priorityBadgeClass}">${priorityLabel}</span>
+                ${s.is_fixed ? '<span class="popup-fixed">🔒 Ordem Travada</span>' : '<span class="popup-ai">⚡ Otimizado IA</span>'}
+              </div>
+            </div>
+          `)
+          .addTo(this.markersLayer);
+
+        this.stopMarkers.set(s.id, stopMarker);
+      });
+      return;
+    }
+
+    // 3. Modo de Planejamento Inicial (antes de rodar a IA)
     this.stops().forEach((s, idx) => {
-      const pinClass = s.fixed_order ? 'pin-fixed' : (s.priority === 'CRITICAL' ? 'pin-critical' : 'pin-regular');
+      let pinClass = s.fixed_order ? 'pin--fixed' : (s.priority === 'CRITICAL' ? 'pin--critical' : (s.priority === 'HIGH' ? 'pin--high' : ''));
       const pinBadge = s.fixed_order ? `🔒 #${s.fixed_order}` : `#${idx + 1}`;
+      const priorityLabel = this.getPriorityLabel(s.priority);
+      const priorityBadgeClass = s.priority === 'CRITICAL' ? 'popup-badge--critical' : (s.priority === 'HIGH' ? 'popup-badge--high' : 'popup-badge--regular');
 
       const stopIcon = L.divIcon({
         className: 'custom-map-pin',
-        html: `<div class="pin-circle ${pinClass}">${pinBadge}</div><div class="pin-label">${s.name}</div>`,
-        iconSize: [34, 34],
-        iconAnchor: [17, 34]
+        html: `
+          <div class="custom-pin-wrapper ${pinClass}">
+            <div class="pin-bubble">${pinBadge}</div>
+            <div class="pin-arrow"></div>
+            <div class="pin-label-pill">${s.name}</div>
+          </div>
+        `,
+        iconSize: [40, 48],
+        iconAnchor: [20, 48]
       });
 
-      L.marker([s.lat, s.lon], { icon: stopIcon })
-        .bindPopup(`<b>${s.name}</b><br/>${s.address?.full_address || ''}<br/><small>${s.fixed_order ? 'Ordem Fixa: #' + s.fixed_order : 'Otimização Livre IA'}</small>`)
+      const stopMarker = L.marker([s.lat, s.lon], { icon: stopIcon })
+        .bindPopup(`
+          <div class="popup-card">
+            <div class="popup-card__header">
+              <span class="popup-step">${s.fixed_order ? 'Ordem #' + s.fixed_order : 'Ponto #' + (idx + 1)}</span>
+              <span class="popup-time">${s.fixed_order ? '🔒 Fixado' : '⚡ Livre'}</span>
+            </div>
+            <div class="popup-card__title">${s.name}</div>
+            <div class="popup-card__addr">${s.address?.full_address || ''}</div>
+            <div class="popup-card__footer">
+              <span class="popup-badge ${priorityBadgeClass}">${priorityLabel}</span>
+            </div>
+          </div>
+        `)
         .addTo(this.markersLayer);
+
+      this.stopMarkers.set(s.id, stopMarker);
     });
   }
 
-  // Desenha o traçado da rota no Leaflet
+  // Desenha o traçado da rota no Leaflet com cores oficiais Fitoherb
   private drawRouteOnMap(geojson: any) {
     if (!this.routeLayer || !L || !geojson) return;
     this.routeLayer.clearLayers();
 
     const routePolyline = L.geoJSON(geojson, {
       style: {
-        color: '#1E3A8A', // Azul Marinho Fitoherb
-        weight: 5,
-        opacity: 0.85,
-        lineJoin: 'round'
+        color: '#2e4f24', // Verde Oficial Fitoherb
+        weight: 6,
+        opacity: 0.9,
+        lineJoin: 'round',
+        lineCap: 'round'
       }
     }).addTo(this.routeLayer);
 

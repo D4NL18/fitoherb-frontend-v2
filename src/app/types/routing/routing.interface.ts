@@ -37,6 +37,8 @@ export interface OrderedStopDto {
   fixed_order?: number | null;
   priority: string;
   arrival_time_minutes: number;
+  lat?: number;
+  lon?: number;
   address?: AddressDto;
 }
 

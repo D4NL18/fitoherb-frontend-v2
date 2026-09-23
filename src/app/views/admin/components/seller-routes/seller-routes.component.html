@@ -283,7 +283,12 @@
 
           <!-- Lista Sequencial de Visitas (Sem expor lat/lon) -->
           <div class="timeline-container">
-            <div *ngFor="let s of optimizationResult()?.ordered_stops" class="timeline-step">
+            <div 
+              *ngFor="let s of optimizationResult()?.ordered_stops" 
+              class="timeline-step"
+              (click)="focusStopOnMap(s)"
+              title="Clique para focar e destacar esta parada no mapa"
+            >
               <div class="timeline-marker" [class.marker-depot]="s.action !== 'VISIT'" [class.marker-fixed]="s.is_fixed">
                 <i class="fa-solid" [class.fa-building]="s.action === 'DEPARTURE' || s.action === 'RETURN'" [class.fa-location-dot]="s.action === 'VISIT'"></i>
               </div>
