@@ -1368,11 +1368,15 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 0.65rem;
+        flex-wrap: wrap;
 
         .step-title-wrap {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 0.45rem;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .step-num {
@@ -1381,36 +1385,59 @@
           text-transform: uppercase;
           color: $green-600;
           letter-spacing: 0.5px;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .step-leg-pill {
           font-size: 0.65rem;
           font-weight: 700;
           color: $white;
-          padding: 0.12rem 0.45rem;
+          padding: 0.15rem 0.55rem;
           border-radius: 10px;
           text-transform: uppercase;
           letter-spacing: 0.3px;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+          white-space: nowrap;
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          line-height: 1.2;
         }
 
         .step-clock {
           display: inline-flex;
           align-items: center;
-          gap: 0.3rem;
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: $green-800;
+          gap: 0.75rem;
+          white-space: nowrap;
+          flex-shrink: 0;
 
-          i {
-            color: $green-600;
-            font-size: 0.75rem;
+          .arrival-time-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: $green-800;
+
+            i {
+              color: $green-600;
+              font-size: 0.78rem;
+            }
           }
 
           .step-dep-clock {
-            font-size: 0.72rem;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.73rem;
             font-weight: 500;
-            color: $gray-500;
+            color: $gray-700;
+            white-space: nowrap;
+            background-color: $gray-100;
+            padding: 0.15rem 0.45rem;
+            border-radius: 6px;
+            border: 1px solid $gray-200;
+            letter-spacing: 0.2px;
           }
         }
 
@@ -1418,6 +1445,8 @@
           font-size: 0.75rem;
           font-weight: 600;
           color: $gray-500;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
       }
 

@@ -1145,7 +1145,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.selectedLegIndex.set(null);
         this.updateRouteStyles();
 
-        this.map.invalidateSize();
+        // Aguarda estabilização da renderização no canvas do Leaflet
+        await new Promise(resolve => setTimeout(resolve, 150));
 
         const canvas = await html2canvas(mapElement, {
           useCORS: true,
@@ -1153,12 +1154,6 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
           scale: 1.5,
           logging: false
         });
-
-        // Desenha os trechos viários coloridos no canvas para garantir renderização perfeita no PDF
-        const ctx = canvas.getContext('2d');
-        if (ctx && this.fullGeoJson) {
-          this.drawRoutePolylinesOnCanvas(ctx, this.fullGeoJson, 1.5);
-        }
 
         mapImgBase64 = canvas.toDataURL('image/png');
 
@@ -1275,64 +1270,6 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     } finally {
       this.isExportingPdf.set(false);
     }
-  }
-
-  // Desenha os trechos viários diretamente no canvas do screenshot do PDF
-  private drawRoutePolylinesOnCanvas(ctx: CanvasRenderingContext2D, geojson: any, scale: number) {
-    if (!this.map || !geojson) return;
-
-    const features = geojson.features || [];
-    if (features.length === 0 && geojson.coordinates) {
-      this.strokePathOnCanvas(ctx, geojson.coordinates, '#2e4f24', scale);
-      return;
-    }
-
-    features.forEach((feat: any) => {
-      const coords = feat.geometry?.coordinates || [];
-      const color = feat.properties?.color || this.getLegColor(feat.properties?.leg_index ?? 0);
-      this.strokePathOnCanvas(ctx, coords, color, scale);
-    });
-  }
-
-  private strokePathOnCanvas(ctx: CanvasRenderingContext2D, coords: number[][], color: string, scale: number) {
-    if (coords.length < 2) return;
-
-    ctx.save();
-
-    // Contorno suave em branco para contraste perfeito sobre o mapa
-    ctx.beginPath();
-    ctx.lineWidth = 6 * scale;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    coords.forEach((coord, idx) => {
-      const pt = this.map.latLngToContainerPoint([coord[1], coord[0]]);
-      const x = pt.x * scale;
-      const y = pt.y * scale;
-      if (idx === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-
-    // Traçado colorido oficial do trecho
-    ctx.beginPath();
-    ctx.lineWidth = 4 * scale;
-    ctx.strokeStyle = color;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.globalAlpha = 0.95;
-
-    coords.forEach((coord, idx) => {
-      const pt = this.map.latLngToContainerPoint([coord[1], coord[0]]);
-      const x = pt.x * scale;
-      const y = pt.y * scale;
-      if (idx === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-
-    ctx.restore();
   }
 
   showToast(msg: string) {

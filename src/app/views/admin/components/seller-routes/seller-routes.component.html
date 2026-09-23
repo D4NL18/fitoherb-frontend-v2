@@ -402,8 +402,10 @@
                     </span>
                   </div>
                   <span class="step-clock" *ngIf="s.estimated_arrival_clock">
-                    <i class="fa-regular fa-clock"></i>
-                    <strong>{{ s.estimated_arrival_clock }}</strong>
+                    <span class="arrival-time-pill">
+                      <i class="fa-regular fa-clock"></i>
+                      <strong>{{ s.estimated_arrival_clock }}</strong>
+                    </span>
                     <span *ngIf="s.action === 'VISIT' && s.estimated_departure_clock" class="step-dep-clock">
                       até {{ s.estimated_departure_clock }}
                     </span>
