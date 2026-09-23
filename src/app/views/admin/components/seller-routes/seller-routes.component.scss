@@ -49,10 +49,49 @@
 /* Barra Superior de Informações (Sem poluição de textos duplicados) */
 .routes-header-bar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   padding-bottom: 0.25rem;
+  gap: 1rem;
+
+  .btn-manage-favorites-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.55rem 1.15rem;
+    background-color: $white;
+    border: 1.5px solid $green-300;
+    border-radius: 30px;
+    color: $green-900;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(56, 88, 47, 0.06);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    i {
+      color: #eab308;
+      font-size: 0.95rem;
+    }
+
+    .fav-count-badge {
+      background-color: $green-100;
+      color: $green-800;
+      padding: 0.15rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    &:hover {
+      background-color: $green-50;
+      border-color: $green-600;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(56, 88, 47, 0.12);
+    }
+  }
 
   .base-badge {
     display: inline-flex;
@@ -184,152 +223,6 @@
       &:disabled {
         opacity: 0.7;
         cursor: not-allowed;
-      }
-    }
-  }
-
-  /* Barra de Favoritos Rápidos */
-  .quick-favorites-strip {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    margin-top: 0.65rem;
-    padding: 0.25rem 0.15rem;
-    overflow-x: auto;
-    white-space: nowrap;
-
-    &::-webkit-scrollbar {
-      height: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: $gray-300;
-      border-radius: 4px;
-    }
-
-    .quick-fav-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: $green-800;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      flex-shrink: 0;
-
-      i {
-        color: #eab308;
-        font-size: 0.85rem;
-      }
-    }
-
-    .quick-fav-chips {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      flex-wrap: nowrap;
-    }
-
-    .quick-fav-chip {
-      display: inline-flex;
-      align-items: center;
-      background: $white;
-      border: 1.2px solid $green-300;
-      color: $green-800;
-      border-radius: 20px;
-      font-size: 0.82rem;
-      font-family: 'Outfit', sans-serif;
-      transition: all 0.15s ease;
-      flex-shrink: 0;
-      overflow: hidden;
-
-      &:hover {
-        border-color: $green-600;
-        box-shadow: 0 2px 6px rgba(56, 88, 47, 0.1);
-      }
-
-      .chip-toggle-text {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.28rem 0.65rem 0.28rem 0.75rem;
-        cursor: pointer;
-        font-weight: 500;
-
-        &:hover {
-          background-color: $green-50;
-        }
-      }
-
-      .chip-delete-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 22px;
-        height: 22px;
-        margin-right: 0.35rem;
-        border-radius: 50%;
-        border: none;
-        background: transparent;
-        color: $gray-500;
-        cursor: pointer;
-        font-size: 0.75rem;
-        transition: all 0.15s ease;
-
-        &:hover {
-          background-color: #fee2e2;
-          color: #b91c1c;
-        }
-      }
-
-      &.chip--added {
-        background: $green-700;
-        color: $white;
-        border-color: $green-700;
-
-        .chip-toggle-text {
-          font-weight: 600;
-
-          i {
-            color: #86efac;
-          }
-
-          &:hover {
-            background-color: $green-800;
-          }
-        }
-
-        .chip-delete-btn {
-          color: rgba(255, 255, 255, 0.7);
-
-          &:hover {
-            background-color: #b91c1c;
-            color: $white;
-          }
-        }
-      }
-    }
-
-    .quick-fav-manage-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: $white;
-      border: 1px dashed $green-400;
-      color: $green-800;
-      border-radius: 20px;
-      padding: 0.28rem 0.75rem;
-      font-size: 0.78rem;
-      font-weight: 600;
-      font-family: 'Outfit', sans-serif;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      flex-shrink: 0;
-
-      &:hover {
-        background: $green-100;
-        border-color: $green-700;
       }
     }
   }

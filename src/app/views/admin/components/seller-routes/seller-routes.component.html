@@ -10,8 +10,19 @@
     <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMessage() }}
   </div>
 
-  <!-- Barra Superior: Indicador Limpo de Ponto de Partida (Sem duplicar h1/p da página) -->
+  <!-- Barra Superior: Indicador Limpo de Ponto de Partida e Acesso aos Favoritos -->
   <div class="routes-header-bar">
+    <button 
+      type="button" 
+      class="btn-manage-favorites-header" 
+      (click)="showManageFavoritesModal.set(true)"
+      title="Gerenciar locais salvos e favoritos"
+    >
+      <i class="fa-solid fa-star"></i>
+      <span>Meus Favoritos</span>
+      <span *ngIf="savedLocations().length > 0" class="fav-count-badge">{{ savedLocations().length }}</span>
+    </button>
+
     <div class="base-badge" [class.base-badge--custom]="isUsingCustomBase()">
       <i class="fa-solid" [class.fa-house-chimney]="isUsingCustomBase()" [class.fa-building]="!isUsingCustomBase()"></i>
       <div class="base-badge__text">
@@ -38,47 +49,6 @@
       <button class="submit-search-btn" (click)="executeAddressSearch()" [disabled]="isSearchingAddress()">
         <span *ngIf="!isSearchingAddress()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</span>
         <span *ngIf="isSearchingAddress()"><i class="fa-solid fa-spinner fa-spin"></i></span>
-      </button>
-    </div>
-
-    <!-- Barra de Acesso Rápido aos Favoritos / Clientes Salvos -->
-    <div *ngIf="savedLocations().length > 0" class="quick-favorites-strip">
-      <div class="quick-fav-label">
-        <i class="fa-solid fa-star"></i>
-        <span>Favoritos:</span>
-      </div>
-      <div class="quick-fav-chips">
-        <div 
-          *ngFor="let fav of savedLocations()" 
-          class="quick-fav-chip" 
-          [class.chip--added]="isFavoriteInRoute(fav)"
-        >
-          <span 
-            class="chip-toggle-text"
-            (click)="toggleFavoriteInRoute(fav)"
-            [title]="fav.fullAddress || fav.title"
-          >
-            <i class="fa-solid" [class.fa-check]="isFavoriteInRoute(fav)" [class.fa-plus]="!isFavoriteInRoute(fav)"></i>
-            <span>{{ fav.title }}</span>
-          </span>
-          <button 
-            type="button" 
-            class="chip-delete-btn" 
-            (click)="deleteFavorite(fav, $event)" 
-            title="Excluir '{{ fav.title }}' dos favoritos"
-          >
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-      </div>
-      <button 
-        type="button" 
-        class="quick-fav-manage-btn" 
-        (click)="showManageFavoritesModal.set(true)"
-        title="Gerenciar todos os locais salvos"
-      >
-        <i class="fa-solid fa-sliders"></i>
-        <span>Gerenciar</span>
       </button>
     </div>
 
