@@ -126,6 +126,11 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   // Parâmetros de Partida da Jornada Comercial (Horário Opcional)
   departureTime = signal<string>('08:00');
 
+  // Drag and Drop de Paradas no Roteiro IA
+  draggedStopIndex = signal<number | null>(null);
+  dragOverIndex = signal<number | null>(null);
+  isRecalculating = signal<boolean>(false);
+
   // Modal de Gerenciamento e Exclusão de Favoritos Salvos
   showManageFavoritesModal = signal<boolean>(false);
   manageFavoritesSearchQuery: string = '';
@@ -714,6 +719,142 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (err) => {
         this.isOptimizing.set(false);
         this.errorMessage.set('Erro ao calcular rota otimizada. Verifique se o microserviço fitoherb-ai está ativo.');
+        console.error(err);
+      }
+    });
+  }
+
+  // --- ARRASTAR E SOLTAR (DRAG & DROP) NO ROTEIRO DA IA ---
+  onTimelineDragStart(event: DragEvent, index: number, stop: OrderedStopDto) {
+    if (stop.action !== 'VISIT' || this.isRecalculating()) {
+      event.preventDefault();
+      return;
+    }
+    this.draggedStopIndex.set(index);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', `${index}`);
+    }
+  }
+
+  onTimelineDragOver(event: DragEvent, index: number, stop: OrderedStopDto) {
+    const fromIdx = this.draggedStopIndex();
+    if (fromIdx === null || fromIdx === index) return;
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    this.dragOverIndex.set(index);
+  }
+
+  onTimelineDragLeave(event: DragEvent, index: number) {
+    if (this.dragOverIndex() === index) {
+      this.dragOverIndex.set(null);
+    }
+  }
+
+  onTimelineDrop(event: DragEvent, dropIndex: number, targetStop: OrderedStopDto) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const fromIdx = this.draggedStopIndex();
+    this.draggedStopIndex.set(null);
+    this.dragOverIndex.set(null);
+
+    const currentResult = this.optimizationResult();
+    if (fromIdx === null || !currentResult || fromIdx === dropIndex) return;
+
+    const ordered = [...currentResult.ordered_stops];
+    if (ordered[fromIdx]?.action !== 'VISIT') return;
+
+    // Se dropIndex for a base de partida (0), posiciona na primeira visita (1)
+    let adjustedDropIndex = dropIndex;
+    if (adjustedDropIndex <= 0) {
+      adjustedDropIndex = 1;
+    }
+
+    // Se dropIndex for o retorno ou além, posiciona antes do retorno
+    const returnIndex = ordered.findIndex(s => s.action === 'RETURN');
+    if (returnIndex !== -1 && adjustedDropIndex >= returnIndex) {
+      adjustedDropIndex = returnIndex - 1;
+    }
+    if (adjustedDropIndex < 1) adjustedDropIndex = 1;
+
+    if (fromIdx === adjustedDropIndex) return;
+
+    // Reordena o array ordered_stops
+    const [movedItem] = ordered.splice(fromIdx, 1);
+    ordered.splice(adjustedDropIndex, 0, movedItem);
+
+    // Atualiza numeração dos passos (steps) para atualização visual instantânea
+    let stepCount = 1;
+    for (const st of ordered) {
+      if (st.action === 'VISIT') {
+        st.step = stepCount++;
+      } else if (st.action === 'RETURN') {
+        st.step = stepCount;
+      }
+    }
+
+    this.optimizationResult.set({
+      ...currentResult,
+      ordered_stops: ordered
+    });
+
+    // Recalcula o itinerário viário completo com base na nova sequência
+    this.recalculateFromOrderedStops(ordered);
+  }
+
+  onTimelineDragEnd() {
+    this.draggedStopIndex.set(null);
+    this.dragOverIndex.set(null);
+  }
+
+  // Recalcula a rota preservando rigorosamente a nova sequência manual
+  recalculateFromOrderedStops(orderedStops: OrderedStopDto[]) {
+    const visitStops = orderedStops.filter(s => s.action === 'VISIT');
+    if (visitStops.length === 0) return;
+
+    this.isRecalculating.set(true);
+    this.clearLegFilter();
+
+    const reorderedDeliveryStops: DeliveryStopDto[] = visitStops.map(vs => {
+      const orig = this.stops().find(s => s.id === vs.id);
+      return {
+        ...(orig || {}),
+        id: vs.id,
+        name: vs.name,
+        lat: vs.lat !== undefined ? vs.lat : (orig?.lat ?? 0),
+        lon: vs.lon !== undefined ? vs.lon : (orig?.lon ?? 0),
+        priority: (orig?.priority || vs.priority || 'REGULAR') as any,
+        service_duration_minutes: vs.service_duration_minutes !== undefined ? vs.service_duration_minutes : orig?.service_duration_minutes,
+        address: vs.address || orig?.address,
+        fixed_order: orig?.fixed_order
+      };
+    });
+
+    // Mantém sincronizada a lista de paradas da aba 1
+    this.stops.set(reorderedDeliveryStops);
+
+    const depTime = this.departureTime()?.trim() ? this.departureTime().trim() : undefined;
+    const payload = {
+      depot: this.depot(),
+      stops: reorderedDeliveryStops,
+      return_to_depot: true,
+      departure_time: depTime
+    };
+
+    this.routingService.recalculateRoute(payload).subscribe({
+      next: (res) => {
+        this.isRecalculating.set(false);
+        this.optimizationResult.set(res);
+        this.drawRouteOnMap(res.geojson_geometry);
+        this.renderMarkers();
+        this.showToast('Ordem alterada manualmente e rota recalculada!');
+      },
+      error: (err) => {
+        this.isRecalculating.set(false);
+        this.showToast('Erro ao recalcular métricas da rota viária.');
         console.error(err);
       }
     });

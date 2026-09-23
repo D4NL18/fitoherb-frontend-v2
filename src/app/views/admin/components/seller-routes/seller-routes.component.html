@@ -333,6 +333,12 @@
             <span>{{ optimizationResult()?.peak_hours_encountered }} trecho(s) com retenção por horário de pico urbano</span>
           </div>
 
+          <!-- Alerta de Recálculo em Andamento -->
+          <div *ngIf="isRecalculating()" class="recalculating-pill animate-fade-in">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Recalculando traçado viário com a nova ordem...</span>
+          </div>
+
           <!-- Barra Informativa de Filtro de Trecho Ativo -->
           <div *ngIf="selectedLegIndex() !== null" class="active-leg-filter-bar animate-fade-in">
             <div class="filter-info">
@@ -344,15 +350,35 @@
             </button>
           </div>
 
-          <!-- Lista Sequencial de Visitas (Sem expor lat/lon) -->
+          <!-- Lista Sequencial de Visitas (Reordenável via Drag & Drop) -->
           <div class="timeline-container">
             <div 
-              *ngFor="let s of optimizationResult()?.ordered_stops" 
+              *ngFor="let s of optimizationResult()?.ordered_stops; let idx = index" 
               class="timeline-step"
               [class.timeline-step--active]="s.step > 0 && selectedLegIndex() === (s.step - 1)"
+              [class.timeline-step--draggable]="s.action === 'VISIT'"
+              [class.timeline-step--dragging]="draggedStopIndex() === idx"
+              [class.timeline-step--drag-over]="dragOverIndex() === idx"
+              [draggable]="s.action === 'VISIT' && !isRecalculating()"
+              (dragstart)="onTimelineDragStart($event, idx, s)"
+              (dragover)="onTimelineDragOver($event, idx, s)"
+              (dragleave)="onTimelineDragLeave($event, idx)"
+              (drop)="onTimelineDrop($event, idx, s)"
+              (dragend)="onTimelineDragEnd()"
               (click)="focusStopOnMap(s)"
-              title="Clique para destacar o trecho até esta parada e focar no mapa"
+              title="Clique para focar no mapa ou arraste para alterar a ordem"
             >
+              <!-- Alça de Arraste (Drag Handle) para Paradas de Visita -->
+              <div 
+                *ngIf="s.action === 'VISIT'" 
+                class="drag-handle" 
+                title="Clique e arraste para alterar a posição desta parada"
+                (click)="$event.stopPropagation()"
+              >
+                <i class="fa-solid fa-grip-vertical"></i>
+              </div>
+              <div *ngIf="s.action !== 'VISIT'" class="drag-handle-placeholder"></div>
+
               <div 
                 class="timeline-marker" 
                 [class.marker-depot]="s.action !== 'VISIT'" 
@@ -396,7 +422,7 @@
                     <i class="fa-solid fa-stopwatch"></i> {{ s.service_duration_minutes }} min atendimento
                   </span>
                   <span *ngIf="s.traffic_condition && s.traffic_condition !== 'LIVRE'" class="tag-traffic" [ngClass]="getTrafficBadgeClass(s.traffic_condition)">
-                    <i class="fa-solid fa-car-side"></i> {{ getTrafficLabel(s.traffic_condition) }} ({{ s.traffic_factor }}x)
+                    <i class="fa-solid fa-car-side"></i> {{ getTrafficLabel(s.traffic_condition) }}
                   </span>
                 </div>
               </div>

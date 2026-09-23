@@ -1205,6 +1205,25 @@
   }
 }
 
+/* Alerta de Recálculo em Andamento */
+.recalculating-pill {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+
+  i {
+    font-size: 0.82rem;
+  }
+}
+
 /* Timeline do Roteiro */
 .timeline-container {
   display: flex;
@@ -1218,10 +1237,39 @@
 
   .timeline-step {
     display: flex;
-    gap: 0.85rem;
+    align-items: flex-start;
+    gap: 0.65rem;
     position: relative;
     cursor: pointer;
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border-radius: 10px;
+
+    /* Alça de Arraste e Espaçador de Alinhamento */
+    .drag-handle, .drag-handle-placeholder {
+      width: 22px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $gray-500;
+      border-radius: 4px;
+      cursor: grab;
+      font-size: 0.95rem;
+      transition: all 0.15s ease;
+
+      &:hover {
+        color: $green-700;
+        background-color: $green-50;
+      }
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
 
     &:hover {
       transform: translateX(4px);
@@ -1233,6 +1281,27 @@
 
       .timeline-marker {
         transform: scale(1.08);
+      }
+    }
+
+    &.timeline-step--dragging {
+      opacity: 0.4;
+      transform: scale(0.97);
+      background-color: $gray-100;
+
+      .timeline-content {
+        border-style: dashed;
+        border-color: $green-600;
+      }
+    }
+
+    &.timeline-step--drag-over {
+      transform: translateY(-2px);
+
+      .timeline-content {
+        border-color: $green-600;
+        background-color: #f0fdf4;
+        box-shadow: 0 0 0 2px $green-500, 0 6px 16px rgba(46, 79, 36, 0.16);
       }
     }
 
@@ -1254,7 +1323,7 @@
     &:not(:last-child)::after {
       content: '';
       position: absolute;
-      left: 17px;
+      left: 49px;
       top: 36px;
       bottom: -10px;
       width: 2px;

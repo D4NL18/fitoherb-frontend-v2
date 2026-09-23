@@ -15,6 +15,10 @@ export class CommercialRoutingService {
     return this.http.post<OptimizeRouteResponse>(`${this.aiBaseUrl}/routing/optimize`, request);
   }
 
+  recalculateRoute(request: OptimizeRouteRequest): Observable<OptimizeRouteResponse> {
+    return this.http.post<OptimizeRouteResponse>(`${this.aiBaseUrl}/routing/recalculate`, request);
+  }
+
   searchAddress(query: string, lat?: number, lon?: number): Observable<any[]> {
     const encoded = encodeURIComponent(query.trim());
     let proxyUrl = `${this.aiBaseUrl}/routing/search-address?q=${encoded}`;
