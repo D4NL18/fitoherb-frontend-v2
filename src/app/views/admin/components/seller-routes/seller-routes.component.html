@@ -333,20 +333,48 @@
             <span>{{ optimizationResult()?.peak_hours_encountered }} trecho(s) com retenção por horário de pico urbano</span>
           </div>
 
+          <!-- Barra Informativa de Filtro de Trecho Ativo -->
+          <div *ngIf="selectedLegIndex() !== null" class="active-leg-filter-bar animate-fade-in">
+            <div class="filter-info">
+              <span class="filter-dot" [style.backgroundColor]="getLegColor(selectedLegIndex()!)"></span>
+              <span>Destaque: <strong>Trecho #{{ selectedLegIndex()! + 1 }}</strong></span>
+            </div>
+            <button type="button" class="btn-clear-filter" (click)="clearLegFilter()">
+              <i class="fa-solid fa-xmark"></i> Ver todos
+            </button>
+          </div>
+
           <!-- Lista Sequencial de Visitas (Sem expor lat/lon) -->
           <div class="timeline-container">
             <div 
               *ngFor="let s of optimizationResult()?.ordered_stops" 
               class="timeline-step"
+              [class.timeline-step--active]="s.step > 0 && selectedLegIndex() === (s.step - 1)"
               (click)="focusStopOnMap(s)"
-              title="Clique para focar e destacar esta parada no mapa"
+              title="Clique para destacar o trecho até esta parada e focar no mapa"
             >
-              <div class="timeline-marker" [class.marker-depot]="s.action !== 'VISIT'" [class.marker-fixed]="s.is_fixed">
+              <div 
+                class="timeline-marker" 
+                [class.marker-depot]="s.action !== 'VISIT'" 
+                [class.marker-fixed]="s.is_fixed"
+                [style.borderColor]="s.step > 0 ? getLegColor(s.step - 1) : null"
+              >
                 <i class="fa-solid" [class.fa-building]="s.action === 'DEPARTURE' || s.action === 'RETURN'" [class.fa-location-dot]="s.action === 'VISIT'"></i>
               </div>
               <div class="timeline-content">
                 <div class="timeline-content__top">
-                  <span class="step-num">{{ s.action === 'DEPARTURE' ? 'Partida' : (s.action === 'RETURN' ? 'Retorno à Base' : 'Parada #' + s.step) }}</span>
+                  <div class="step-title-wrap">
+                    <span class="step-num">{{ s.action === 'DEPARTURE' ? 'Partida' : (s.action === 'RETURN' ? 'Retorno à Base' : 'Parada #' + s.step) }}</span>
+                    <!-- Pílula de Identificação do Trecho por Cor -->
+                    <span 
+                      *ngIf="s.step > 0" 
+                      class="step-leg-pill" 
+                      [style.backgroundColor]="getLegColor(s.step - 1)"
+                      title="Cor deste trecho no mapa"
+                    >
+                      Trecho {{ s.step }}
+                    </span>
+                  </div>
                   <span class="step-clock" *ngIf="s.estimated_arrival_clock">
                     <i class="fa-regular fa-clock"></i>
                     <strong>{{ s.estimated_arrival_clock }}</strong>
@@ -360,6 +388,9 @@
                 <div class="step-addr">{{ s.address?.full_address || (s.address?.street + ', ' + s.address?.number) }}</div>
                 
                 <div class="step-tags">
+                  <span *ngIf="s.step > 0 && selectedLegIndex() === (s.step - 1)" class="tag-focused-leg">
+                    <i class="fa-solid fa-eye"></i> Trecho em Destaque
+                  </span>
                   <span *ngIf="s.is_fixed && s.action === 'VISIT'" class="tag-fixed">🔒 Ordem Travada</span>
                   <span *ngIf="s.service_duration_minutes && s.action === 'VISIT'" class="tag-duration">
                     <i class="fa-solid fa-stopwatch"></i> {{ s.service_duration_minutes }} min atendimento
@@ -478,7 +509,6 @@
                 max="360" 
                 step="5" 
                 [(ngModel)]="modalPointServiceMinutes" 
-                placeholder="Deixar vazio para usar a média"
                 class="modal-input" 
               />
               <span class="unit-pill">min</span>

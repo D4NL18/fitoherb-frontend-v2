@@ -78,6 +78,30 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   // Resultados da Otimização da IA
   optimizationResult = signal<OptimizeRouteResponse | null>(null);
 
+  // Trecho Ativo / Filtrado para Destaque no Mapa
+  selectedLegIndex = signal<number | null>(null);
+
+  // Paleta Harmoniosa de Cores para Identificação Visual dos Trechos
+  readonly ROUTE_LEG_COLORS: string[] = [
+    '#2563eb', // Trecho 1: Azul Real Vibrante
+    '#d97706', // Trecho 2: Âmbar / Laranja
+    '#7c3aed', // Trecho 3: Violeta / Roxo
+    '#059669', // Trecho 4: Verde Esmeralda
+    '#dc2626', // Trecho 5: Vermelho Carmim
+    '#0891b2', // Trecho 6: Azul Petróleo / Ciano
+    '#ea580c', // Trecho 7: Laranja Queimado
+    '#4f46e5', // Trecho 8: Índigo
+    '#c026d3', // Trecho 9: Magenta
+    '#0d9488', // Trecho 10: Teal
+    '#65a30d', // Trecho 11: Verde Lima
+    '#475569'  // Trecho Retorno à Base: Ardósia
+  ];
+
+  getLegColor(legIndex: number): string {
+    if (legIndex < 0) return '#2e4f24';
+    return this.ROUTE_LEG_COLORS[legIndex % this.ROUTE_LEG_COLORS.length];
+  }
+
   // Busca e Autocomplete de Endereços
   searchQuery: string = '';
   searchResults = signal<any[]>([]);
@@ -191,11 +215,13 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map = L.map('sellerRouteMap', {
       center: [startPoint.lat, startPoint.lon],
       zoom: 13,
-      zoomControl: true
+      zoomControl: true,
+      preferCanvas: true
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
+      crossOrigin: true,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(this.map);
 
@@ -695,19 +721,66 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Mapa de referências de marcadores Leaflet
   private stopMarkers: Map<string, any> = new Map();
+  private routeLayersMap: Map<number, any> = new Map();
+  private fullGeoJson: any = null;
 
-  // Foca e centraliza o mapa em uma parada específica ao clicar no itinerário
+  // Foca e centraliza o mapa em uma parada específica e destaca o trecho correspondente até ela
   focusStopOnMap(step: OrderedStopDto) {
     if (!this.map) return;
     const lat = step.lat !== undefined ? step.lat : (step.action !== 'VISIT' ? this.depot().lat : this.stops().find(s => s.id === step.id)?.lat);
     const lon = step.lon !== undefined ? step.lon : (step.action !== 'VISIT' ? this.depot().lon : this.stops().find(s => s.id === step.id)?.lon);
     if (lat && lon) {
-      this.map.flyTo([lat, lon], 16, { animate: true, duration: 0.8 });
+      this.map.flyTo([lat, lon], 15, { animate: true, duration: 0.6 });
       const marker = this.stopMarkers.get(step.id) || (step.action !== 'VISIT' ? this.stopMarkers.get('depot') : null);
       if (marker) {
-        setTimeout(() => marker.openPopup(), 400);
+        setTimeout(() => marker.openPopup(), 350);
       }
     }
+
+    // Se for uma parada de visita ou retorno (step > 0), filtra e destaca o trecho até ela
+    if (step.step > 0) {
+      const legIdx = step.step - 1;
+      this.toggleLegFilter(legIdx);
+    } else {
+      this.clearLegFilter();
+    }
+  }
+
+  // Alterna o filtro de trecho específico
+  toggleLegFilter(legIndex: number) {
+    if (this.selectedLegIndex() === legIndex) {
+      this.selectedLegIndex.set(null);
+    } else {
+      this.selectedLegIndex.set(legIndex);
+    }
+    this.updateRouteStyles();
+  }
+
+  // Limpa o filtro de trecho e restaura visualização de todos
+  clearLegFilter() {
+    this.selectedLegIndex.set(null);
+    this.updateRouteStyles();
+  }
+
+  // Atualiza as opacidades e espessuras dos trechos viários no Leaflet
+  private updateRouteStyles() {
+    const selected = this.selectedLegIndex();
+    const isAnySelected = selected !== null;
+
+    this.routeLayersMap.forEach((layer, legIdx) => {
+      const isSelected = selected === legIdx;
+      const color = layer.feature?.properties?.color || this.getLegColor(legIdx);
+
+      layer.setStyle({
+        color: color,
+        weight: isSelected ? 8 : (isAnySelected ? 3.5 : 6),
+        opacity: isSelected ? 1.0 : (isAnySelected ? 0.20 : 0.85)
+      });
+
+      if (isSelected) {
+        layer.bringToFront();
+      }
+    });
   }
 
   // Helpers para Badges de Trânsito
@@ -868,18 +941,40 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Desenha o traçado da rota no Leaflet com cores oficiais Fitoherb
+  // Desenha os trechos da rota no Leaflet com cores exclusivas por trecho
   private drawRouteOnMap(geojson: any) {
     if (!this.routeLayer || !L || !geojson) return;
     this.routeLayer.clearLayers();
+    this.routeLayersMap.clear();
+    this.fullGeoJson = geojson;
+
+    const canvasRenderer = L.canvas({ padding: 0.5 });
 
     const routePolyline = L.geoJSON(geojson, {
-      style: {
-        color: '#2e4f24', // Verde Oficial Fitoherb
-        weight: 6,
-        opacity: 0.9,
-        lineJoin: 'round',
-        lineCap: 'round'
+      renderer: canvasRenderer,
+      style: (feature: any) => {
+        const legIdx = feature?.properties?.leg_index ?? 0;
+        const color = feature?.properties?.color || this.getLegColor(legIdx);
+        const isSelected = this.selectedLegIndex() === legIdx;
+        const isAnySelected = this.selectedLegIndex() !== null;
+
+        return {
+          color: color,
+          weight: isSelected ? 8 : (isAnySelected ? 3.5 : 6),
+          opacity: isSelected ? 1.0 : (isAnySelected ? 0.20 : 0.85),
+          lineJoin: 'round',
+          lineCap: 'round'
+        };
+      },
+      onEachFeature: (feature: any, layer: any) => {
+        const legIdx = feature?.properties?.leg_index;
+        if (legIdx !== undefined) {
+          this.routeLayersMap.set(legIdx, layer);
+          layer.on('click', (e: any) => {
+            if (L.DomEvent) L.DomEvent.stopPropagation(e);
+            this.toggleLegFilter(legIdx);
+          });
+        }
       }
     }).addTo(this.routeLayer);
 
@@ -903,13 +998,34 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       const mapElement = document.getElementById('sellerRouteMap');
       let mapImgBase64 = '';
 
-      if (mapElement) {
+      if (mapElement && this.map) {
+        // Assegura que todos os trechos estão com opacidade total no PDF
+        const prevFilter = this.selectedLegIndex();
+        this.selectedLegIndex.set(null);
+        this.updateRouteStyles();
+
+        this.map.invalidateSize();
+
         const canvas = await html2canvas(mapElement, {
           useCORS: true,
           allowTaint: true,
-          scale: 1.5
+          scale: 1.5,
+          logging: false
         });
+
+        // Desenha os trechos viários coloridos no canvas para garantir renderização perfeita no PDF
+        const ctx = canvas.getContext('2d');
+        if (ctx && this.fullGeoJson) {
+          this.drawRoutePolylinesOnCanvas(ctx, this.fullGeoJson, 1.5);
+        }
+
         mapImgBase64 = canvas.toDataURL('image/png');
+
+        // Restaura estado prévio de filtro
+        if (prevFilter !== null) {
+          this.selectedLegIndex.set(prevFilter);
+          this.updateRouteStyles();
+        }
       }
 
       // 2. Criação do documento PDF com jsPDF
@@ -1018,6 +1134,64 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     } finally {
       this.isExportingPdf.set(false);
     }
+  }
+
+  // Desenha os trechos viários diretamente no canvas do screenshot do PDF
+  private drawRoutePolylinesOnCanvas(ctx: CanvasRenderingContext2D, geojson: any, scale: number) {
+    if (!this.map || !geojson) return;
+
+    const features = geojson.features || [];
+    if (features.length === 0 && geojson.coordinates) {
+      this.strokePathOnCanvas(ctx, geojson.coordinates, '#2e4f24', scale);
+      return;
+    }
+
+    features.forEach((feat: any) => {
+      const coords = feat.geometry?.coordinates || [];
+      const color = feat.properties?.color || this.getLegColor(feat.properties?.leg_index ?? 0);
+      this.strokePathOnCanvas(ctx, coords, color, scale);
+    });
+  }
+
+  private strokePathOnCanvas(ctx: CanvasRenderingContext2D, coords: number[][], color: string, scale: number) {
+    if (coords.length < 2) return;
+
+    ctx.save();
+
+    // Contorno suave em branco para contraste perfeito sobre o mapa
+    ctx.beginPath();
+    ctx.lineWidth = 6 * scale;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    coords.forEach((coord, idx) => {
+      const pt = this.map.latLngToContainerPoint([coord[1], coord[0]]);
+      const x = pt.x * scale;
+      const y = pt.y * scale;
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Traçado colorido oficial do trecho
+    ctx.beginPath();
+    ctx.lineWidth = 4 * scale;
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.globalAlpha = 0.95;
+
+    coords.forEach((coord, idx) => {
+      const pt = this.map.latLngToContainerPoint([coord[1], coord[0]]);
+      const x = pt.x * scale;
+      const y = pt.y * scale;
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   showToast(msg: string) {

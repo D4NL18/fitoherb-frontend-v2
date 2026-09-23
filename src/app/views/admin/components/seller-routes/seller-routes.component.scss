@@ -1157,6 +1157,54 @@
   }
 }
 
+/* Barra Informativa de Filtro de Trecho Ativo */
+.active-leg-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0fdf4;
+  border: 1.5px solid $green-300;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.8rem;
+  color: $green-900;
+
+  .filter-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 2px $white, 0 0 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-clear-filter {
+    background: transparent;
+    border: 1px solid $green-400;
+    border-radius: 6px;
+    color: $green-800;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: $green-100;
+      color: $green-900;
+    }
+  }
+}
+
 /* Timeline do Roteiro */
 .timeline-container {
   display: flex;
@@ -1188,6 +1236,21 @@
       }
     }
 
+    &.timeline-step--active {
+      transform: translateX(6px);
+
+      .timeline-content {
+        border-color: $green-600;
+        background-color: #f7fdf9;
+        box-shadow: 0 4px 16px rgba(46, 79, 36, 0.18);
+      }
+
+      .timeline-marker {
+        transform: scale(1.15);
+        box-shadow: 0 0 0 3px rgba(46, 79, 36, 0.3);
+      }
+    }
+
     &:not(:last-child)::after {
       content: '';
       position: absolute;
@@ -1210,6 +1273,8 @@
       font-size: 0.95rem;
       flex-shrink: 0;
       z-index: 1;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
 
       &.marker-depot {
         background-color: $green-800;
@@ -1235,12 +1300,29 @@
         justify-content: space-between;
         align-items: center;
 
+        .step-title-wrap {
+          display: flex;
+          align-items: center;
+          gap: 0.45rem;
+        }
+
         .step-num {
           font-size: 0.72rem;
           font-weight: 700;
           text-transform: uppercase;
           color: $green-600;
           letter-spacing: 0.5px;
+        }
+
+        .step-leg-pill {
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: $white;
+          padding: 0.12rem 0.45rem;
+          border-radius: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
 
         .step-clock {
@@ -1287,6 +1369,19 @@
         align-items: center;
         gap: 0.35rem;
         margin-top: 0.3rem;
+
+        .tag-focused-leg {
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: #065f46;
+          background-color: #d1fae5;
+          border: 1px solid #6ee7b7;
+          padding: 0.15rem 0.5rem;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
 
         .tag-fixed {
           font-size: 0.68rem;
