@@ -1,0 +1,630 @@
+import { 
+  Component, 
+  OnInit, 
+  AfterViewInit, 
+  OnDestroy, 
+  signal, 
+  inject, 
+  ChangeDetectorRef 
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+import { SavedLocationsService } from '../../../../services/saved-locations/saved-locations.service';
+import { CommercialRoutingService } from '../../../../services/commercial-routing/commercial-routing.service';
+import { SavedLocation } from '../../../../types/saved-locations/saved-location.interface';
+import { 
+  LocationPointDto, 
+  DeliveryStopDto, 
+  OptimizeRouteResponse, 
+  OrderedStopDto 
+} from '../../../../types/routing/routing.interface';
+
+declare let L: any;
+
+@Component({
+  selector: 'app-seller-routes',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './seller-routes.component.html',
+  styleUrl: './seller-routes.component.scss'
+})
+export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
+  private savedLocationsService = inject(SavedLocationsService);
+  private routingService = inject(CommercialRoutingService);
+  private cdr = inject(ChangeDetectorRef);
+
+  // Estados Reativos
+  isLoading = signal<boolean>(false);
+  isOptimizing = signal<boolean>(false);
+  isExportingPdf = signal<boolean>(false);
+  errorMessage = signal<string | null>(null);
+  toastMessage = signal<string | null>(null);
+
+  // Aba lateral ativa: 'stops' (gerenciamento) ou 'results' (itinerário da IA)
+  activeSidebarTab = signal<'stops' | 'results'>('stops');
+
+  // Ponto de Partida (Base do Vendedor ou Matriz Fitoherb)
+  readonly FITOHERB_HQ: LocationPointDto = {
+    id: 'fitoherb-hq',
+    name: 'Fitoherb Nordeste (Matriz)',
+    lat: -12.8992,
+    lon: -38.3242,
+    address: {
+      street: 'Rua Itaeté',
+      number: '434',
+      neighborhood: 'Pitangueiras',
+      city: 'Lauro de Freitas',
+      state: 'BA',
+      postal_code: '42701-360',
+      full_address: 'Rua Itaeté, 434 - Pitangueiras, Lauro de Freitas - BA'
+    }
+  };
+
+  depot = signal<LocationPointDto>(this.FITOHERB_HQ);
+  isUsingCustomBase = signal<boolean>(false);
+
+  // Lista de Paradas para a Rota do Vendedor
+  stops = signal<DeliveryStopDto[]>([]);
+
+  // Favoritos salvos no banco
+  savedLocations = signal<SavedLocation[]>([]);
+
+  // Resultados da Otimização da IA
+  optimizationResult = signal<OptimizeRouteResponse | null>(null);
+
+  // Busca e Autocomplete de Endereços
+  searchQuery: string = '';
+  searchResults = signal<any[]>([]);
+  isSearchingAddress = signal<boolean>(false);
+  showSearchDropdown = signal<boolean>(false);
+
+  // Modal de Adição/Edição de Ponto (ao clicar no mapa)
+  showPointModal = signal<boolean>(false);
+  modalPointType: 'delivery' | 'base' = 'delivery';
+  modalPointTitle: string = '';
+  modalPointLat: number = 0;
+  modalPointLon: number = 0;
+  modalPointPriority: 'REGULAR' | 'HIGH' | 'CRITICAL' = 'REGULAR';
+  modalPointFixedOrder: number | null = null;
+  modalPointSaveFavorite: boolean = false;
+  modalIsReverseGeocoding = signal<boolean>(false);
+
+  // Endereço estruturado obtido da API de mapas
+  modalAddress = {
+    street: '',
+    number: '',
+    neighborhood: '',
+    city: '',
+    state: 'BA',
+    postalCode: '',
+    fullAddress: ''
+  };
+
+  // Instâncias Leaflet
+  private map: any = null;
+  private markersLayer: any = null;
+  private routeLayer: any = null;
+
+  ngOnInit() {
+    this.loadSavedLocations();
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.initMap();
+    }, 200);
+  }
+
+  ngOnDestroy() {
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+    }
+  }
+
+  // Carrega Base e Favoritos do backend Spring Boot (Regra P-101)
+  loadSavedLocations() {
+    this.savedLocationsService.getAll().subscribe({
+      next: (locations) => {
+        this.savedLocations.set(locations);
+        const base = locations.find(l => l.type === 'BASE');
+        if (base) {
+          this.isUsingCustomBase.set(true);
+          this.depot.set({
+            id: base.id || 'my-base',
+            name: base.title,
+            lat: base.latitude,
+            lon: base.longitude,
+            address: {
+              street: base.street,
+              number: base.number,
+              neighborhood: base.neighborhood,
+              city: base.city,
+              state: base.state,
+              postal_code: base.postalCode,
+              full_address: base.fullAddress
+            }
+          });
+          if (this.map) {
+            this.map.setView([base.latitude, base.longitude], 13);
+            this.renderMarkers();
+          }
+        }
+      },
+      error: (err) => console.error('Erro ao carregar locais salvos', err)
+    });
+  }
+
+  // Inicialização do Leaflet
+  private initMap() {
+    const startPoint = this.depot();
+    if (!L) return;
+
+    this.map = L.map('sellerRouteMap', {
+      center: [startPoint.lat, startPoint.lon],
+      zoom: 13,
+      zoomControl: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.map);
+
+    this.markersLayer = L.layerGroup().addTo(this.map);
+    this.routeLayer = L.layerGroup().addTo(this.map);
+
+    // Clique no mapa: captura automática e geocodificação reversa transparente (Regra P-102)
+    this.map.on('click', (e: any) => {
+      const lat = e.latlng.lat;
+      const lon = e.latlng.lng;
+      this.openPointModalFromMapClick(lat, lon);
+    });
+
+    this.renderMarkers();
+  }
+
+  // Geocodificação reversa automática ao clicar no mapa
+  openPointModalFromMapClick(lat: number, lon: number) {
+    this.modalPointLat = lat;
+    this.modalPointLon = lon;
+    this.modalPointType = 'delivery';
+    this.modalPointTitle = '';
+    this.modalPointPriority = 'REGULAR';
+    this.modalPointFixedOrder = null;
+    this.modalPointSaveFavorite = false;
+    this.modalIsReverseGeocoding.set(true);
+    this.showPointModal.set(true);
+
+    this.routingService.reverseGeocode(lat, lon).subscribe({
+      next: (data) => {
+        this.modalIsReverseGeocoding.set(false);
+        const addr = data.address || {};
+        this.modalAddress = {
+          street: addr.road || addr.pedestrian || addr.street || '',
+          number: addr.house_number || '',
+          neighborhood: addr.suburb || addr.neighbourhood || addr.quarter || '',
+          city: addr.city || addr.town || addr.municipality || 'Salvador',
+          state: addr.state_code || addr.state || 'BA',
+          postalCode: addr.postcode || '',
+          fullAddress: data.display_name || ''
+        };
+
+        // Sugestão de título baseada no logradouro ou bairro
+        const streetPart = this.modalAddress.street ? this.modalAddress.street : 'Visita Comercial';
+        const numPart = this.modalAddress.number ? `, ${this.modalAddress.number}` : '';
+        this.modalPointTitle = `${streetPart}${numPart}`;
+      },
+      error: () => {
+        this.modalIsReverseGeocoding.set(false);
+        this.modalPointTitle = 'Ponto no Mapa';
+      }
+    });
+  }
+
+  // Confirmação do modal de ponto
+  savePointFromModal() {
+    if (!this.modalPointTitle.trim()) {
+      this.modalPointTitle = 'Visita Comercial';
+    }
+
+    if (this.modalPointType === 'base') {
+      // Salva como nova Base do Vendedor
+      const baseReq = {
+        title: this.modalPointTitle,
+        type: 'BASE' as const,
+        latitude: this.modalPointLat,
+        longitude: this.modalPointLon,
+        street: this.modalAddress.street,
+        number: this.modalAddress.number,
+        neighborhood: this.modalAddress.neighborhood,
+        city: this.modalAddress.city,
+        state: this.modalAddress.state,
+        postalCode: this.modalAddress.postalCode,
+        fullAddress: this.modalAddress.fullAddress
+      };
+
+      this.savedLocationsService.create(baseReq).subscribe({
+        next: (saved) => {
+          this.isUsingCustomBase.set(true);
+          this.depot.set({
+            id: saved.id || 'my-base',
+            name: saved.title,
+            lat: saved.latitude,
+            lon: saved.longitude,
+            address: {
+              street: saved.street,
+              number: saved.number,
+              neighborhood: saved.neighborhood,
+              city: saved.city,
+              state: saved.state,
+              postal_code: saved.postalCode,
+              full_address: saved.fullAddress
+            }
+          });
+          this.showToast('Nova base definida com sucesso!');
+          this.renderMarkers();
+          this.showPointModal.set(false);
+        },
+        error: () => this.showToast('Erro ao salvar nova base.')
+      });
+      return;
+    }
+
+    // Se for parada regular
+    const newStop: DeliveryStopDto = {
+      id: `stop-${Date.now()}`,
+      name: this.modalPointTitle,
+      lat: this.modalPointLat,
+      lon: this.modalPointLon,
+      priority: this.modalPointPriority,
+      fixed_order: this.modalPointFixedOrder,
+      address: {
+        street: this.modalAddress.street,
+        number: this.modalAddress.number,
+        neighborhood: this.modalAddress.neighborhood,
+        city: this.modalAddress.city,
+        state: this.modalAddress.state,
+        postal_code: this.modalAddress.postalCode,
+        full_address: this.modalAddress.fullAddress
+      }
+    };
+
+    // Salvar como favorito opcional
+    if (this.modalPointSaveFavorite) {
+      this.savedLocationsService.create({
+        title: this.modalPointTitle,
+        type: 'FAVORITE',
+        latitude: this.modalPointLat,
+        longitude: this.modalPointLon,
+        street: this.modalAddress.street,
+        number: this.modalAddress.number,
+        neighborhood: this.modalAddress.neighborhood,
+        city: this.modalAddress.city,
+        state: this.modalAddress.state,
+        postalCode: this.modalAddress.postalCode,
+        fullAddress: this.modalAddress.fullAddress
+      }).subscribe({
+        next: (fav) => this.savedLocations.update(list => [fav, ...list])
+      });
+    }
+
+    this.stops.update(list => [...list, newStop]);
+    this.showToast(`Parada "${newStop.name}" adicionada.`);
+    this.renderMarkers();
+    this.showPointModal.set(false);
+
+    // Se já havia uma otimização rodando, invalida resultado antigo
+    this.optimizationResult.set(null);
+  }
+
+  // Busca de endereços pelo input com Nominatim
+  executeAddressSearch() {
+    if (!this.searchQuery.trim()) return;
+    this.isSearchingAddress.set(true);
+
+    this.routingService.searchAddress(this.searchQuery).subscribe({
+      next: (res) => {
+        this.isSearchingAddress.set(false);
+        this.searchResults.set(res || []);
+        this.showSearchDropdown.set(true);
+      },
+      error: () => {
+        this.isSearchingAddress.set(false);
+        this.showToast('Erro ao buscar endereço.');
+      }
+    });
+  }
+
+  // Seleciona um endereço dos resultados
+  selectSearchResult(item: any) {
+    const lat = parseFloat(item.lat);
+    const lon = parseFloat(item.lon);
+    this.showSearchDropdown.set(false);
+    this.searchQuery = '';
+    if (this.map) {
+      this.map.setView([lat, lon], 16);
+    }
+    this.openPointModalFromMapClick(lat, lon);
+  }
+
+  // Adiciona parada a partir de um local favorito salvo
+  addFavoriteToRoute(fav: SavedLocation) {
+    const exists = this.stops().some(s => s.lat === fav.latitude && s.lon === fav.longitude);
+    if (exists) {
+      this.showToast('Este local já está na lista de paradas.');
+      return;
+    }
+
+    const newStop: DeliveryStopDto = {
+      id: fav.id || `fav-${Date.now()}`,
+      name: fav.title,
+      lat: fav.latitude,
+      lon: fav.longitude,
+      priority: 'REGULAR',
+      fixed_order: null,
+      address: {
+        street: fav.street,
+        number: fav.number,
+        neighborhood: fav.neighborhood,
+        city: fav.city,
+        state: fav.state,
+        postal_code: fav.postalCode,
+        full_address: fav.fullAddress
+      }
+    };
+
+    this.stops.update(list => [...list, newStop]);
+    this.showToast(`Favorito "${fav.title}" adicionado à rota.`);
+    this.renderMarkers();
+    this.optimizationResult.set(null);
+  }
+
+  // Remove parada da lista
+  removeStop(index: number) {
+    this.stops.update(list => list.filter((_, i) => i !== index));
+    this.renderMarkers();
+    this.optimizationResult.set(null);
+  }
+
+  // Alterna ou define trava de ordem fixa (Regra P-104)
+  toggleFixedOrder(stop: DeliveryStopDto, order: number | null) {
+    this.stops.update(list => list.map(s => {
+      if (s.id === stop.id) {
+        return { ...s, fixed_order: order };
+      }
+      return s;
+    }));
+    this.optimizationResult.set(null);
+    this.showToast(order ? `Ordem fixada como #${order}` : 'Ordem liberada para a IA otimizar');
+  }
+
+  // Executa a otimização com o Algoritmo Genético do fitoherb-ai
+  optimizeRoute() {
+    if (this.stops().length === 0) {
+      this.showToast('Adicione ao menos uma parada no mapa.');
+      return;
+    }
+
+    this.isOptimizing.set(true);
+    this.errorMessage.set(null);
+
+    const payload = {
+      depot: this.depot(),
+      stops: this.stops(),
+      return_to_depot: true
+    };
+
+    this.routingService.optimizeRoute(payload).subscribe({
+      next: (res) => {
+        this.isOptimizing.set(false);
+        this.optimizationResult.set(res);
+        this.activeSidebarTab.set('results');
+        this.drawRouteOnMap(res.geojson_geometry);
+        this.showToast('Rota otimizada com sucesso pelo Algoritmo Genético!');
+      },
+      error: (err) => {
+        this.isOptimizing.set(false);
+        this.errorMessage.set('Erro ao calcular rota otimizada. Verifique se o microserviço fitoherb-ai está ativo.');
+        console.error(err);
+      }
+    });
+  }
+
+  // Desenha os marcadores no Leaflet
+  private renderMarkers() {
+    if (!this.markersLayer || !L) return;
+    this.markersLayer.clearLayers();
+
+    const base = this.depot();
+
+    // Marcador da Base (Ponto de Partida)
+    const baseIcon = L.divIcon({
+      className: 'custom-map-pin pin--depot',
+      html: `<div class="pin-circle pin-depot">🏢</div><div class="pin-label">${base.name}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36]
+    });
+
+    L.marker([base.lat, base.lon], { icon: baseIcon })
+      .bindPopup(`<b>Ponto de Partida:</b><br/>${base.name}<br/><small>${base.address?.full_address || ''}</small>`)
+      .addTo(this.markersLayer);
+
+    // Marcadores das Paradas
+    this.stops().forEach((s, idx) => {
+      const pinClass = s.fixed_order ? 'pin-fixed' : (s.priority === 'CRITICAL' ? 'pin-critical' : 'pin-regular');
+      const pinBadge = s.fixed_order ? `🔒 #${s.fixed_order}` : `#${idx + 1}`;
+
+      const stopIcon = L.divIcon({
+        className: 'custom-map-pin',
+        html: `<div class="pin-circle ${pinClass}">${pinBadge}</div><div class="pin-label">${s.name}</div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 34]
+      });
+
+      L.marker([s.lat, s.lon], { icon: stopIcon })
+        .bindPopup(`<b>${s.name}</b><br/>${s.address?.full_address || ''}<br/><small>${s.fixed_order ? 'Ordem Fixa: #' + s.fixed_order : 'Otimização Livre IA'}</small>`)
+        .addTo(this.markersLayer);
+    });
+  }
+
+  // Desenha o traçado da rota no Leaflet
+  private drawRouteOnMap(geojson: any) {
+    if (!this.routeLayer || !L || !geojson) return;
+    this.routeLayer.clearLayers();
+
+    const routePolyline = L.geoJSON(geojson, {
+      style: {
+        color: '#1E3A8A', // Azul Marinho Fitoherb
+        weight: 5,
+        opacity: 0.85,
+        lineJoin: 'round'
+      }
+    }).addTo(this.routeLayer);
+
+    if (this.map && routePolyline.getBounds().isValid()) {
+      this.map.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
+    }
+  }
+
+  // Exportação Oficial em PDF com Imagem do Mapa (Regra P-105)
+  async exportPdf() {
+    const res = this.optimizationResult();
+    if (!res) {
+      this.showToast('Otimize a rota antes de exportar o PDF.');
+      return;
+    }
+
+    this.isExportingPdf.set(true);
+
+    try {
+      // 1. Captura da imagem do mapa
+      const mapElement = document.getElementById('sellerRouteMap');
+      let mapImgBase64 = '';
+
+      if (mapElement) {
+        const canvas = await html2canvas(mapElement, {
+          useCORS: true,
+          allowTaint: true,
+          scale: 1.5
+        });
+        mapImgBase64 = canvas.toDataURL('image/png');
+      }
+
+      // 2. Criação do documento PDF com jsPDF
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Cores Fitoherb
+      const primaryColor = '#1E3A8A';
+      const secondaryColor = '#4B5563';
+
+      // Cabeçalho
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.setTextColor(primaryColor);
+      doc.text('FITOHERB NORDESTE', 14, 20);
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(secondaryColor);
+      const today = new Date().toLocaleDateString('pt-BR');
+      doc.text(`Roteiro Oficial de Visitas Comerciais - ${today}`, 14, 26);
+      doc.text(`Ponto de Partida: ${this.depot().name}`, 14, 31);
+
+      // KPI Box
+      doc.setFillColor(243, 244, 246);
+      doc.roundedRect(14, 36, 182, 16, 2, 2, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor('#1F2937');
+      doc.text(`Distância Total: ${res.total_distance_km.toFixed(1)} km`, 20, 46);
+      doc.text(`Tempo Estimado: ${res.total_time_minutes.toFixed(0)} min`, 85, 46);
+      doc.text(`Total de Paradas: ${res.stops_count} visitas`, 145, 46);
+
+      // Imagem do Mapa
+      if (mapImgBase64) {
+        doc.addImage(mapImgBase64, 'PNG', 14, 56, 182, 75);
+      }
+
+      // Tabela de Paradas
+      let y = 140;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(primaryColor);
+      doc.text('Itinerário Sequencial de Visitas (Sem Exposição de Coordenadas):', 14, y);
+      y += 6;
+
+      // Header da Tabela
+      doc.setFillColor(primaryColor);
+      doc.rect(14, y, 182, 7, 'F');
+      doc.setTextColor('#FFFFFF');
+      doc.setFontSize(8);
+      doc.text('#', 17, y + 5);
+      doc.text('Local / Cliente', 26, y + 5);
+      doc.text('Endereço Completo', 75, y + 5);
+      doc.text('Previsão', 155, y + 5);
+      doc.text('Ordem', 175, y + 5);
+      y += 7;
+
+      // Linhas da Tabela
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+
+      res.ordered_stops.forEach((stop, index) => {
+        if (y > 275) {
+          doc.addPage();
+          y = 20;
+        }
+
+        const isEven = index % 2 === 0;
+        if (isEven) {
+          doc.setFillColor(249, 250, 251);
+          doc.rect(14, y, 182, 6.5, 'F');
+        }
+
+        doc.setTextColor('#111827');
+        const stepLabel = stop.action === 'DEPARTURE' ? 'Partida' : (stop.action === 'RETURN' ? 'Retorno' : `#${stop.step}`);
+        doc.text(stepLabel, 17, y + 4.5);
+        doc.text(stop.name.substring(0, 24), 26, y + 4.5);
+
+        const addr = stop.address?.full_address || `${stop.address?.street || ''}, ${stop.address?.number || ''} - ${stop.address?.neighborhood || ''}`;
+        doc.text(addr.substring(0, 48), 75, y + 4.5);
+
+        doc.text(`+${stop.arrival_time_minutes.toFixed(0)} min`, 155, y + 4.5);
+        doc.text(stop.is_fixed ? 'Fixado' : 'IA', 175, y + 4.5);
+
+        y += 6.5;
+      });
+
+      // Rodapé Institucional
+      doc.setFontSize(7);
+      doc.setTextColor('#9CA3AF');
+      doc.text(
+        'Fitoherb Nordeste - Distribuidora Líder em Nutrição Esportiva e Suplementos | Rua Itaeté, 434 - Lauro de Freitas - BA',
+        14,
+        290
+      );
+
+      // Download
+      doc.save(`roteiro_fitoherb_${today.replace(/\//g, '-')}.pdf`);
+      this.showToast('PDF exportado com sucesso!');
+    } catch (e) {
+      console.error('Erro ao gerar PDF', e);
+      this.showToast('Erro ao exportar PDF.');
+    } finally {
+      this.isExportingPdf.set(false);
+    }
+  }
+
+  showToast(msg: string) {
+    this.toastMessage.set(msg);
+    setTimeout(() => this.toastMessage.set(null), 3500);
+  }
+}

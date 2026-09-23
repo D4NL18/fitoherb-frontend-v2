@@ -1,0 +1,368 @@
+<div class="seller-routes-container">
+
+  <!-- Toast Flutuante -->
+  <div *ngIf="toastMessage()" class="toast-floating animate-slide-up">
+    {{ toastMessage() }}
+  </div>
+
+  <!-- Alerta de Erro -->
+  <div *ngIf="errorMessage()" class="alert-box alert--danger">
+    <i class="fa-solid fa-triangle-exclamation"></i> {{ errorMessage() }}
+  </div>
+
+  <!-- Cabeçalho Informativo -->
+  <div class="routes-header">
+    <div class="routes-header__title-box">
+      <h2><i class="fa-solid fa-route"></i> Roteirização Comercial Inteligente</h2>
+      <p>Planeje seu roteiro de visitas com cálculo evolutivo de menor tempo viário e ordem personalizada.</p>
+    </div>
+
+    <!-- Indicador de Ponto de Partida Atual -->
+    <div class="base-badge-container">
+      <div class="base-badge" [class.base-badge--custom]="isUsingCustomBase()">
+        <i class="fa-solid" [class.fa-house-chimney]="isUsingCustomBase()" [class.fa-building]="!isUsingCustomBase()"></i>
+        <div class="base-badge__text">
+          <span class="base-badge__label">Ponto de Partida:</span>
+          <span class="base-badge__val">{{ depot().name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Busca de Endereços com Autocomplete & Favoritos -->
+  <div class="search-section">
+    <div class="search-input-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (keydown.enter)="executeAddressSearch()"
+        placeholder="Buscar endereço, bairro ou farmácia na Bahia (ex: Pituba, Barra, Brotas, Itapuã)..."
+        class="search-input"
+      />
+      <button *ngIf="searchQuery" class="clear-btn" (click)="searchQuery = ''; showSearchDropdown.set(savedLocations().length > 0)">✕</button>
+      <button class="submit-search-btn" (click)="executeAddressSearch()" [disabled]="isSearchingAddress()">
+        <span *ngIf="!isSearchingAddress()">Buscar</span>
+        <span *ngIf="isSearchingAddress()"><i class="fa-solid fa-spinner fa-spin"></i></span>
+      </button>
+    </div>
+
+    <!-- Dropdown Unificado: Favoritos Salvos + Resultados da Busca OSM -->
+    <div *ngIf="showSearchDropdown() && (savedLocations().length > 0 || searchResults().length > 0 || isSearchingAddress())" class="search-dropdown animate-slide-up">
+      <div class="dropdown-header">
+        <span>Opções de Localização</span>
+        <button class="dropdown-close" (click)="showSearchDropdown.set(false)">✕ Fechar</button>
+      </div>
+
+      <!-- Favoritos do Vendedor -->
+      <div *ngIf="savedLocations().length > 0" class="dropdown-group">
+        <div class="dropdown-group-title"><i class="fa-solid fa-star"></i> Meus Locais Salvos / Clientes</div>
+        <div 
+          *ngFor="let fav of savedLocations()" 
+          class="dropdown-item dropdown-item--fav"
+          (click)="addFavoriteToRoute(fav); showSearchDropdown.set(false)"
+        >
+          <div class="dropdown-item__icon">⭐</div>
+          <div class="dropdown-item__info">
+            <div class="dropdown-item__title">{{ fav.title }}</div>
+            <div class="dropdown-item__subtitle">{{ fav.fullAddress || (fav.neighborhood + ' - ' + fav.city) }}</div>
+          </div>
+          <span class="dropdown-item__action">+ Adicionar à rota</span>
+        </div>
+      </div>
+
+      <!-- Resultados de Busca OpenStreetMap -->
+      <div *ngIf="searchResults().length > 0" class="dropdown-group">
+        <div class="dropdown-group-title"><i class="fa-solid fa-map-pin"></i> Resultados no OpenStreetMap</div>
+        <div 
+          *ngFor="let item of searchResults()" 
+          class="dropdown-item"
+          (click)="selectSearchResult(item)"
+        >
+          <div class="dropdown-item__icon">📍</div>
+          <div class="dropdown-item__info">
+            <div class="dropdown-item__title">{{ item.name || item.display_name.split(',')[0] }}</div>
+            <div class="dropdown-item__subtitle">{{ item.display_name }}</div>
+          </div>
+          <span class="dropdown-item__badge">Ver no mapa ➔</span>
+        </div>
+      </div>
+
+      <div *ngIf="isSearchingAddress()" class="dropdown-loading">
+        <i class="fa-solid fa-spinner fa-spin"></i> Localizando endereços...
+      </div>
+    </div>
+  </div>
+
+  <!-- Layout Principal em Grid (Mapa + Painel de Controle) -->
+  <div class="routes-main-grid">
+
+    <!-- Coluna Esquerda: Mapa Interativo Leaflet -->
+    <div class="map-column">
+      <div class="map-card">
+        <div class="map-card__header">
+          <div class="map-title">
+            <i class="fa-solid fa-map-location-dot"></i> Mapa de Rotas e Paradas
+          </div>
+          <div class="map-legend">
+            <span class="legend-chip chip--depot"><span class="dot dot--depot"></span> Ponto de Partida</span>
+            <span class="legend-chip chip--stop"><span class="dot dot--stop"></span> Parada Livre (IA)</span>
+            <span class="legend-chip chip--fixed"><span class="dot dot--fixed"></span> Ordem Fixada 🔒</span>
+          </div>
+        </div>
+
+        <!-- Contêiner do Mapa com Altura Confortável -->
+        <div id="sellerRouteMap" class="map-viewport"></div>
+
+        <div class="map-footer-hint">
+          <i class="fa-solid fa-circle-info"></i> 
+          <strong>Dica:</strong> Clique em qualquer ponto do mapa para incluir uma parada ou definir sua residência como base. Os dados de endereço são preenchidos automaticamente.
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna Direita: Painel Lateral (Abas: Paradas / Roteiro Otimizado) -->
+    <div class="sidebar-column">
+      <div class="sidebar-card">
+
+        <!-- Abas do Painel -->
+        <div class="sidebar-tabs">
+          <button 
+            type="button" 
+            class="sidebar-tab-btn" 
+            [class.active]="activeSidebarTab() === 'stops'"
+            (click)="activeSidebarTab.set('stops')"
+          >
+            <i class="fa-solid fa-list-check"></i> Paradas ({{ stops().length }})
+          </button>
+          <button 
+            type="button" 
+            class="sidebar-tab-btn" 
+            [class.active]="activeSidebarTab() === 'results'"
+            [disabled]="!optimizationResult()"
+            (click)="activeSidebarTab.set('results')"
+          >
+            <i class="fa-solid fa-bolt"></i> Roteiro da IA
+          </button>
+        </div>
+
+        <!-- CONTEÚDO DA ABA 1: GERENCIAMENTO DE PARADAS -->
+        <div *ngIf="activeSidebarTab() === 'stops'" class="sidebar-content">
+          <div class="stops-section-header">
+            <h4>Itinerário Comercial</h4>
+            <span class="badge-count">{{ stops().length }} locais</span>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="stops().length === 0" class="empty-stops-box">
+            <i class="fa-solid fa-map-pin empty-icon"></i>
+            <p class="empty-title">Nenhuma parada adicionada</p>
+            <p class="empty-desc">Clique no mapa para adicionar clientes ou use a barra de busca acima para incluir locais na rota.</p>
+          </div>
+
+          <!-- Lista de Paradas -->
+          <div *ngIf="stops().length > 0" class="stops-list-scroll">
+            <div *ngFor="let stop of stops(); let i = index" class="stop-item-card" [class.stop-item--fixed]="stop.fixed_order">
+              <div class="stop-item__header">
+                <span class="stop-item__badge" [class.badge-fixed]="stop.fixed_order">
+                  {{ stop.fixed_order ? '🔒 #' + stop.fixed_order : '#' + (i + 1) }}
+                </span>
+                <span class="stop-item__title">{{ stop.name }}</span>
+                <button type="button" class="stop-item__del-btn" (click)="removeStop(i)" title="Remover parada">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+
+              <!-- Endereço legível (sem lat/lon) -->
+              <div class="stop-item__address">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>{{ stop.address?.full_address || (stop.address?.street + ', ' + stop.address?.number) || 'Local selecionado no mapa' }}</span>
+              </div>
+
+              <!-- Controle de Ordem Fixa (Regra P-104) -->
+              <div class="stop-item__controls">
+                <span class="control-label">Ordem de visita:</span>
+                <select 
+                  class="fixed-order-select" 
+                  [ngModel]="stop.fixed_order || 0" 
+                  (ngModelChange)="toggleFixedOrder(stop, $event === 0 ? null : $event)"
+                >
+                  <option [ngValue]="0">⚡ Automático (IA)</option>
+                  <option *ngFor="let opt of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" [ngValue]="opt">
+                    🔒 Fixar como #{{ opt }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ação Principal de Otimização -->
+          <div class="sidebar-actions">
+            <button 
+              type="button" 
+              class="btn-primary-action" 
+              (click)="optimizeRoute()"
+              [disabled]="stops().length === 0 || isOptimizing()"
+            >
+              <span *ngIf="!isOptimizing()">
+                <i class="fa-solid fa-bolt"></i> Otimizar Rota com IA
+              </span>
+              <span *ngIf="isOptimizing()">
+                <i class="fa-solid fa-spinner fa-spin"></i> Otimizando pelo Algoritmo Genético...
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CONTEÚDO DA ABA 2: ROTEIRO OTIMIZADO PELA IA -->
+        <div *ngIf="activeSidebarTab() === 'results' && optimizationResult()" class="sidebar-content">
+          
+          <!-- KPI Cards Consolidados -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-card__label">Distância Total</span>
+              <span class="kpi-card__val">{{ optimizationResult()?.total_distance_km?.toFixed(1) }} km</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-card__label">Tempo Viário Est.</span>
+              <span class="kpi-card__val">{{ optimizationResult()?.total_time_minutes?.toFixed(0) }} min</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-card__label">Total Paradas</span>
+              <span class="kpi-card__val">{{ optimizationResult()?.stops_count }} visitas</span>
+            </div>
+          </div>
+
+          <!-- Lista Sequencial de Visitas (Sem expor lat/lon) -->
+          <div class="timeline-container">
+            <div *ngFor="let s of optimizationResult()?.ordered_stops" class="timeline-step">
+              <div class="timeline-marker" [class.marker-depot]="s.action !== 'VISIT'" [class.marker-fixed]="s.is_fixed">
+                <i class="fa-solid" [class.fa-building]="s.action === 'DEPARTURE' || s.action === 'RETURN'" [class.fa-location-dot]="s.action === 'VISIT'"></i>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-content__top">
+                  <span class="step-num">{{ s.action === 'DEPARTURE' ? 'Partida' : (s.action === 'RETURN' ? 'Retorno à Base' : 'Parada #' + s.step) }}</span>
+                  <span class="step-time">+{{ s.arrival_time_minutes.toFixed(0) }} min</span>
+                </div>
+                <div class="step-name">{{ s.name }}</div>
+                <div class="step-addr">{{ s.address?.full_address || (s.address?.street + ', ' + s.address?.number) }}</div>
+                <span *ngIf="s.is_fixed && s.action === 'VISIT'" class="tag-fixed">🔒 Ordem Fixada Manual</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botões de Ação do Roteiro -->
+          <div class="sidebar-actions">
+            <button 
+              type="button" 
+              class="btn-export-pdf" 
+              (click)="exportPdf()"
+              [disabled]="isExportingPdf()"
+            >
+              <span *ngIf="!isExportingPdf()">
+                <i class="fa-solid fa-file-pdf"></i> Exportar Roteiro em PDF
+              </span>
+              <span *ngIf="isExportingPdf()">
+                <i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF com mapa...
+              </span>
+            </button>
+
+            <button type="button" class="btn-secondary-action" (click)="activeSidebarTab.set('stops')">
+              <i class="fa-solid fa-pen-to-square"></i> Ajustar Paradas
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE ADIÇÃO DE PONTO / BASE (Regras P-101 e P-102) -->
+  <div *ngIf="showPointModal()" class="modal-backdrop">
+    <div class="modal-dialog animate-scale-up">
+      <div class="modal-dialog__header">
+        <h3><i class="fa-solid fa-location-dot"></i> Configurar Ponto no Mapa</h3>
+        <button class="modal-close-btn" (click)="showPointModal.set(false)">✕</button>
+      </div>
+
+      <div class="modal-dialog__body">
+
+        <!-- Endereço auto-detectado via Nominatim -->
+        <div class="detected-address-box">
+          <div class="detected-address-box__label">
+            <i class="fa-solid fa-map-pin"></i> Endereço Detectado via Satélite/Mapa:
+            <span *ngIf="modalIsReverseGeocoding()"><i class="fa-solid fa-spinner fa-spin"></i> Identificando logradouro...</span>
+          </div>
+          <div class="detected-address-box__val">
+            {{ modalAddress.fullAddress || 'Coordenadas capturadas no mapa.' }}
+          </div>
+        </div>
+
+        <!-- Tipo de Ponto (Parada Comercial vs Minha Base) -->
+        <div class="form-group">
+          <label class="form-label">Tipo deste Local:</label>
+          <div class="radio-toggle-group">
+            <label class="radio-option" [class.selected]="modalPointType === 'delivery'">
+              <input type="radio" [(ngModel)]="modalPointType" value="delivery" name="pointType" />
+              <span>📦 Parada de Visita</span>
+            </label>
+            <label class="radio-option" [class.selected]="modalPointType === 'base'">
+              <input type="radio" [(ngModel)]="modalPointType" value="base" name="pointType" />
+              <span>🏠 Minha Residência / Base</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Título / Nome do Ponto -->
+        <div class="form-group">
+          <label class="form-label">Título / Nome de Identificação:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="modalPointTitle" 
+            placeholder="Ex: Drogaria FarmaVida, Clínica Bem Estar, Minha Residência..."
+            class="modal-input"
+          />
+        </div>
+
+        <!-- Opções extras se for Parada de Visita -->
+        <div *ngIf="modalPointType === 'delivery'" class="delivery-options-grid">
+          <div class="form-group">
+            <label class="form-label">Prioridade da Visita:</label>
+            <select [(ngModel)]="modalPointPriority" class="modal-select">
+              <option value="REGULAR">Regular</option>
+              <option value="HIGH">Alta Prioridade</option>
+              <option value="CRITICAL">Urgência Comercial</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Fixar Ordem Manual (Opcional):</label>
+            <select [(ngModel)]="modalPointFixedOrder" class="modal-select">
+              <option [ngValue]="null">⚡ Automático (IA)</option>
+              <option *ngFor="let opt of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" [ngValue]="opt">
+                🔒 Fixar como #{{ opt }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Checkbox de Favoritar -->
+        <div *ngIf="modalPointType === 'delivery'" class="checkbox-option">
+          <label>
+            <input type="checkbox" [(ngModel)]="modalPointSaveFavorite" />
+            <span>Salvar este cliente nos Meus Favoritos</span>
+          </label>
+        </div>
+
+      </div>
+
+      <div class="modal-dialog__footer">
+        <button type="button" class="btn-cancel" (click)="showPointModal.set(false)">Cancelar</button>
+        <button type="button" class="btn-confirm" (click)="savePointFromModal()">
+          {{ modalPointType === 'base' ? 'Definir como Minha Base' : 'Adicionar Parada' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
