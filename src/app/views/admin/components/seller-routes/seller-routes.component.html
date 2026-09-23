@@ -29,8 +29,9 @@
         type="text" 
         [ngModel]="searchQuery" 
         (ngModelChange)="onSearchInput($event)"
+        (focus)="onSearchFocus()"
         (keydown.enter)="executeAddressSearch()"
-        placeholder="Buscar farmácia, clínica ou endereço (ex: SENAI CIMATEC, Barra, Pituba, Brotas)..."
+        placeholder="Buscar endereço, cliente ou ponto no mapa..."
         class="search-input"
       />
       <button *ngIf="searchQuery" class="clear-btn" (click)="onSearchInput('')" title="Limpar busca">✕</button>
@@ -38,6 +39,27 @@
         <span *ngIf="!isSearchingAddress()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</span>
         <span *ngIf="isSearchingAddress()"><i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
+    </div>
+
+    <!-- Barra de Acesso Rápido aos Favoritos / Clientes Salvos -->
+    <div *ngIf="savedLocations().length > 0" class="quick-favorites-strip">
+      <div class="quick-fav-label">
+        <i class="fa-solid fa-star"></i>
+        <span>Favoritos:</span>
+      </div>
+      <div class="quick-fav-chips">
+        <button 
+          *ngFor="let fav of savedLocations()" 
+          type="button" 
+          class="quick-fav-chip" 
+          [class.chip--added]="isFavoriteInRoute(fav)"
+          (click)="toggleFavoriteInRoute(fav)"
+          [title]="fav.fullAddress || fav.title"
+        >
+          <i class="fa-solid" [class.fa-check]="isFavoriteInRoute(fav)" [class.fa-plus]="!isFavoriteInRoute(fav)"></i>
+          <span>{{ fav.title }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- Dropdown de Sugestões: Meus Clientes Salvos + Endereços Encontrados -->
@@ -175,9 +197,14 @@
                     {{ getPriorityLabel(stop.priority) }}
                   </span>
                 </div>
-                <button type="button" class="stop-item__del-btn" (click)="removeStop(i)" title="Remover parada">
-                  <i class="fa-regular fa-trash-can"></i>
-                </button>
+                <div class="stop-item__actions">
+                  <button type="button" class="stop-item__edit-btn" (click)="editStop(i)" title="Editar parada">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                  </button>
+                  <button type="button" class="stop-item__del-btn" (click)="removeStop(i)" title="Remover parada">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </div>
               </div>
 
               <!-- Endereço legível (sem vírgulas órfãs) -->
@@ -292,7 +319,10 @@
   <div *ngIf="showPointModal()" class="modal-backdrop">
     <div class="modal-dialog animate-scale-up">
       <div class="modal-dialog__header">
-        <h3><i class="fa-solid fa-location-dot"></i> Configurar Ponto no Mapa</h3>
+        <h3>
+          <i class="fa-solid" [class.fa-pen-to-square]="editingStopIndex() !== null" [class.fa-location-dot]="editingStopIndex() === null"></i>
+          {{ editingStopIndex() !== null ? 'Editar Parada Comercial' : 'Configurar Ponto no Mapa' }}
+        </h3>
         <button class="modal-close-btn" (click)="showPointModal.set(false)">✕</button>
       </div>
 
@@ -309,8 +339,8 @@
           </div>
         </div>
 
-        <!-- Tipo de Ponto (Parada Comercial vs Minha Base) -->
-        <div class="form-group">
+        <!-- Tipo de Ponto (Parada Comercial vs Minha Base) - Apenas ao adicionar novo ponto -->
+        <div *ngIf="editingStopIndex() === null" class="form-group">
           <label class="form-label">Tipo deste Local:</label>
           <div class="radio-toggle-group">
             <label class="radio-option" [class.selected]="modalPointType === 'delivery'">
@@ -357,8 +387,8 @@
           </div>
         </div>
 
-        <!-- Checkbox de Favoritar -->
-        <div *ngIf="modalPointType === 'delivery'" class="checkbox-option">
+        <!-- Checkbox de Favoritar (Apenas se for novo ponto de visita) -->
+        <div *ngIf="modalPointType === 'delivery' && editingStopIndex() === null" class="checkbox-option">
           <label>
             <input type="checkbox" [(ngModel)]="modalPointSaveFavorite" />
             <span>Salvar este cliente nos Meus Favoritos</span>
@@ -370,7 +400,7 @@
       <div class="modal-dialog__footer">
         <button type="button" class="btn-cancel" (click)="showPointModal.set(false)">Cancelar</button>
         <button type="button" class="btn-confirm" (click)="savePointFromModal()">
-          {{ modalPointType === 'base' ? 'Definir como Minha Base' : 'Adicionar Parada' }}
+          {{ editingStopIndex() !== null ? 'Salvar Alterações' : (modalPointType === 'base' ? 'Definir como Minha Base' : 'Adicionar Parada') }}
         </button>
       </div>
     </div>

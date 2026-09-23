@@ -188,6 +188,84 @@
     }
   }
 
+  /* Barra de Favoritos Rápidos */
+  .quick-favorites-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 0.65rem;
+    padding: 0.25rem 0.15rem;
+    overflow-x: auto;
+    white-space: nowrap;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $gray-300;
+      border-radius: 4px;
+    }
+
+    .quick-fav-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: $green-800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+
+      i {
+        color: #eab308;
+        font-size: 0.85rem;
+      }
+    }
+
+    .quick-fav-chips {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: nowrap;
+    }
+
+    .quick-fav-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: $white;
+      border: 1.2px solid $green-300;
+      color: $green-800;
+      border-radius: 20px;
+      padding: 0.28rem 0.7rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+
+      &:hover {
+        background: $green-50;
+        border-color: $green-600;
+        transform: translateY(-1px);
+      }
+
+      &.chip--added {
+        background: $green-700;
+        color: $white;
+        border-color: $green-700;
+        font-weight: 600;
+
+        i {
+          color: #86efac;
+        }
+      }
+    }
+  }
+
   /* Dropdown de Sugestões de Endereços */
   .search-dropdown {
     position: absolute;
@@ -680,6 +758,34 @@
       }
     }
 
+    .stop-item__actions {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+
+    .stop-item__edit-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: $gray-500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background-color: $green-50;
+        color: $green-700;
+      }
+    }
+
     .stop-item__del-btn {
       width: 32px;
       height: 32px;
@@ -1006,8 +1112,8 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(26, 45, 20, 0.5);
-  backdrop-filter: blur(3px);
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;

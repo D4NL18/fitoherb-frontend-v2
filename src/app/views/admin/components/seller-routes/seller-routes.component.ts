@@ -86,8 +86,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
 
-  // Modal de Adição/Edição de Ponto (ao clicar no mapa)
+  // Modal de Adição/Edição de Ponto (ao clicar no mapa ou editar)
   showPointModal = signal<boolean>(false);
+  editingStopIndex = signal<number | null>(null);
   modalPointType: 'delivery' | 'base' = 'delivery';
   modalPointTitle: string = '';
   modalPointLat: number = 0;
@@ -205,6 +206,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Geocodificação reversa automática ao clicar no mapa
   openPointModalFromMapClick(lat: number, lon: number) {
+    this.editingStopIndex.set(null);
     this.modalPointLat = lat;
     this.modalPointLon = lon;
     this.modalPointType = 'delivery';
@@ -241,10 +243,68 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // Edição de parada existente do itinerário
+  editStop(index: number) {
+    const s = this.stops()[index];
+    if (!s) return;
+
+    this.editingStopIndex.set(index);
+    this.modalPointType = 'delivery';
+    this.modalPointTitle = s.name;
+    this.modalPointLat = s.lat;
+    this.modalPointLon = s.lon;
+    this.modalPointPriority = s.priority || 'REGULAR';
+    this.modalPointFixedOrder = s.fixed_order || null;
+    this.modalPointSaveFavorite = false;
+    this.modalIsReverseGeocoding.set(false);
+    this.modalAddress = {
+      street: s.address?.street || '',
+      number: s.address?.number || '',
+      neighborhood: s.address?.neighborhood || '',
+      city: s.address?.city || '',
+      state: s.address?.state || 'BA',
+      postalCode: s.address?.postal_code || '',
+      fullAddress: s.address?.full_address || ''
+    };
+    this.showPointModal.set(true);
+  }
+
   // Confirmação do modal de ponto
   savePointFromModal() {
     if (!this.modalPointTitle.trim()) {
       this.modalPointTitle = 'Visita Comercial';
+    }
+
+    // Se estiver no modo de edição de parada existente
+    const editIdx = this.editingStopIndex();
+    if (editIdx !== null) {
+      this.stops.update(list => list.map((item, idx) => {
+        if (idx === editIdx) {
+          return {
+            ...item,
+            name: this.modalPointTitle,
+            priority: this.modalPointPriority,
+            fixed_order: this.modalPointFixedOrder,
+            address: {
+              ...item.address,
+              street: this.modalAddress.street,
+              number: this.modalAddress.number,
+              neighborhood: this.modalAddress.neighborhood,
+              city: this.modalAddress.city,
+              state: this.modalAddress.state,
+              postal_code: this.modalAddress.postalCode,
+              full_address: this.modalAddress.fullAddress
+            }
+          };
+        }
+        return item;
+      }));
+      this.showToast(`Parada "${this.modalPointTitle}" atualizada com sucesso.`);
+      this.renderMarkers();
+      this.editingStopIndex.set(null);
+      this.showPointModal.set(false);
+      this.optimizationResult.set(null);
+      return;
     }
 
     if (this.modalPointType === 'base') {
@@ -290,7 +350,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Se for parada regular
+    // Se for parada regular nova
     const newStop: DeliveryStopDto = {
       id: `stop-${Date.now()}`,
       name: this.modalPointTitle,
@@ -362,7 +422,14 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  // Executa busca via API de mapas com Nominatim / Proxy
+  // Foco no campo de busca: exibe sugestões imediatamente se houver favoritos salvos
+  onSearchFocus() {
+    if (this.savedLocations().length > 0 || this.searchResults().length > 0) {
+      this.showSearchDropdown.set(true);
+    }
+  }
+
+  // Executa busca via API de mapas com Nominatim / Proxy priorizando arredores da base
   executeAddressSearch(queryOverride?: string) {
     const q = (queryOverride !== undefined ? queryOverride : this.searchQuery).trim();
     if (!q) {
@@ -372,7 +439,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isSearchingAddress.set(true);
     this.showSearchDropdown.set(true);
 
-    this.routingService.searchAddress(q).subscribe({
+    const base = this.depot();
+    this.routingService.searchAddress(q, base.lat, base.lon).subscribe({
       next: (res) => {
         this.isSearchingAddress.set(false);
         this.searchResults.set(res || []);
@@ -391,6 +459,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     const lon = parseFloat(item.lon);
     this.showSearchDropdown.set(false);
     this.searchQuery = '';
+    this.editingStopIndex.set(null);
 
     // Extrai componentes estruturados do endereço
     const addr = item.address || {};
@@ -458,9 +527,32 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Verifica se um favorito já está incluso na rota atual
+  isFavoriteInRoute(fav: SavedLocation): boolean {
+    return this.stops().some(s => 
+      (Math.abs(s.lat - fav.latitude) < 0.0001 && Math.abs(s.lon - fav.longitude) < 0.0001) ||
+      s.name.trim().toLowerCase() === fav.title.trim().toLowerCase()
+    );
+  }
+
+  // Alterna inclusão/remoção rápida de um favorito na rota
+  toggleFavoriteInRoute(fav: SavedLocation) {
+    const existingIdx = this.stops().findIndex(s => 
+      (Math.abs(s.lat - fav.latitude) < 0.0001 && Math.abs(s.lon - fav.longitude) < 0.0001) ||
+      s.name.trim().toLowerCase() === fav.title.trim().toLowerCase()
+    );
+
+    if (existingIdx >= 0) {
+      this.removeStop(existingIdx);
+      this.showToast(`"${fav.title}" removido da rota.`);
+    } else {
+      this.addFavoriteToRoute(fav);
+    }
+  }
+
   // Adiciona parada a partir de um local favorito salvo
   addFavoriteToRoute(fav: SavedLocation) {
-    const exists = this.stops().some(s => s.lat === fav.latitude && s.lon === fav.longitude);
+    const exists = this.isFavoriteInRoute(fav);
     if (exists) {
       this.showToast('Este local já está na lista de paradas.');
       return;

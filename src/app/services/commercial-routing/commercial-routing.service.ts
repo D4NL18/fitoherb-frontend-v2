@@ -15,10 +15,17 @@ export class CommercialRoutingService {
     return this.http.post<OptimizeRouteResponse>(`${this.aiBaseUrl}/routing/optimize`, request);
   }
 
-  searchAddress(query: string): Observable<any[]> {
+  searchAddress(query: string, lat?: number, lon?: number): Observable<any[]> {
     const encoded = encodeURIComponent(query.trim());
-    const proxyUrl = `${this.aiBaseUrl}/routing/search-address?q=${encoded}`;
-    const directUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&addressdetails=1&countrycodes=br&limit=8`;
+    let proxyUrl = `${this.aiBaseUrl}/routing/search-address?q=${encoded}`;
+    let directUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&addressdetails=1&countrycodes=br&limit=10`;
+
+    if (lat !== undefined && lon !== undefined) {
+      proxyUrl += `&lat=${lat}&lon=${lon}`;
+      const delta = 1.5;
+      const viewbox = `${lon - delta},${lat + delta},${lon + delta},${lat - delta}`;
+      directUrl += `&viewbox=${viewbox}&bounded=0`;
+    }
 
     return this.http.get<any[]>(proxyUrl).pipe(
       catchError(() => this.http.get<any[]>(directUrl))
