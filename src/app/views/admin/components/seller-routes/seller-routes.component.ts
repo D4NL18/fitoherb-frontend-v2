@@ -95,8 +95,13 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   modalPointLon: number = 0;
   modalPointPriority: 'REGULAR' | 'HIGH' | 'CRITICAL' = 'REGULAR';
   modalPointFixedOrder: number | null = null;
+  modalPointServiceMinutes: number = 20;
   modalPointSaveFavorite: boolean = false;
   modalIsReverseGeocoding = signal<boolean>(false);
+
+  // Parâmetros Globais da Jornada Comercial (Horário e Atendimento)
+  departureTime = signal<string>('08:00');
+  defaultServiceMinutes = signal<number>(20);
 
   // Modal de Gerenciamento e Exclusão de Favoritos Salvos
   showManageFavoritesModal = signal<boolean>(false);
@@ -217,6 +222,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalPointTitle = '';
     this.modalPointPriority = 'REGULAR';
     this.modalPointFixedOrder = null;
+    this.modalPointServiceMinutes = this.defaultServiceMinutes();
     this.modalPointSaveFavorite = false;
     this.modalIsReverseGeocoding.set(true);
     this.showPointModal.set(true);
@@ -259,6 +265,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalPointLon = s.lon;
     this.modalPointPriority = s.priority || 'REGULAR';
     this.modalPointFixedOrder = s.fixed_order || null;
+    this.modalPointServiceMinutes = s.service_duration_minutes || this.defaultServiceMinutes();
     this.modalPointSaveFavorite = false;
     this.modalIsReverseGeocoding.set(false);
     this.modalAddress = {
@@ -289,6 +296,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
             name: this.modalPointTitle,
             priority: this.modalPointPriority,
             fixed_order: this.modalPointFixedOrder,
+            service_duration_minutes: this.modalPointServiceMinutes,
             address: {
               ...item.address,
               street: this.modalAddress.street,
@@ -362,6 +370,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       lon: this.modalPointLon,
       priority: this.modalPointPriority,
       fixed_order: this.modalPointFixedOrder,
+      service_duration_minutes: this.modalPointServiceMinutes,
       address: {
         street: this.modalAddress.street,
         number: this.modalAddress.number,
@@ -658,7 +667,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     const payload = {
       depot: this.depot(),
       stops: this.stops(),
-      return_to_depot: true
+      return_to_depot: true,
+      departure_time: this.departureTime(),
+      default_service_minutes: this.defaultServiceMinutes()
     };
 
     this.routingService.optimizeRoute(payload).subscribe({
@@ -695,6 +706,23 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Helpers para Badges de Trânsito
+  getTrafficLabel(cond?: string): string {
+    if (!cond || cond === 'LIVRE') return 'Fluxo Livre';
+    if (cond === 'PICO_MANHA') return 'Pico da Manhã';
+    if (cond === 'PICO_ALMOCO') return 'Pico Almoço';
+    if (cond === 'PICO_TARDE') return 'Pico Tarde/Noite';
+    if (cond === 'MODERADO_RODOVIA') return 'Rodovia Fluida';
+    if (cond === 'MODERADO') return 'Trânsito Moderado';
+    return cond;
+  }
+
+  getTrafficBadgeClass(cond?: string): string {
+    if (!cond || cond === 'LIVRE') return 'traffic--clear';
+    if (cond.startsWith('PICO')) return 'traffic--heavy';
+    return 'traffic--moderate';
+  }
+
   // Desenha os marcadores no Leaflet com destaque visual para o roteiro IA
   private renderMarkers() {
     if (!this.markersLayer || !L) return;
@@ -724,7 +752,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         <div class="popup-card">
           <div class="popup-card__header">
             <span class="popup-step">Ponto de Partida</span>
-            <span class="popup-time"><i class="fa-solid fa-house-chimney"></i> Base</span>
+            <span class="popup-time"><i class="fa-regular fa-clock"></i> ${optRes?.departure_clock || this.departureTime()}</span>
           </div>
           <div class="popup-card__title">${base.name}</div>
           <div class="popup-card__addr">${base.address?.full_address || ''}</div>
@@ -753,6 +781,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const priorityLabel = this.getPriorityLabel(s.priority);
         const priorityBadgeClass = s.priority === 'CRITICAL' ? 'popup-badge--critical' : (s.priority === 'HIGH' ? 'popup-badge--high' : 'popup-badge--regular');
+        const timeDisplay = s.estimated_arrival_clock 
+          ? `${s.estimated_arrival_clock} - ${s.estimated_departure_clock || ''}` 
+          : `+${s.arrival_time_minutes.toFixed(0)} min`;
 
         const pinIcon = L.divIcon({
           className: 'custom-map-pin',
@@ -774,12 +805,14 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
             <div class="popup-card">
               <div class="popup-card__header">
                 <span class="popup-step">Parada #${s.step}</span>
-                <span class="popup-time"><i class="fa-regular fa-clock"></i> +${s.arrival_time_minutes.toFixed(0)} min</span>
+                <span class="popup-time"><i class="fa-regular fa-clock"></i> ${timeDisplay}</span>
               </div>
               <div class="popup-card__title">${s.name}</div>
               <div class="popup-card__addr">${s.address?.full_address || ''}</div>
               <div class="popup-card__footer">
                 <span class="popup-badge ${priorityBadgeClass}">${priorityLabel}</span>
+                ${s.service_duration_minutes ? `<span class="popup-duration">⏳ ${s.service_duration_minutes} min</span>` : ''}
+                ${s.traffic_condition && s.traffic_condition !== 'LIVRE' ? `<span class="popup-traffic">🚗 ${this.getTrafficLabel(s.traffic_condition)}</span>` : ''}
                 ${s.is_fixed ? '<span class="popup-fixed">🔒 Ordem Travada</span>' : '<span class="popup-ai">⚡ Otimizado IA</span>'}
               </div>
             </div>

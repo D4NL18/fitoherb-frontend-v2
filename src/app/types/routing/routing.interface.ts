@@ -20,12 +20,15 @@ export interface DeliveryStopDto extends LocationPointDto {
   priority: 'REGULAR' | 'HIGH' | 'CRITICAL';
   fixed_order?: number | null;
   demand?: number;
+  service_duration_minutes?: number | null;
 }
 
 export interface OptimizeRouteRequest {
   depot: LocationPointDto;
   stops: DeliveryStopDto[];
   return_to_depot?: boolean;
+  departure_time?: string;
+  default_service_minutes?: number;
 }
 
 export interface OrderedStopDto {
@@ -40,6 +43,11 @@ export interface OrderedStopDto {
   lat?: number;
   lon?: number;
   address?: AddressDto;
+  estimated_arrival_clock?: string;
+  estimated_departure_clock?: string;
+  service_duration_minutes?: number;
+  traffic_factor?: number;
+  traffic_condition?: string;
 }
 
 export interface OptimizeRouteResponse {
@@ -49,4 +57,9 @@ export interface OptimizeRouteResponse {
   ordered_stops: OrderedStopDto[];
   geojson_geometry: any;
   fitness_history: number[];
+  departure_clock?: string;
+  estimated_finish_clock?: string;
+  total_transit_minutes?: number;
+  total_service_minutes?: number;
+  peak_hours_encountered?: number;
 }

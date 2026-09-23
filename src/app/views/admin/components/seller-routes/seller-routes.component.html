@@ -173,6 +173,41 @@
 
         <!-- CONTEÚDO DA ABA 1: GERENCIAMENTO DE PARADAS -->
         <div *ngIf="activeSidebarTab() === 'stops'" class="sidebar-content">
+          
+          <!-- Configuração da Jornada e Horário de Partida -->
+          <div class="journey-config-box">
+            <div class="journey-config-box__header">
+              <i class="fa-regular fa-clock"></i>
+              <span>Planejamento da Jornada</span>
+            </div>
+            <div class="journey-config-box__grid">
+              <div class="journey-input-group">
+                <label><i class="fa-solid fa-play"></i> Partida da Base:</label>
+                <input 
+                  type="time" 
+                  class="time-input" 
+                  [ngModel]="departureTime()" 
+                  (ngModelChange)="departureTime.set($event)"
+                />
+              </div>
+              <div class="journey-input-group">
+                <label><i class="fa-solid fa-stopwatch"></i> Tempo Médio/Visita:</label>
+                <div class="input-with-unit">
+                  <input 
+                    type="number" 
+                    min="5" 
+                    max="180" 
+                    step="5" 
+                    class="num-input" 
+                    [ngModel]="defaultServiceMinutes()" 
+                    (ngModelChange)="defaultServiceMinutes.set($event)"
+                  />
+                  <span class="unit">min</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="stops-section-header">
             <h4>Itinerário Comercial</h4>
             <span class="badge-count">{{ stops().length }} {{ stops().length === 1 ? 'local' : 'locais' }}</span>
@@ -268,17 +303,25 @@
           <!-- KPI Cards Consolidados -->
           <div class="kpi-grid">
             <div class="kpi-card">
-              <span class="kpi-card__label">Distância Total</span>
+              <span class="kpi-card__label">Distância</span>
               <span class="kpi-card__val">{{ optimizationResult()?.total_distance_km?.toFixed(1) }} km</span>
             </div>
             <div class="kpi-card">
-              <span class="kpi-card__label">Tempo Viário Est.</span>
-              <span class="kpi-card__val">{{ optimizationResult()?.total_time_minutes?.toFixed(0) }} min</span>
+              <span class="kpi-card__label">Jornada</span>
+              <span class="kpi-card__val val--clock">
+                {{ optimizationResult()?.departure_clock }} ➔ {{ optimizationResult()?.estimated_finish_clock }}
+              </span>
             </div>
             <div class="kpi-card">
-              <span class="kpi-card__label">Total Paradas</span>
-              <span class="kpi-card__val">{{ optimizationResult()?.stops_count }} visitas</span>
+              <span class="kpi-card__label">Deslocamento</span>
+              <span class="kpi-card__val">{{ optimizationResult()?.total_transit_minutes?.toFixed(0) || optimizationResult()?.total_time_minutes?.toFixed(0) }} min</span>
             </div>
+          </div>
+
+          <!-- Alerta de Trechos sob Horário de Pico -->
+          <div *ngIf="optimizationResult()?.peak_hours_encountered && optimizationResult()!.peak_hours_encountered! > 0" class="peak-warning-pill">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ optimizationResult()?.peak_hours_encountered }} trecho(s) com retenção por horário de pico urbano</span>
           </div>
 
           <!-- Lista Sequencial de Visitas (Sem expor lat/lon) -->
@@ -295,11 +338,27 @@
               <div class="timeline-content">
                 <div class="timeline-content__top">
                   <span class="step-num">{{ s.action === 'DEPARTURE' ? 'Partida' : (s.action === 'RETURN' ? 'Retorno à Base' : 'Parada #' + s.step) }}</span>
-                  <span class="step-time">+{{ s.arrival_time_minutes.toFixed(0) }} min</span>
+                  <span class="step-clock" *ngIf="s.estimated_arrival_clock">
+                    <i class="fa-regular fa-clock"></i>
+                    <strong>{{ s.estimated_arrival_clock }}</strong>
+                    <span *ngIf="s.action === 'VISIT' && s.estimated_departure_clock" class="step-dep-clock">
+                      até {{ s.estimated_departure_clock }}
+                    </span>
+                  </span>
+                  <span class="step-time" *ngIf="!s.estimated_arrival_clock">+{{ s.arrival_time_minutes.toFixed(0) }} min</span>
                 </div>
                 <div class="step-name">{{ s.name }}</div>
                 <div class="step-addr">{{ s.address?.full_address || (s.address?.street + ', ' + s.address?.number) }}</div>
-                <span *ngIf="s.is_fixed && s.action === 'VISIT'" class="tag-fixed">🔒 Ordem Fixada Manual</span>
+                
+                <div class="step-tags">
+                  <span *ngIf="s.is_fixed && s.action === 'VISIT'" class="tag-fixed">🔒 Ordem Travada</span>
+                  <span *ngIf="s.service_duration_minutes && s.action === 'VISIT'" class="tag-duration">
+                    <i class="fa-solid fa-stopwatch"></i> {{ s.service_duration_minutes }} min atendimento
+                  </span>
+                  <span *ngIf="s.traffic_condition && s.traffic_condition !== 'LIVRE'" class="tag-traffic" [ngClass]="getTrafficBadgeClass(s.traffic_condition)">
+                    <i class="fa-solid fa-car-side"></i> {{ getTrafficLabel(s.traffic_condition) }} ({{ s.traffic_factor }}x)
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -399,6 +458,21 @@
                 🔒 Fixar como Parada #{{ opt }}
               </option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tempo Previsto de Atendimento:</label>
+            <div class="input-with-unit">
+              <input 
+                type="number" 
+                min="5" 
+                max="180" 
+                step="5" 
+                [(ngModel)]="modalPointServiceMinutes" 
+                class="modal-input" 
+              />
+              <span class="unit-pill">min</span>
+            </div>
           </div>
         </div>
 
