@@ -174,36 +174,34 @@
         <!-- CONTEÚDO DA ABA 1: GERENCIAMENTO DE PARADAS -->
         <div *ngIf="activeSidebarTab() === 'stops'" class="sidebar-content">
           
-          <!-- Configuração da Jornada e Horário de Partida -->
+          <!-- Configuração de Partida (Opcional) -->
           <div class="journey-config-box">
             <div class="journey-config-box__header">
-              <i class="fa-regular fa-clock"></i>
-              <span>Planejamento da Jornada</span>
+              <div class="journey-title-wrap">
+                <i class="fa-regular fa-clock"></i>
+                <span>Partida da Base (Opcional)</span>
+              </div>
+              <button 
+                *ngIf="departureTime()" 
+                type="button" 
+                class="btn-clear-time" 
+                (click)="departureTime.set('')"
+                title="Limpar horário (usar cálculo simples sem relógio)"
+              >
+                Limpar
+              </button>
             </div>
-            <div class="journey-config-box__grid">
-              <div class="journey-input-group">
-                <label><i class="fa-solid fa-play"></i> Partida da Base:</label>
+            <div class="journey-config-box__body">
+              <div class="journey-input-row">
                 <input 
                   type="time" 
                   class="time-input" 
                   [ngModel]="departureTime()" 
                   (ngModelChange)="departureTime.set($event)"
                 />
-              </div>
-              <div class="journey-input-group">
-                <label><i class="fa-solid fa-stopwatch"></i> Tempo Médio/Visita:</label>
-                <div class="input-with-unit">
-                  <input 
-                    type="number" 
-                    min="5" 
-                    max="180" 
-                    step="5" 
-                    class="num-input" 
-                    [ngModel]="defaultServiceMinutes()" 
-                    (ngModelChange)="defaultServiceMinutes.set($event)"
-                  />
-                  <span class="unit">min</span>
-                </div>
+                <span class="journey-hint">
+                  Defina o horário de saída para projetar a linha do tempo e desvios de trânsito em pico. Deixe vazio para cálculo legado.
+                </span>
               </div>
             </div>
           </div>
@@ -258,6 +256,13 @@
                 <span>{{ getFormattedAddress(stop) }}</span>
               </div>
 
+              <!-- Duração do Atendimento Nesta Parada -->
+              <div class="stop-item__duration-row">
+                <i class="fa-solid fa-stopwatch"></i>
+                <span *ngIf="stop.service_duration_minutes" class="duration-val">{{ stop.service_duration_minutes }} min atendimento</span>
+                <span *ngIf="!stop.service_duration_minutes" class="duration-auto">Média dos outros pontos</span>
+              </div>
+
               <!-- Controle de Ordem no Trajeto -->
               <div class="stop-item__controls">
                 <div class="control-label-group">
@@ -306,15 +311,19 @@
               <span class="kpi-card__label">Distância</span>
               <span class="kpi-card__val">{{ optimizationResult()?.total_distance_km?.toFixed(1) }} km</span>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card" *ngIf="optimizationResult()?.departure_clock">
               <span class="kpi-card__label">Jornada</span>
               <span class="kpi-card__val val--clock">
                 {{ optimizationResult()?.departure_clock }} ➔ {{ optimizationResult()?.estimated_finish_clock }}
               </span>
             </div>
             <div class="kpi-card">
-              <span class="kpi-card__label">Deslocamento</span>
-              <span class="kpi-card__val">{{ optimizationResult()?.total_transit_minutes?.toFixed(0) || optimizationResult()?.total_time_minutes?.toFixed(0) }} min</span>
+              <span class="kpi-card__label">{{ optimizationResult()?.departure_clock ? 'Deslocamento' : 'Tempo Estimado' }}</span>
+              <span class="kpi-card__val">{{ (optimizationResult()?.total_transit_minutes || optimizationResult()?.total_time_minutes)?.toFixed(0) }} min</span>
+            </div>
+            <div class="kpi-card" *ngIf="optimizationResult()?.total_service_minutes">
+              <span class="kpi-card__label">Atendimentos</span>
+              <span class="kpi-card__val">{{ optimizationResult()?.total_service_minutes?.toFixed(0) }} min</span>
             </div>
           </div>
 
@@ -461,18 +470,20 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Tempo Previsto de Atendimento:</label>
+            <label class="form-label">Tempo de Atendimento nesta Parada:</label>
             <div class="input-with-unit">
               <input 
                 type="number" 
-                min="5" 
-                max="180" 
+                min="1" 
+                max="360" 
                 step="5" 
                 [(ngModel)]="modalPointServiceMinutes" 
+                placeholder="Deixar vazio para usar a média"
                 class="modal-input" 
               />
               <span class="unit-pill">min</span>
             </div>
+            <small class="form-field-hint">Se deixado em branco, assumirá automaticamente a média de tempo dos demais clientes.</small>
           </div>
         </div>
 

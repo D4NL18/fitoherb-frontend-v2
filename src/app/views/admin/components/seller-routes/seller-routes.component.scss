@@ -610,7 +610,7 @@
   flex: 1;
 }
 
-/* Configuração da Jornada / Horários de Partida e Atendimento */
+/* Configuração de Partida (Opcional) */
 .journey-config-box {
   background-color: $green-50;
   border: 1px solid $green-200;
@@ -621,7 +621,7 @@
   &__header {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    justify-content: space-between;
     font-size: 0.78rem;
     font-weight: 700;
     color: $green-800;
@@ -630,42 +630,49 @@
     letter-spacing: 0.5px;
     margin-bottom: 0.55rem;
 
-    i {
-      color: $green-600;
-      font-size: 0.85rem;
+    .journey-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+
+      i {
+        color: $green-600;
+        font-size: 0.85rem;
+      }
+    }
+
+    .btn-clear-time {
+      background: none;
+      border: 1px solid $green-300;
+      color: $green-700;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background-color: #fee2e2;
+        border-color: #fca5a5;
+        color: #991b1b;
+      }
     }
   }
 
-  &__grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.65rem;
-
-    .journey-input-group {
+  &__body {
+    .journey-input-row {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-
-      label {
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: $green-900;
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-
-        i {
-          font-size: 0.68rem;
-          color: $green-600;
-        }
-      }
+      gap: 0.4rem;
 
       .time-input {
-        width: 100%;
+        width: 130px;
         border: 1px solid $green-300;
         border-radius: 6px;
         padding: 0.35rem 0.55rem;
-        font-size: 0.85rem;
+        font-size: 0.88rem;
         font-weight: 600;
         color: $green-900;
         background-color: $white;
@@ -679,41 +686,10 @@
         }
       }
 
-      .input-with-unit {
-        display: flex;
-        align-items: center;
-        border: 1px solid $green-300;
-        border-radius: 6px;
-        background-color: $white;
-        overflow: hidden;
-        transition: border-color 0.15s ease;
-
-        &:focus-within {
-          border-color: $green-600;
-          box-shadow: 0 0 0 2px rgba(46, 79, 36, 0.12);
-        }
-
-        .num-input {
-          flex: 1;
-          border: none;
-          padding: 0.35rem 0.55rem;
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: $green-900;
-          background: transparent;
-          font-family: 'Outfit', sans-serif;
-          outline: none;
-          width: 50px;
-        }
-
-        .unit {
-          padding: 0.35rem 0.55rem;
-          background-color: $green-100;
-          font-size: 0.72rem;
-          font-weight: 600;
-          color: $green-800;
-          border-left: 1px solid $green-200;
-        }
+      .journey-hint {
+        font-size: 0.74rem;
+        color: $green-800;
+        line-height: 1.35;
       }
     }
   }
@@ -951,6 +927,33 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+  }
+
+  .stop-item__duration-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.76rem;
+    color: $green-800;
+    background-color: $green-50;
+    border: 1px solid $green-200;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    width: fit-content;
+
+    i {
+      color: $green-600;
+      font-size: 0.78rem;
+    }
+
+    .duration-val {
+      font-weight: 600;
+    }
+
+    .duration-auto {
+      color: $gray-500;
+      font-style: italic;
     }
   }
 
@@ -1532,6 +1535,14 @@
           color: $gray-500;
           pointer-events: none;
         }
+      }
+
+      .form-field-hint {
+        display: block;
+        font-size: 0.72rem;
+        color: $gray-500;
+        margin-top: 0.35rem;
+        line-height: 1.3;
       }
     }
 

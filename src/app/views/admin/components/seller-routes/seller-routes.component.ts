@@ -95,13 +95,12 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   modalPointLon: number = 0;
   modalPointPriority: 'REGULAR' | 'HIGH' | 'CRITICAL' = 'REGULAR';
   modalPointFixedOrder: number | null = null;
-  modalPointServiceMinutes: number = 20;
+  modalPointServiceMinutes: number | null = null;
   modalPointSaveFavorite: boolean = false;
   modalIsReverseGeocoding = signal<boolean>(false);
 
-  // Parâmetros Globais da Jornada Comercial (Horário e Atendimento)
+  // Parâmetros de Partida da Jornada Comercial (Horário Opcional)
   departureTime = signal<string>('08:00');
-  defaultServiceMinutes = signal<number>(20);
 
   // Modal de Gerenciamento e Exclusão de Favoritos Salvos
   showManageFavoritesModal = signal<boolean>(false);
@@ -222,7 +221,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalPointTitle = '';
     this.modalPointPriority = 'REGULAR';
     this.modalPointFixedOrder = null;
-    this.modalPointServiceMinutes = this.defaultServiceMinutes();
+    this.modalPointServiceMinutes = null;
     this.modalPointSaveFavorite = false;
     this.modalIsReverseGeocoding.set(true);
     this.showPointModal.set(true);
@@ -265,7 +264,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalPointLon = s.lon;
     this.modalPointPriority = s.priority || 'REGULAR';
     this.modalPointFixedOrder = s.fixed_order || null;
-    this.modalPointServiceMinutes = s.service_duration_minutes || this.defaultServiceMinutes();
+    this.modalPointServiceMinutes = s.service_duration_minutes ?? null;
     this.modalPointSaveFavorite = false;
     this.modalIsReverseGeocoding.set(false);
     this.modalAddress = {
@@ -286,6 +285,10 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       this.modalPointTitle = 'Visita Comercial';
     }
 
+    const durationVal = (this.modalPointServiceMinutes && Number(this.modalPointServiceMinutes) > 0)
+      ? Number(this.modalPointServiceMinutes)
+      : null;
+
     // Se estiver no modo de edição de parada existente
     const editIdx = this.editingStopIndex();
     if (editIdx !== null) {
@@ -296,7 +299,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
             name: this.modalPointTitle,
             priority: this.modalPointPriority,
             fixed_order: this.modalPointFixedOrder,
-            service_duration_minutes: this.modalPointServiceMinutes,
+            service_duration_minutes: durationVal,
             address: {
               ...item.address,
               street: this.modalAddress.street,
@@ -370,7 +373,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       lon: this.modalPointLon,
       priority: this.modalPointPriority,
       fixed_order: this.modalPointFixedOrder,
-      service_duration_minutes: this.modalPointServiceMinutes,
+      service_duration_minutes: durationVal,
       address: {
         street: this.modalAddress.street,
         number: this.modalAddress.number,
@@ -664,12 +667,13 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isOptimizing.set(true);
     this.errorMessage.set(null);
 
+    const depTime = this.departureTime()?.trim() ? this.departureTime().trim() : undefined;
+
     const payload = {
       depot: this.depot(),
       stops: this.stops(),
       return_to_depot: true,
-      departure_time: this.departureTime(),
-      default_service_minutes: this.defaultServiceMinutes()
+      departure_time: depTime
     };
 
     this.routingService.optimizeRoute(payload).subscribe({
