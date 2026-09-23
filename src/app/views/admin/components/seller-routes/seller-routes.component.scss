@@ -234,34 +234,102 @@
     .quick-fav-chip {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
       background: $white;
       border: 1.2px solid $green-300;
       color: $green-800;
       border-radius: 20px;
-      padding: 0.28rem 0.7rem;
       font-size: 0.82rem;
-      font-weight: 500;
       font-family: 'Outfit', sans-serif;
-      cursor: pointer;
       transition: all 0.15s ease;
       flex-shrink: 0;
+      overflow: hidden;
 
       &:hover {
-        background: $green-50;
         border-color: $green-600;
-        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(56, 88, 47, 0.1);
+      }
+
+      .chip-toggle-text {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.28rem 0.65rem 0.28rem 0.75rem;
+        cursor: pointer;
+        font-weight: 500;
+
+        &:hover {
+          background-color: $green-50;
+        }
+      }
+
+      .chip-delete-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        margin-right: 0.35rem;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: $gray-500;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background-color: #fee2e2;
+          color: #b91c1c;
+        }
       }
 
       &.chip--added {
         background: $green-700;
         color: $white;
         border-color: $green-700;
-        font-weight: 600;
 
-        i {
-          color: #86efac;
+        .chip-toggle-text {
+          font-weight: 600;
+
+          i {
+            color: #86efac;
+          }
+
+          &:hover {
+            background-color: $green-800;
+          }
         }
+
+        .chip-delete-btn {
+          color: rgba(255, 255, 255, 0.7);
+
+          &:hover {
+            background-color: #b91c1c;
+            color: $white;
+          }
+        }
+      }
+    }
+
+    .quick-fav-manage-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: $white;
+      border: 1px dashed $green-400;
+      color: $green-800;
+      border-radius: 20px;
+      padding: 0.28rem 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+
+      &:hover {
+        background: $green-100;
+        border-color: $green-700;
       }
     }
   }
@@ -327,9 +395,36 @@
         letter-spacing: 0.5px;
         color: $green-600;
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 0.4rem;
         background-color: $green-50;
+
+        span {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+        }
+
+        .btn-manage-link {
+          background: none;
+          border: none;
+          color: $green-700;
+          font-size: 0.72rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: $green-200;
+            color: $green-900;
+          }
+        }
       }
     }
 
@@ -405,11 +500,38 @@
         transition: all 0.15s ease;
       }
 
+      &__actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+      }
+
       &__action {
         font-size: 0.78rem;
         font-weight: 600;
         color: $green-600;
         flex-shrink: 0;
+      }
+
+      &__del-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: $gray-500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background-color: #fee2e2;
+          color: #dc2626;
+        }
       }
     }
 
@@ -1350,4 +1472,178 @@
 @keyframes scaleUp {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* Modal Largo para Gerenciamento de Favoritos */
+.modal-dialog--wide {
+  max-width: 650px;
+}
+
+.manage-fav-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: $white;
+  border: 1.5px solid $gray-300;
+  border-radius: 10px;
+  padding: 0.35rem 0.5rem 0.35rem 0.85rem;
+  margin-bottom: 0.85rem;
+
+  i {
+    color: $green-600;
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .manage-fav-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.88rem;
+    font-family: 'Outfit', sans-serif;
+    color: $gray-900;
+  }
+
+  .clear-btn {
+    background: none;
+    border: none;
+    color: $gray-500;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border-radius: 50%;
+    font-size: 0.85rem;
+
+    &:hover {
+      color: $gray-700;
+      background-color: $gray-100;
+    }
+  }
+}
+
+.manage-fav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+
+  .manage-fav-empty {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: $gray-500;
+
+    .empty-icon {
+      font-size: 2rem;
+      color: $gray-500;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.88rem;
+    }
+  }
+
+  .manage-fav-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: $green-300;
+      background-color: #fafcf8;
+    }
+
+    &__info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    &__title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: $green-900;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.2rem;
+
+      i {
+        color: $green-600;
+        font-size: 0.85rem;
+      }
+    }
+
+    &__addr {
+      font-size: 0.8rem;
+      color: $gray-700;
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &__actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+
+      .btn-add-to-route {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background-color: $green-50;
+        border: 1px solid $green-200;
+        color: $green-700;
+        border-radius: 6px;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        font-family: 'Outfit', sans-serif;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background-color: $green-100;
+          border-color: $green-500;
+        }
+
+        &.btn--added {
+          background-color: $green-700;
+          color: $white;
+          border-color: $green-700;
+        }
+      }
+
+      .btn-delete-fav {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+        border-radius: 6px;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        font-family: 'Outfit', sans-serif;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background-color: #fee2e2;
+          color: #991b1b;
+          border-color: #f87171;
+        }
+      }
+    }
+  }
 }

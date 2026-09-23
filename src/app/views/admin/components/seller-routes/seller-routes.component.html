@@ -48,18 +48,38 @@
         <span>Favoritos:</span>
       </div>
       <div class="quick-fav-chips">
-        <button 
+        <div 
           *ngFor="let fav of savedLocations()" 
-          type="button" 
           class="quick-fav-chip" 
           [class.chip--added]="isFavoriteInRoute(fav)"
-          (click)="toggleFavoriteInRoute(fav)"
-          [title]="fav.fullAddress || fav.title"
         >
-          <i class="fa-solid" [class.fa-check]="isFavoriteInRoute(fav)" [class.fa-plus]="!isFavoriteInRoute(fav)"></i>
-          <span>{{ fav.title }}</span>
-        </button>
+          <span 
+            class="chip-toggle-text"
+            (click)="toggleFavoriteInRoute(fav)"
+            [title]="fav.fullAddress || fav.title"
+          >
+            <i class="fa-solid" [class.fa-check]="isFavoriteInRoute(fav)" [class.fa-plus]="!isFavoriteInRoute(fav)"></i>
+            <span>{{ fav.title }}</span>
+          </span>
+          <button 
+            type="button" 
+            class="chip-delete-btn" 
+            (click)="deleteFavorite(fav, $event)" 
+            title="Excluir '{{ fav.title }}' dos favoritos"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       </div>
+      <button 
+        type="button" 
+        class="quick-fav-manage-btn" 
+        (click)="showManageFavoritesModal.set(true)"
+        title="Gerenciar todos os locais salvos"
+      >
+        <i class="fa-solid fa-sliders"></i>
+        <span>Gerenciar</span>
+      </button>
     </div>
 
     <!-- Dropdown de Sugestões: Meus Clientes Salvos + Endereços Encontrados -->
@@ -71,7 +91,17 @@
 
       <!-- Meus Clientes / Favoritos Salvos -->
       <div *ngIf="filteredSavedLocations.length > 0" class="dropdown-group">
-        <div class="dropdown-group-title"><i class="fa-solid fa-star"></i> Meus Locais Salvos / Clientes</div>
+        <div class="dropdown-group-title">
+          <span><i class="fa-solid fa-star"></i> Meus Locais Salvos / Clientes</span>
+          <button 
+            type="button" 
+            class="btn-manage-link" 
+            (click)="showManageFavoritesModal.set(true); showSearchDropdown.set(false)"
+            title="Gerenciar todos os locais salvos"
+          >
+            <i class="fa-solid fa-sliders"></i> Gerenciar
+          </button>
+        </div>
         <div 
           *ngFor="let fav of filteredSavedLocations" 
           class="dropdown-item dropdown-item--fav"
@@ -82,7 +112,17 @@
             <div class="dropdown-item__title">{{ fav.title }}</div>
             <div class="dropdown-item__subtitle">{{ fav.fullAddress || (fav.neighborhood + ' - ' + fav.city) }}</div>
           </div>
-          <span class="dropdown-item__action">+ Adicionar à rota</span>
+          <div class="dropdown-item__actions">
+            <span class="dropdown-item__action">+ Adicionar à rota</span>
+            <button 
+              type="button" 
+              class="dropdown-item__del-btn" 
+              (click)="deleteFavorite(fav, $event)" 
+              title="Excluir este local salvo"
+            >
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -402,6 +442,73 @@
         <button type="button" class="btn-confirm" (click)="savePointFromModal()">
           {{ editingStopIndex() !== null ? 'Salvar Alterações' : (modalPointType === 'base' ? 'Definir como Minha Base' : 'Adicionar Parada') }}
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE GERENCIAMENTO E EXCLUSÃO DE FAVORITOS (Regra P-101) -->
+  <div *ngIf="showManageFavoritesModal()" class="modal-backdrop">
+    <div class="modal-dialog modal-dialog--wide animate-scale-up">
+      <div class="modal-dialog__header">
+        <h3><i class="fa-solid fa-star"></i> Gerenciar Meus Locais Salvos / Favoritos</h3>
+        <button class="modal-close-btn" (click)="showManageFavoritesModal.set(false)">✕</button>
+      </div>
+
+      <div class="modal-dialog__body">
+        <!-- Barra de busca no modal de favoritos -->
+        <div class="manage-fav-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input 
+            type="text" 
+            [(ngModel)]="manageFavoritesSearchQuery" 
+            placeholder="Filtrar locais pelo nome, logradouro ou bairro..." 
+            class="manage-fav-input"
+          />
+          <button *ngIf="manageFavoritesSearchQuery" class="clear-btn" (click)="manageFavoritesSearchQuery = ''">✕</button>
+        </div>
+
+        <!-- Lista de Locais Salvos com Botão de Excluir -->
+        <div class="manage-fav-list">
+          <div *ngIf="manageFilteredFavorites.length === 0" class="manage-fav-empty">
+            <i class="fa-regular fa-star empty-icon"></i>
+            <p>Nenhum local favorito encontrado.</p>
+          </div>
+
+          <div *ngFor="let fav of manageFilteredFavorites" class="manage-fav-item">
+            <div class="manage-fav-item__info">
+              <div class="manage-fav-item__title">
+                <i class="fa-solid fa-bookmark"></i> {{ fav.title }}
+              </div>
+              <div class="manage-fav-item__addr">
+                {{ fav.fullAddress || (fav.street ? (fav.street + ', ' + (fav.number || 'S/N') + ' - ' + (fav.neighborhood || '') + ', ' + (fav.city || '')) : 'Endereço salvo no mapa') }}
+              </div>
+            </div>
+            <div class="manage-fav-item__actions">
+              <button 
+                type="button" 
+                class="btn-add-to-route" 
+                [class.btn--added]="isFavoriteInRoute(fav)"
+                (click)="toggleFavoriteInRoute(fav)"
+                [title]="isFavoriteInRoute(fav) ? 'Remover da rota' : 'Incluir na rota'"
+              >
+                <i class="fa-solid" [class.fa-check]="isFavoriteInRoute(fav)" [class.fa-plus]="!isFavoriteInRoute(fav)"></i>
+                {{ isFavoriteInRoute(fav) ? 'Na Rota' : 'Adicionar' }}
+              </button>
+              <button 
+                type="button" 
+                class="btn-delete-fav" 
+                (click)="deleteFavorite(fav, $event)" 
+                title="Excluir este local salvo permanentemente"
+              >
+                <i class="fa-regular fa-trash-can"></i> Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-dialog__footer">
+        <button type="button" class="btn-cancel" (click)="showManageFavoritesModal.set(false)">Fechar</button>
       </div>
     </div>
   </div>

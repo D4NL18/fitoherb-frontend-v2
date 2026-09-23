@@ -98,6 +98,10 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   modalPointSaveFavorite: boolean = false;
   modalIsReverseGeocoding = signal<boolean>(false);
 
+  // Modal de Gerenciamento e Exclusão de Favoritos Salvos
+  showManageFavoritesModal = signal<boolean>(false);
+  manageFavoritesSearchQuery: string = '';
+
   // Endereço estruturado obtido da API de mapas
   modalAddress = {
     street: '',
@@ -580,6 +584,46 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showToast(`Favorito "${fav.title}" adicionado à rota.`);
     this.renderMarkers();
     this.optimizationResult.set(null);
+  }
+
+  // Lista de favoritos filtrados para o modal de gerenciamento
+  get manageFilteredFavorites(): SavedLocation[] {
+    const q = this.manageFavoritesSearchQuery.trim().toLowerCase();
+    const favs = this.savedLocations().filter(l => l.type === 'FAVORITE');
+    if (!q) return favs;
+    return favs.filter(l => 
+      (l.title && l.title.toLowerCase().includes(q)) ||
+      (l.neighborhood && l.neighborhood.toLowerCase().includes(q)) ||
+      (l.city && l.city.toLowerCase().includes(q)) ||
+      (l.street && l.street.toLowerCase().includes(q)) ||
+      (l.fullAddress && l.fullAddress.toLowerCase().includes(q))
+    );
+  }
+
+  // Exclui um local salvo (favorito) permanentemente do banco de dados (Regra P-101)
+  deleteFavorite(fav: SavedLocation, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    if (!fav.id) {
+      this.showToast('Identificador do local inválido.');
+      return;
+    }
+
+    if (confirm(`Deseja realmente remover o favorito "${fav.title}" dos seus locais salvos?`)) {
+      this.savedLocationsService.delete(fav.id).subscribe({
+        next: () => {
+          this.savedLocations.update(list => list.filter(l => l.id !== fav.id));
+          this.showToast(`Favorito "${fav.title}" removido com sucesso.`);
+        },
+        error: (err) => {
+          console.error('Erro ao excluir local salvo:', err);
+          this.showToast('Erro ao excluir o local salvo.');
+        }
+      });
+    }
   }
 
   // Remove parada da lista
