@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { OptimizeRouteRequest, OptimizeRouteResponse } from '../../types/routing/routing.interface';
 
@@ -16,13 +16,21 @@ export class CommercialRoutingService {
   }
 
   searchAddress(query: string): Observable<any[]> {
-    const encoded = encodeURIComponent(query);
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&addressdetails=1&countrycodes=br&limit=6`;
-    return this.http.get<any[]>(url);
+    const encoded = encodeURIComponent(query.trim());
+    const proxyUrl = `${this.aiBaseUrl}/routing/search-address?q=${encoded}`;
+    const directUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&addressdetails=1&countrycodes=br&limit=8`;
+
+    return this.http.get<any[]>(proxyUrl).pipe(
+      catchError(() => this.http.get<any[]>(directUrl))
+    );
   }
 
   reverseGeocode(lat: number, lon: number): Observable<any> {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`;
-    return this.http.get<any>(url);
+    const proxyUrl = `${this.aiBaseUrl}/routing/reverse-geocode?lat=${lat}&lon=${lon}`;
+    const directUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`;
+
+    return this.http.get<any>(proxyUrl).pipe(
+      catchError(() => this.http.get<any>(directUrl))
+    );
   }
 }

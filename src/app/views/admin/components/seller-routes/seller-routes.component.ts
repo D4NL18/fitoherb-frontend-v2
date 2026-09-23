@@ -10,6 +10,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -81,6 +83,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   searchResults = signal<any[]>([]);
   isSearchingAddress = signal<boolean>(false);
   showSearchDropdown = signal<boolean>(false);
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
 
   // Modal de Adição/Edição de Ponto (ao clicar no mapa)
   showPointModal = signal<boolean>(false);
@@ -111,6 +115,14 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.loadSavedLocations();
+
+    // Autocomplete com debounce de 350ms para busca fluida ao digitar
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(350),
+      distinctUntilChanged()
+    ).subscribe((query) => {
+      this.executeAddressSearch(query);
+    });
   }
 
   ngAfterViewInit() {
@@ -120,6 +132,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
     if (this.map) {
       this.map.remove();
       this.map = null;
@@ -322,12 +337,42 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.optimizationResult.set(null);
   }
 
-  // Busca de endereços pelo input com Nominatim
-  executeAddressSearch() {
-    if (!this.searchQuery.trim()) return;
-    this.isSearchingAddress.set(true);
+  // Digitação com busca em tempo real via Subject/debounce
+  onSearchInput(value: string) {
+    this.searchQuery = value;
+    const trimmed = value.trim();
+    if (trimmed.length < 2) {
+      this.searchResults.set([]);
+      this.showSearchDropdown.set(this.filteredSavedLocations.length > 0 && trimmed.length > 0);
+      return;
+    }
+    this.showSearchDropdown.set(true);
+    this.searchSubject.next(trimmed);
+  }
 
-    this.routingService.searchAddress(this.searchQuery).subscribe({
+  // Locais salvos filtrados pela busca
+  get filteredSavedLocations(): SavedLocation[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) return this.savedLocations();
+    return this.savedLocations().filter(l => 
+      (l.title && l.title.toLowerCase().includes(q)) ||
+      (l.neighborhood && l.neighborhood.toLowerCase().includes(q)) ||
+      (l.city && l.city.toLowerCase().includes(q)) ||
+      (l.street && l.street.toLowerCase().includes(q))
+    );
+  }
+
+  // Executa busca via API de mapas com Nominatim / Proxy
+  executeAddressSearch(queryOverride?: string) {
+    const q = (queryOverride !== undefined ? queryOverride : this.searchQuery).trim();
+    if (!q) {
+      this.searchResults.set([]);
+      return;
+    }
+    this.isSearchingAddress.set(true);
+    this.showSearchDropdown.set(true);
+
+    this.routingService.searchAddress(q).subscribe({
       next: (res) => {
         this.isSearchingAddress.set(false);
         this.searchResults.set(res || []);
@@ -340,16 +385,77 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Seleciona um endereço dos resultados
+  // Seleciona um endereço dos resultados da busca
   selectSearchResult(item: any) {
     const lat = parseFloat(item.lat);
     const lon = parseFloat(item.lon);
     this.showSearchDropdown.set(false);
     this.searchQuery = '';
+
+    // Extrai componentes estruturados do endereço
+    const addr = item.address || {};
+    const street = addr.road || addr.pedestrian || addr.street || '';
+    const number = addr.house_number || '';
+    const neighborhood = addr.suburb || addr.neighbourhood || addr.city_district || addr.quarter || '';
+    const city = addr.city || addr.town || addr.municipality || 'Salvador';
+    const state = addr.state_code || addr.state || 'BA';
+    const postalCode = addr.postcode || '';
+    
+    // Título inteligente baseado no nome do estabelecimento ou logradouro
+    const itemName = item.name || '';
+    const streetLabel = street ? `${street}${number ? ', ' + number : ''}` : '';
+    const title = itemName || streetLabel || item.display_name.split(',')[0];
+
+    this.modalAddress = {
+      street,
+      number,
+      neighborhood,
+      city,
+      state,
+      postalCode,
+      fullAddress: item.display_name || (streetLabel ? `${streetLabel} - ${neighborhood}, ${city}` : '')
+    };
+
+    this.modalPointLat = lat;
+    this.modalPointLon = lon;
+    this.modalPointType = 'delivery';
+    this.modalPointTitle = title;
+    this.modalPointPriority = 'REGULAR';
+    this.modalPointFixedOrder = null;
+    this.modalPointSaveFavorite = false;
+    this.modalIsReverseGeocoding.set(false);
+
     if (this.map) {
       this.map.setView([lat, lon], 16);
     }
-    this.openPointModalFromMapClick(lat, lon);
+    this.showPointModal.set(true);
+  }
+
+  // Formata o endereço da parada de maneira elegante sem vírgulas órfãs
+  getFormattedAddress(stop: DeliveryStopDto): string {
+    if (stop.address?.full_address && stop.address.full_address.trim().length > 3) {
+      return stop.address.full_address;
+    }
+    const parts = [
+      stop.address?.street,
+      stop.address?.number,
+      stop.address?.neighborhood,
+      stop.address?.city
+    ].filter(p => p && p.trim().length > 0);
+
+    if (parts.length > 0) {
+      return parts.join(', ');
+    }
+    return 'Endereço selecionado no mapa';
+  }
+
+  // Rótulo amigável de prioridade conforme exigência do usuário
+  getPriorityLabel(priority?: string): string {
+    switch (priority) {
+      case 'CRITICAL': return 'Urgente';
+      case 'HIGH': return 'Alta';
+      default: return 'Regular';
+    }
   }
 
   // Adiciona parada a partir de um local favorito salvo
