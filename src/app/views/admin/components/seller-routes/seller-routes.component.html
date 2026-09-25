@@ -37,12 +37,14 @@
     <div class="search-input-box">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
       <input 
+        id="routeSearchInput"
         type="text" 
         [ngModel]="searchQuery" 
         (ngModelChange)="onSearchInput($event)"
         (focus)="onSearchFocus()"
         (keydown.enter)="executeAddressSearch()"
         placeholder="Buscar endereço, cliente ou ponto no mapa..."
+        aria-label="Buscar endereço, cliente ou ponto no mapa"
         class="search-input"
       />
       <button *ngIf="searchQuery" class="clear-btn" (click)="onSearchInput('')" title="Limpar busca">✕</button>
@@ -102,7 +104,10 @@
         <div 
           *ngFor="let item of searchResults()" 
           class="dropdown-item dropdown-item--osm"
+          tabindex="0"
+          role="button"
           (click)="selectSearchResult(item)"
+          (keydown.enter)="selectSearchResult(item)"
         >
           <div class="dropdown-item__icon"><i class="fa-solid fa-location-dot"></i></div>
           <div class="dropdown-item__info">
@@ -194,8 +199,10 @@
             <div class="journey-config-box__body">
               <div class="journey-input-row">
                 <input 
+                  id="departureTimeInput"
                   type="time" 
                   class="time-input" 
+                  aria-label="Horário de saída da base"
                   [ngModel]="departureTime()" 
                   (ngModelChange)="departureTime.set($event)"
                 />
@@ -270,7 +277,9 @@
                   <span class="control-label">Ordem na rota:</span>
                 </div>
                 <select 
+                  id="stopFixedOrderSelect_{{ stop.id }}"
                   class="fixed-order-select" 
+                  aria-label="Ordem na rota"
                   [ngModel]="stop.fixed_order || 0" 
                   (ngModelChange)="toggleFixedOrder(stop, $event === 0 ? null : $event)"
                 >
@@ -360,20 +369,26 @@
               [class.timeline-step--dragging]="draggedStopIndex() === idx"
               [class.timeline-step--drag-over]="dragOverIndex() === idx"
               [draggable]="s.action === 'VISIT' && !isRecalculating()"
+              tabindex="0"
+              role="button"
               (dragstart)="onTimelineDragStart($event, idx, s)"
               (dragover)="onTimelineDragOver($event, idx, s)"
               (dragleave)="onTimelineDragLeave($event, idx)"
               (drop)="onTimelineDrop($event, idx, s)"
               (dragend)="onTimelineDragEnd()"
               (click)="focusStopOnMap(s)"
+              (keydown.enter)="focusStopOnMap(s)"
               title="Clique para focar no mapa ou arraste para alterar a ordem"
             >
               <!-- Alça de Arraste (Drag Handle) para Paradas de Visita -->
               <div 
                 *ngIf="s.action === 'VISIT'" 
                 class="drag-handle" 
+                tabindex="0"
+                role="button"
                 title="Clique e arraste para alterar a posição desta parada"
                 (click)="$event.stopPropagation()"
+                (keydown.enter)="$event.stopPropagation()"
               >
                 <i class="fa-solid fa-grip-vertical"></i>
               </div>
@@ -483,7 +498,7 @@
 
         <!-- Tipo de Ponto (Parada Comercial vs Minha Base) - Apenas ao adicionar novo ponto -->
         <div *ngIf="editingStopIndex() === null" class="form-group">
-          <label class="form-label">Tipo deste Local:</label>
+          <span class="form-label">Tipo deste Local:</span>
           <div class="radio-toggle-group">
             <label class="radio-option" [class.selected]="modalPointType === 'delivery'">
               <input type="radio" [(ngModel)]="modalPointType" value="delivery" name="pointType" />
@@ -498,8 +513,9 @@
 
         <!-- Título / Nome do Ponto -->
         <div class="form-group">
-          <label class="form-label">Título / Nome de Identificação:</label>
+          <label for="modalPointTitleInput" class="form-label">Título / Nome de Identificação:</label>
           <input 
+            id="modalPointTitleInput"
             type="text" 
             [(ngModel)]="modalPointTitle" 
             placeholder="Ex: Drogaria FarmaVida, Clínica Bem Estar, Minha Residência..."
@@ -510,8 +526,8 @@
         <!-- Opções extras se for Parada de Visita -->
         <div *ngIf="modalPointType === 'delivery'" class="delivery-options-grid">
           <div class="form-group">
-            <label class="form-label">Prioridade da Visita:</label>
-            <select [(ngModel)]="modalPointPriority" class="modal-select">
+            <label for="modalPointPrioritySelect" class="form-label">Prioridade da Visita:</label>
+            <select id="modalPointPrioritySelect" [(ngModel)]="modalPointPriority" class="modal-select">
               <option value="REGULAR">Regular</option>
               <option value="HIGH">Alta</option>
               <option value="CRITICAL">Urgente</option>
@@ -519,8 +535,8 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Fixar Ordem Manual (Opcional):</label>
-            <select [(ngModel)]="modalPointFixedOrder" class="modal-select">
+            <label for="modalPointFixedOrderSelect" class="form-label">Fixar Ordem Manual (Opcional):</label>
+            <select id="modalPointFixedOrderSelect" [(ngModel)]="modalPointFixedOrder" class="modal-select">
               <option [ngValue]="null">⚡ Automático (IA)</option>
               <option *ngFor="let opt of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" [ngValue]="opt">
                 🔒 Fixar como Parada #{{ opt }}
@@ -529,9 +545,10 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Tempo de Atendimento nesta Parada:</label>
+            <label for="modalPointServiceMinutesInput" class="form-label">Tempo de Atendimento nesta Parada:</label>
             <div class="input-with-unit">
               <input 
+                id="modalPointServiceMinutesInput"
                 type="number" 
                 min="1" 
                 max="360" 
@@ -577,7 +594,9 @@
         <div class="manage-fav-search">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input 
+            id="manageFavoritesSearchInput"
             type="text" 
+            aria-label="Filtrar locais salvos"
             [(ngModel)]="manageFavoritesSearchQuery" 
             placeholder="Filtrar locais pelo nome, logradouro ou bairro..." 
             class="manage-fav-input"

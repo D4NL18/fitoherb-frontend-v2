@@ -8,8 +8,8 @@ import { SavedLocation, SavedLocationReq } from '../../types/saved-locations/sav
   providedIn: 'root'
 })
 export class SavedLocationsService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/saved-locations`;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/saved-locations`;
 
   getAll(): Observable<SavedLocation[]> {
     return this.http.get<SavedLocation[]>(this.apiUrl);

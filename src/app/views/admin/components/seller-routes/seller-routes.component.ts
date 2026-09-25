@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import jsPDF from 'jspdf';
@@ -35,9 +34,9 @@ declare let L: any;
   styleUrl: './seller-routes.component.scss'
 })
 export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
-  private savedLocationsService = inject(SavedLocationsService);
-  private routingService = inject(CommercialRoutingService);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly savedLocationsService = inject(SavedLocationsService);
+  private readonly routingService = inject(CommercialRoutingService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // Estados Reativos
   isLoading = signal<boolean>(false);
@@ -462,10 +461,10 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     const q = this.searchQuery.trim().toLowerCase();
     if (!q) return this.savedLocations();
     return this.savedLocations().filter(l => 
-      (l.title && l.title.toLowerCase().includes(q)) ||
-      (l.neighborhood && l.neighborhood.toLowerCase().includes(q)) ||
-      (l.city && l.city.toLowerCase().includes(q)) ||
-      (l.street && l.street.toLowerCase().includes(q))
+      l.title?.toLowerCase().includes(q) ||
+      l.neighborhood?.toLowerCase().includes(q) ||
+      l.city?.toLowerCase().includes(q) ||
+      l.street?.toLowerCase().includes(q)
     );
   }
 
@@ -478,7 +477,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Executa busca via API de mapas com Nominatim / Proxy priorizando arredores da base
   executeAddressSearch(queryOverride?: string) {
-    const q = (queryOverride !== undefined ? queryOverride : this.searchQuery).trim();
+    const q = (queryOverride ?? this.searchQuery).trim();
     if (!q) {
       this.searchResults.set([]);
       return;
@@ -502,8 +501,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Seleciona um endereço dos resultados da busca
   selectSearchResult(item: any) {
-    const lat = parseFloat(item.lat);
-    const lon = parseFloat(item.lon);
+    const lat = Number.parseFloat(item.lat);
+    const lon = Number.parseFloat(item.lon);
     this.showSearchDropdown.set(false);
     this.searchQuery = '';
     this.editingStopIndex.set(null);
@@ -519,7 +518,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     
     // Título inteligente baseado no nome do estabelecimento ou logradouro
     const itemName = item.name || '';
-    const streetLabel = street ? `${street}${number ? ', ' + number : ''}` : '';
+    const numberSuffix = number ? `, ${number}` : '';
+    const streetLabel = street ? `${street}${numberSuffix}` : '';
     const title = itemName || streetLabel || item.display_name.split(',')[0];
 
     this.modalAddress = {
@@ -635,11 +635,11 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     const favs = this.savedLocations().filter(l => l.type === 'FAVORITE');
     if (!q) return favs;
     return favs.filter(l => 
-      (l.title && l.title.toLowerCase().includes(q)) ||
-      (l.neighborhood && l.neighborhood.toLowerCase().includes(q)) ||
-      (l.city && l.city.toLowerCase().includes(q)) ||
-      (l.street && l.street.toLowerCase().includes(q)) ||
-      (l.fullAddress && l.fullAddress.toLowerCase().includes(q))
+      l.title?.toLowerCase().includes(q) ||
+      l.neighborhood?.toLowerCase().includes(q) ||
+      l.city?.toLowerCase().includes(q) ||
+      l.street?.toLowerCase().includes(q) ||
+      l.fullAddress?.toLowerCase().includes(q)
     );
   }
 
@@ -821,14 +821,13 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     const reorderedDeliveryStops: DeliveryStopDto[] = visitStops.map(vs => {
       const orig = this.stops().find(s => s.id === vs.id);
       return {
-        ...(orig || {}),
         id: vs.id,
         name: vs.name,
-        lat: vs.lat !== undefined ? vs.lat : (orig?.lat ?? 0),
-        lon: vs.lon !== undefined ? vs.lon : (orig?.lon ?? 0),
-        priority: (orig?.priority || vs.priority || 'REGULAR') as any,
-        service_duration_minutes: vs.service_duration_minutes !== undefined ? vs.service_duration_minutes : orig?.service_duration_minutes,
-        address: vs.address || orig?.address,
+        lat: vs.lat ?? orig?.lat ?? 0,
+        lon: vs.lon ?? orig?.lon ?? 0,
+        priority: (vs.priority ?? orig?.priority ?? 'REGULAR') as any,
+        service_duration_minutes: vs.service_duration_minutes ?? orig?.service_duration_minutes,
+        address: vs.address ?? orig?.address,
         fixed_order: orig?.fixed_order
       };
     });
@@ -868,8 +867,18 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   // Foca e centraliza o mapa em uma parada específica e destaca o trecho correspondente até ela
   focusStopOnMap(step: OrderedStopDto) {
     if (!this.map) return;
-    const lat = step.lat !== undefined ? step.lat : (step.action !== 'VISIT' ? this.depot().lat : this.stops().find(s => s.id === step.id)?.lat);
-    const lon = step.lon !== undefined ? step.lon : (step.action !== 'VISIT' ? this.depot().lon : this.stops().find(s => s.id === step.id)?.lon);
+    let lat = step.lat;
+    let lon = step.lon;
+    if (lat === undefined || lon === undefined) {
+      if (step.action !== 'VISIT') {
+        lat = this.depot().lat;
+        lon = this.depot().lon;
+      } else {
+        const found = this.stops().find(s => s.id === step.id);
+        lat = found?.lat;
+        lon = found?.lon;
+      }
+    }
     if (lat && lon) {
       this.map.flyTo([lat, lon], 15, { animate: true, duration: 0.6 });
       const marker = this.stopMarkers.get(step.id) || (step.action !== 'VISIT' ? this.stopMarkers.get('depot') : null);
@@ -912,10 +921,20 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       const isSelected = selected === legIdx;
       const color = layer.feature?.properties?.color || this.getLegColor(legIdx);
 
+      let weight = 6;
+      let opacity = 0.85;
+      if (isSelected) {
+        weight = 8;
+        opacity = 1.0;
+      } else if (isAnySelected) {
+        weight = 3.5;
+        opacity = 0.20;
+      }
+
       layer.setStyle({
         color: color,
-        weight: isSelected ? 8 : (isAnySelected ? 3.5 : 6),
-        opacity: isSelected ? 1.0 : (isAnySelected ? 0.20 : 0.85)
+        weight: weight,
+        opacity: opacity
       });
 
       if (isSelected) {
@@ -985,69 +1004,91 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // 2. Se o roteiro foi otimizado pela IA, desenha os pinos na sequência inteligente (#1, #2...)
     if (isOptimized && optRes) {
-      optRes.ordered_stops.forEach((s) => {
-        if (s.action !== 'VISIT') return;
-
-        const lat = s.lat !== undefined ? s.lat : this.stops().find(x => x.id === s.id)?.lat;
-        const lon = s.lon !== undefined ? s.lon : this.stops().find(x => x.id === s.id)?.lon;
-        if (lat === undefined || lon === undefined) return;
-
-        let pinClass = 'pin--optimized';
-        if (s.priority === 'CRITICAL') pinClass += ' pin--critical';
-        else if (s.priority === 'HIGH') pinClass += ' pin--high';
-        if (s.is_fixed) pinClass += ' pin--fixed';
-
-        const priorityLabel = this.getPriorityLabel(s.priority);
-        const priorityBadgeClass = s.priority === 'CRITICAL' ? 'popup-badge--critical' : (s.priority === 'HIGH' ? 'popup-badge--high' : 'popup-badge--regular');
-        const timeDisplay = s.estimated_arrival_clock 
-          ? `${s.estimated_arrival_clock} - ${s.estimated_departure_clock || ''}` 
-          : `+${s.arrival_time_minutes.toFixed(0)} min`;
-
-        const pinIcon = L.divIcon({
-          className: 'custom-map-pin',
-          html: `
-            <div class="custom-pin-wrapper ${pinClass}">
-              <div class="pin-bubble">
-                ${s.is_fixed ? '🔒' : ''} #${s.step}
-              </div>
-              <div class="pin-arrow"></div>
-              <div class="pin-label-pill">#${s.step} ${s.name}</div>
-            </div>
-          `,
-          iconSize: [40, 48],
-          iconAnchor: [20, 48]
-        });
-
-        const stopMarker = L.marker([lat, lon], { icon: pinIcon })
-          .bindPopup(`
-            <div class="popup-card">
-              <div class="popup-card__header">
-                <span class="popup-step">Parada #${s.step}</span>
-                <span class="popup-time"><i class="fa-regular fa-clock"></i> ${timeDisplay}</span>
-              </div>
-              <div class="popup-card__title">${s.name}</div>
-              <div class="popup-card__addr">${s.address?.full_address || ''}</div>
-              <div class="popup-card__footer">
-                <span class="popup-badge ${priorityBadgeClass}">${priorityLabel}</span>
-                ${s.service_duration_minutes ? `<span class="popup-duration">⏳ ${s.service_duration_minutes} min</span>` : ''}
-                ${s.traffic_condition && s.traffic_condition !== 'LIVRE' ? `<span class="popup-traffic">🚗 ${this.getTrafficLabel(s.traffic_condition)}</span>` : ''}
-                ${s.is_fixed ? '<span class="popup-fixed">🔒 Ordem Travada</span>' : '<span class="popup-ai">⚡ Otimizado IA</span>'}
-              </div>
-            </div>
-          `)
-          .addTo(this.markersLayer);
-
-        this.stopMarkers.set(s.id, stopMarker);
-      });
+      this.renderOptimizedMarkers(optRes);
       return;
     }
 
     // 3. Modo de Planejamento Inicial (antes de rodar a IA)
+    this.renderPlanningMarkers();
+  }
+
+  private getPriorityBadgeClass(priority?: string): string {
+    if (priority === 'CRITICAL') return 'popup-badge--critical';
+    if (priority === 'HIGH') return 'popup-badge--high';
+    return 'popup-badge--regular';
+  }
+
+  private renderOptimizedMarkers(optRes: OptimizeRouteResponse) {
+    optRes.ordered_stops.forEach((s) => {
+      if (s.action !== 'VISIT') return;
+
+      const lat = s.lat ?? this.stops().find(x => x.id === s.id)?.lat;
+      const lon = s.lon ?? this.stops().find(x => x.id === s.id)?.lon;
+      if (lat === undefined || lon === undefined) return;
+
+      let pinClass = 'pin--optimized';
+      if (s.priority === 'CRITICAL') pinClass += ' pin--critical';
+      else if (s.priority === 'HIGH') pinClass += ' pin--high';
+      if (s.is_fixed) pinClass += ' pin--fixed';
+
+      const priorityLabel = this.getPriorityLabel(s.priority);
+      const priorityBadgeClass = this.getPriorityBadgeClass(s.priority);
+      const timeDisplay = s.estimated_arrival_clock 
+        ? `${s.estimated_arrival_clock} - ${s.estimated_departure_clock || ''}` 
+        : `+${s.arrival_time_minutes.toFixed(0)} min`;
+
+      const pinIcon = L.divIcon({
+        className: 'custom-map-pin',
+        html: `
+          <div class="custom-pin-wrapper ${pinClass}">
+            <div class="pin-bubble">
+              ${s.is_fixed ? '🔒' : ''} #${s.step}
+            </div>
+            <div class="pin-arrow"></div>
+            <div class="pin-label-pill">#${s.step} ${s.name}</div>
+          </div>
+        `,
+        iconSize: [40, 48],
+        iconAnchor: [20, 48]
+      });
+
+      const stopMarker = L.marker([lat, lon], { icon: pinIcon })
+        .bindPopup(`
+          <div class="popup-card">
+            <div class="popup-card__header">
+              <span class="popup-step">Parada #${s.step}</span>
+              <span class="popup-time"><i class="fa-regular fa-clock"></i> ${timeDisplay}</span>
+            </div>
+            <div class="popup-card__title">${s.name}</div>
+            <div class="popup-card__addr">${s.address?.full_address || ''}</div>
+            <div class="popup-card__footer">
+              <span class="popup-badge ${priorityBadgeClass}">${priorityLabel}</span>
+              ${s.service_duration_minutes ? `<span class="popup-duration">⏳ ${s.service_duration_minutes} min</span>` : ''}
+              ${s.traffic_condition && s.traffic_condition !== 'LIVRE' ? `<span class="popup-traffic">🚗 ${this.getTrafficLabel(s.traffic_condition)}</span>` : ''}
+              ${s.is_fixed ? '<span class="popup-fixed">🔒 Ordem Travada</span>' : '<span class="popup-ai">⚡ Otimizado IA</span>'}
+            </div>
+          </div>
+        `)
+        .addTo(this.markersLayer);
+
+      this.stopMarkers.set(s.id, stopMarker);
+    });
+  }
+
+  private renderPlanningMarkers() {
     this.stops().forEach((s, idx) => {
-      let pinClass = s.fixed_order ? 'pin--fixed' : (s.priority === 'CRITICAL' ? 'pin--critical' : (s.priority === 'HIGH' ? 'pin--high' : ''));
+      let pinClass = '';
+      if (s.fixed_order) {
+        pinClass = 'pin--fixed';
+      } else if (s.priority === 'CRITICAL') {
+        pinClass = 'pin--critical';
+      } else if (s.priority === 'HIGH') {
+        pinClass = 'pin--high';
+      }
+
       const pinBadge = s.fixed_order ? `🔒 #${s.fixed_order}` : `#${idx + 1}`;
       const priorityLabel = this.getPriorityLabel(s.priority);
-      const priorityBadgeClass = s.priority === 'CRITICAL' ? 'popup-badge--critical' : (s.priority === 'HIGH' ? 'popup-badge--high' : 'popup-badge--regular');
+      const priorityBadgeClass = this.getPriorityBadgeClass(s.priority);
 
       const stopIcon = L.divIcon({
         className: 'custom-map-pin',
@@ -1066,13 +1107,14 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         .bindPopup(`
           <div class="popup-card">
             <div class="popup-card__header">
-              <span class="popup-step">${s.fixed_order ? 'Ordem #' + s.fixed_order : 'Ponto #' + (idx + 1)}</span>
-              <span class="popup-time">${s.fixed_order ? '🔒 Fixado' : '⚡ Livre'}</span>
+              <span class="popup-step">${s.fixed_order ? 'Ordem Fixada' : `Parada #${idx + 1}`}</span>
+              ${s.service_duration_minutes ? `<span class="popup-time">⏳ ${s.service_duration_minutes} min</span>` : ''}
             </div>
             <div class="popup-card__title">${s.name}</div>
             <div class="popup-card__addr">${s.address?.full_address || ''}</div>
             <div class="popup-card__footer">
               <span class="popup-badge ${priorityBadgeClass}">${priorityLabel}</span>
+              ${s.fixed_order ? `<span class="popup-fixed">🔒 Posição #${s.fixed_order}</span>` : '<span class="popup-badge popup-badge--regular">Ordem Livre</span>'}
             </div>
           </div>
         `)
@@ -1099,10 +1141,20 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         const isSelected = this.selectedLegIndex() === legIdx;
         const isAnySelected = this.selectedLegIndex() !== null;
 
+        let weight = 6;
+        let opacity = 0.85;
+        if (isSelected) {
+          weight = 8;
+          opacity = 1.0;
+        } else if (isAnySelected) {
+          weight = 3.5;
+          opacity = 0.20;
+        }
+
         return {
           color: color,
-          weight: isSelected ? 8 : (isAnySelected ? 3.5 : 6),
-          opacity: isSelected ? 1.0 : (isAnySelected ? 0.20 : 0.85),
+          weight: weight,
+          opacity: opacity,
           lineJoin: 'round',
           lineCap: 'round'
         };
@@ -1239,7 +1291,13 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         doc.setTextColor('#111827');
-        const stepLabel = stop.action === 'DEPARTURE' ? 'Partida' : (stop.action === 'RETURN' ? 'Retorno' : `#${stop.step}`);
+        let stepLabel = `#${stop.step}`;
+        if (stop.action === 'DEPARTURE') {
+          stepLabel = 'Partida';
+        } else if (stop.action === 'RETURN') {
+          stepLabel = 'Retorno';
+        }
+
         doc.text(stepLabel, 17, y + 4.5);
         doc.text(stop.name.substring(0, 24), 26, y + 4.5);
 
@@ -1262,7 +1320,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       );
 
       // Download
-      doc.save(`roteiro_fitoherb_${today.replace(/\//g, '-')}.pdf`);
+      doc.save(`roteiro_fitoherb_${today.replaceAll('/', '-')}.pdf`);
       this.showToast('PDF exportado com sucesso!');
     } catch (e) {
       console.error('Erro ao gerar PDF', e);

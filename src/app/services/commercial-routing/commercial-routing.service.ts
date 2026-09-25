@@ -8,8 +8,8 @@ import { OptimizeRouteRequest, OptimizeRouteResponse } from '../../types/routing
   providedIn: 'root'
 })
 export class CommercialRoutingService {
-  private http = inject(HttpClient);
-  private aiBaseUrl = (environment as any).aiUrl || 'http://localhost:8000/api/v1';
+  private readonly http = inject(HttpClient);
+  private readonly aiBaseUrl = (environment as any).aiUrl || 'http://localhost:8000/api/v1';
 
   optimizeRoute(request: OptimizeRouteRequest): Observable<OptimizeRouteResponse> {
     return this.http.post<OptimizeRouteResponse>(`${this.aiBaseUrl}/routing/optimize`, request);
