@@ -39,14 +39,14 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
 
   // Estados Reativos
-  isLoading = signal<boolean>(false);
-  isOptimizing = signal<boolean>(false);
-  isExportingPdf = signal<boolean>(false);
-  errorMessage = signal<string | null>(null);
-  toastMessage = signal<string | null>(null);
+  readonly isLoading = signal<boolean>(false);
+  readonly isOptimizing = signal<boolean>(false);
+  readonly isExportingPdf = signal<boolean>(false);
+  readonly errorMessage = signal<string | null>(null);
+  readonly toastMessage = signal<string | null>(null);
 
   // Aba lateral ativa: 'stops' (gerenciamento) ou 'results' (itinerário da IA)
-  activeSidebarTab = signal<'stops' | 'results'>('stops');
+  readonly activeSidebarTab = signal<'stops' | 'results'>('stops');
 
   // Ponto de Partida (Base do Vendedor ou Matriz Fitoherb)
   readonly FITOHERB_HQ: LocationPointDto = {
@@ -65,20 +65,20 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   };
 
-  depot = signal<LocationPointDto>(this.FITOHERB_HQ);
-  isUsingCustomBase = signal<boolean>(false);
+  readonly depot = signal<LocationPointDto>(this.FITOHERB_HQ);
+  readonly isUsingCustomBase = signal<boolean>(false);
 
   // Lista de Paradas para a Rota do Vendedor
-  stops = signal<DeliveryStopDto[]>([]);
+  readonly stops = signal<DeliveryStopDto[]>([]);
 
   // Favoritos salvos no banco
-  savedLocations = signal<SavedLocation[]>([]);
+  readonly savedLocations = signal<SavedLocation[]>([]);
 
   // Resultados da Otimização da IA
-  optimizationResult = signal<OptimizeRouteResponse | null>(null);
+  readonly optimizationResult = signal<OptimizeRouteResponse | null>(null);
 
   // Trecho Ativo / Filtrado para Destaque no Mapa
-  selectedLegIndex = signal<number | null>(null);
+  readonly selectedLegIndex = signal<number | null>(null);
 
   // Paleta Harmoniosa de Cores para Identificação Visual dos Trechos
   readonly ROUTE_LEG_COLORS: string[] = [
@@ -103,15 +103,15 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Busca e Autocomplete de Endereços
   searchQuery: string = '';
-  searchResults = signal<any[]>([]);
-  isSearchingAddress = signal<boolean>(false);
-  showSearchDropdown = signal<boolean>(false);
-  private searchSubject = new Subject<string>();
+  readonly searchResults = signal<any[]>([]);
+  readonly isSearchingAddress = signal<boolean>(false);
+  readonly showSearchDropdown = signal<boolean>(false);
+  private readonly searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
 
   // Modal de Adição/Edição de Ponto (ao clicar no mapa ou editar)
-  showPointModal = signal<boolean>(false);
-  editingStopIndex = signal<number | null>(null);
+  readonly showPointModal = signal<boolean>(false);
+  readonly editingStopIndex = signal<number | null>(null);
   modalPointType: 'delivery' | 'base' = 'delivery';
   modalPointTitle: string = '';
   modalPointLat: number = 0;
@@ -120,18 +120,18 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   modalPointFixedOrder: number | null = null;
   modalPointServiceMinutes: number | null = null;
   modalPointSaveFavorite: boolean = false;
-  modalIsReverseGeocoding = signal<boolean>(false);
+  readonly modalIsReverseGeocoding = signal<boolean>(false);
 
   // Parâmetros de Partida da Jornada Comercial (Horário Opcional)
-  departureTime = signal<string>('08:00');
+  readonly departureTime = signal<string>('08:00');
 
   // Drag and Drop de Paradas no Roteiro IA
-  draggedStopIndex = signal<number | null>(null);
-  dragOverIndex = signal<number | null>(null);
-  isRecalculating = signal<boolean>(false);
+  readonly draggedStopIndex = signal<number | null>(null);
+  readonly dragOverIndex = signal<number | null>(null);
+  readonly isRecalculating = signal<boolean>(false);
 
   // Modal de Gerenciamento e Exclusão de Favoritos Salvos
-  showManageFavoritesModal = signal<boolean>(false);
+  readonly showManageFavoritesModal = signal<boolean>(false);
   manageFavoritesSearchQuery: string = '';
 
   // Endereço estruturado obtido da API de mapas

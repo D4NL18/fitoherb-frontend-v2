@@ -77,7 +77,9 @@
         <div 
           *ngFor="let fav of filteredSavedLocations" 
           class="dropdown-item dropdown-item--fav"
+          tabindex="0"
           (click)="addFavoriteToRoute(fav); showSearchDropdown.set(false)"
+          (keydown.enter)="addFavoriteToRoute(fav); showSearchDropdown.set(false)"
         >
           <div class="dropdown-item__icon"><i class="fa-solid fa-bookmark"></i></div>
           <div class="dropdown-item__info">
@@ -105,7 +107,6 @@
           *ngFor="let item of searchResults()" 
           class="dropdown-item dropdown-item--osm"
           tabindex="0"
-          role="button"
           (click)="selectSearchResult(item)"
           (keydown.enter)="selectSearchResult(item)"
         >
@@ -370,7 +371,6 @@
               [class.timeline-step--drag-over]="dragOverIndex() === idx"
               [draggable]="s.action === 'VISIT' && !isRecalculating()"
               tabindex="0"
-              role="button"
               (dragstart)="onTimelineDragStart($event, idx, s)"
               (dragover)="onTimelineDragOver($event, idx, s)"
               (dragleave)="onTimelineDragLeave($event, idx)"
@@ -384,8 +384,6 @@
               <div 
                 *ngIf="s.action === 'VISIT'" 
                 class="drag-handle" 
-                tabindex="0"
-                role="button"
                 title="Clique e arraste para alterar a posição desta parada"
                 (click)="$event.stopPropagation()"
                 (keydown.enter)="$event.stopPropagation()"
