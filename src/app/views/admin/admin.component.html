@@ -1,11 +1,10 @@
-<app-admin-nav [activeTab]="pageTitle()" (tabChange)="pageTitle.set($event)">
+<app-admin-nav [activeTab]="pageTitle()" [userRole]="currentUserRole()" (tabChange)="onTabChange($event)">
 </app-admin-nav>
 
 <section class="admin-page-main">
   <header>
-    <h1>{{ pageTitle() === 'Alterar Senha' ? 'Segurança' : 'Gerenciar ' + pageTitle() }}</h1>
-    <p>{{ pageTitle() === 'Alterar Senha' ? 'Atualize suas credenciais de acesso' : 'Adicione, edite ou remova ' +
-      (pageTitle() | lowercase) }}</p>
+    <h1>{{ pageTitle() === 'Alterar Senha' ? 'Segurança' : (pageTitle() === 'Rotas' ? 'Roteirização Comercial' : 'Gerenciar ' + pageTitle()) }}</h1>
+    <p>{{ pageTitle() === 'Alterar Senha' ? 'Atualize suas credenciais de acesso' : (pageTitle() === 'Rotas' ? 'Planejamento e otimização inteligente de visitas a clientes' : 'Adicione, edite ou remova ' + (pageTitle() | lowercase)) }}</p>
   </header>
 
   @if (pageTitle() === 'Alterar Senha') {
@@ -32,6 +31,9 @@
     </form>
   </div>
   }
+  @else if (pageTitle() === 'Rotas') {
+    <app-seller-routes></app-seller-routes>
+  }
   @else {
   <div class="table-container">
     <div class="table-header-container">
@@ -57,7 +59,7 @@
   }
 </section>
 
-@if (isEntityModalOpen() && pageTitle() !== 'Alterar Senha') {
+@if (isEntityModalOpen() && pageTitle() !== 'Alterar Senha' && pageTitle() !== 'Rotas') {
 <app-modal-entity [type]="$any(pageTitle())" [mode]="modalMode()" [data]="selectedItem()"
   [isLoading]="isSaving()" (close)="isEntityModalOpen.set(false)" (save)="handleSave($event)"></app-modal-entity>
 }
@@ -74,4 +76,4 @@
 
 @if (isToastOpen()) {
   <app-toast [message]="toastMessage()"></app-toast>
-}
+}

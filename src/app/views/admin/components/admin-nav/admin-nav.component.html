@@ -12,7 +12,7 @@
         alt="Fitoherb Logo" class="logo desktop-only"></button>
 
     <ul class="list-container">
-      @for (tab of tabs; track tab.label) {
+      @for (tab of tabs(); track tab.label) {
       <li>
         <a href="javascript:void(0)" (click)="selectTab(tab.label)" [class.active]="activeTab() === tab.label">
           <i [class]="tab.icon"></i>
