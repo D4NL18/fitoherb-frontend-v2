@@ -5,7 +5,9 @@ import {
   OnDestroy, 
   signal, 
   inject, 
-  ChangeDetectorRef 
+  ChangeDetectorRef,
+  effect,
+  HostListener 
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -176,6 +178,28 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   private markersLayer: any = null;
   private routeLayer: any = null;
 
+  constructor() {
+    effect(() => {
+      const anyOpen = this.showPointModal() || this.showManageFavoritesModal() || this.isCalendarOpen();
+      if (typeof document !== 'undefined') {
+        if (anyOpen) {
+          document.body.classList.add('modal-open-lock');
+        } else {
+          document.body.classList.remove('modal-open-lock');
+        }
+      }
+    });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.showSearchDropdown()) return;
+    const target = event.target as HTMLElement;
+    if (target && !target.closest('.search-section')) {
+      this.showSearchDropdown.set(false);
+    }
+  }
+
   openCalendar(): void {
     this.loadRouteDates();
     this.isCalendarOpen.set(true);
@@ -298,6 +322,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('modal-open-lock');
+    }
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
     }

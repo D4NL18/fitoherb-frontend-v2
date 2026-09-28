@@ -31,6 +31,11 @@ body {
   background-color: #f5f5f5;
   color: #1a1a1a;
   overflow-x: hidden;
+
+  &.modal-open-lock {
+    overflow: hidden !important;
+    touch-action: none;
+  }
 }
 
 p {

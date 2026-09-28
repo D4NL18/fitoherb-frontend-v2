@@ -20,6 +20,10 @@
     padding: 1.5rem;
   }
 
+  @media (max-width: 480px) {
+    padding: 1rem 0.75rem;
+  }
+
   .header-title-row {
     display: flex;
     align-items: center;

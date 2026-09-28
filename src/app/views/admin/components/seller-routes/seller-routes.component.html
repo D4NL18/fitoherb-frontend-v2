@@ -12,7 +12,7 @@
 
   <!-- Barra Superior: Indicador Limpo de Ponto de Partida e Acesso aos Favoritos -->
   <div class="routes-header-bar">
-    <div class="left-controls" style="display: flex; gap: 8px;">
+    <div class="header-controls-group">
       <!-- Botão Seletor de Data com Calendário -->
       <button class="date-picker-btn" (click)="openCalendar()" aria-label="Selecionar data">
         <i class="fa-regular fa-calendar"></i>
@@ -31,7 +31,7 @@
         } @else {
           <i class="fa-solid fa-floppy-disk"></i>
         }
-        <span>Salvar Rota</span>
+        <span class="btn-text">Salvar Rota</span>
       </button>
 
       <button 
@@ -41,7 +41,7 @@
         title="Gerenciar locais salvos e favoritos"
       >
         <i class="fa-solid fa-star"></i>
-        <span>Meus Favoritos</span>
+        <span class="btn-text">Favoritos</span>
         <span *ngIf="savedLocations().length > 0" class="fav-count-badge">{{ savedLocations().length }}</span>
       </button>
     </div>
@@ -66,13 +66,13 @@
         (ngModelChange)="onSearchInput($event)"
         (focus)="onSearchFocus()"
         (keydown.enter)="executeAddressSearch()"
-        placeholder="Buscar endereço, cliente ou ponto no mapa..."
+        placeholder="Buscar endereço ou cliente..."
         aria-label="Buscar endereço, cliente ou ponto no mapa"
         class="search-input"
       />
       <button *ngIf="searchQuery" class="clear-btn" (click)="onSearchInput('')" title="Limpar busca">✕</button>
       <button class="submit-search-btn" (click)="executeAddressSearch()" [disabled]="isSearchingAddress()">
-        <span *ngIf="!isSearchingAddress()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</span>
+        <span *ngIf="!isSearchingAddress()"><i class="fa-solid fa-magnifying-glass"></i> <span class="btn-search-label">Buscar</span></span>
         <span *ngIf="isSearchingAddress()"><i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
     </div>
@@ -518,8 +518,8 @@
   </div>
 
   <!-- MODAL DE ADIÇÃO DE PONTO / BASE (Regras P-101 e P-102) -->
-  <div *ngIf="showPointModal()" class="modal-backdrop">
-    <div class="modal-dialog animate-scale-up">
+  <div *ngIf="showPointModal()" class="modal-backdrop" (click)="showPointModal.set(false)">
+    <div class="modal-dialog animate-scale-up" (click)="$event.stopPropagation()">
       <div class="modal-dialog__header">
         <h3>
           <i class="fa-solid" [class.fa-pen-to-square]="editingStopIndex() !== null" [class.fa-location-dot]="editingStopIndex() === null"></i>
@@ -571,12 +571,15 @@
         <!-- Opções extras se for Parada de Visita -->
         <div *ngIf="modalPointType === 'delivery'" class="delivery-options-grid">
           <div class="form-group">
-            <label for="modalPointPrioritySelect" class="form-label">Prioridade da Visita:</label>
+            <label for="modalPointPrioritySelect" class="form-label">
+              <i class="fa-solid fa-flag"></i> Prioridade da Visita:
+            </label>
             <select id="modalPointPrioritySelect" [(ngModel)]="modalPointPriority" class="modal-select">
               <option value="REGULAR">Regular</option>
               <option value="HIGH">Alta</option>
               <option value="CRITICAL">Urgente</option>
             </select>
+            <small class="form-field-hint">Urgência influencia a ordem da rota.</small>
           </div>
 
           <div class="form-group">
@@ -590,21 +593,26 @@
               (ngModelChange)="checkModalTimeConflict()"
               class="modal-input" 
             />
-            <small class="form-field-hint">Prioridade máxima da IA: chegar neste cliente no horário ou antes.</small>
+            <small class="form-field-hint">Prioridade máxima: chegar no horário ou antes.</small>
           </div>
 
           <div class="form-group">
-            <label for="modalPointFixedOrderSelect" class="form-label">Fixar Ordem Manual (Opcional):</label>
+            <label for="modalPointFixedOrderSelect" class="form-label">
+              <i class="fa-solid fa-lock"></i> Fixar Ordem (Opcional):
+            </label>
             <select id="modalPointFixedOrderSelect" [(ngModel)]="modalPointFixedOrder" class="modal-select">
               <option [ngValue]="null">⚡ Automático (IA)</option>
               <option *ngFor="let opt of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" [ngValue]="opt">
                 🔒 Fixar como Parada #{{ opt }}
               </option>
             </select>
+            <small class="form-field-hint">Trava a parada em posição específica.</small>
           </div>
 
           <div class="form-group">
-            <label for="modalPointServiceMinutesInput" class="form-label">Tempo de Atendimento nesta Parada:</label>
+            <label for="modalPointServiceMinutesInput" class="form-label">
+              <i class="fa-solid fa-stopwatch"></i> Duração do Atendimento:
+            </label>
             <div class="input-with-unit">
               <input 
                 id="modalPointServiceMinutesInput"
@@ -614,11 +622,12 @@
                 step="5" 
                 [(ngModel)]="modalPointServiceMinutes" 
                 (ngModelChange)="checkModalTimeConflict()"
+                placeholder="20"
                 class="modal-input" 
               />
               <span class="unit-pill">min</span>
             </div>
-            <small class="form-field-hint">Se deixado em branco, assumirá a média de tempo dos demais clientes.</small>
+            <small class="form-field-hint">Se vazio, assume a média dos outros clientes.</small>
           </div>
         </div>
 
@@ -651,8 +660,8 @@
   </div>
 
   <!-- MODAL DE GERENCIAMENTO E EXCLUSÃO DE FAVORITOS (Regra P-101) -->
-  <div *ngIf="showManageFavoritesModal()" class="modal-backdrop">
-    <div class="modal-dialog modal-dialog--wide animate-scale-up">
+  <div *ngIf="showManageFavoritesModal()" class="modal-backdrop" (click)="showManageFavoritesModal.set(false)">
+    <div class="modal-dialog modal-dialog--wide animate-scale-up" (click)="$event.stopPropagation()">
       <div class="modal-dialog__header">
         <h3><i class="fa-solid fa-star"></i> Gerenciar Meus Locais Salvos / Favoritos</h3>
         <button class="modal-close-btn" (click)="showManageFavoritesModal.set(false)">✕</button>

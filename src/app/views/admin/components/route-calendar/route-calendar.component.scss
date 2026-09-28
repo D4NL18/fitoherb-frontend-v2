@@ -3,20 +3,25 @@
 .calendar-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1200;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .calendar-modal {
   background: c.$white;
-  border-radius: 12px;
-  padding: 24px;
-  max-width: 420px;
-  width: 90vw;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  margin: auto;
 }
 
 .calendar-header {
@@ -172,14 +177,18 @@
 }
 
 @media (max-width: 640px) {
+  .calendar-overlay {
+    padding: 0.75rem;
+  }
+
   .calendar-modal {
-    width: 100vw;
-    height: 100vh;
-    max-width: none;
-    border-radius: 0;
+    padding: 16px;
+    border-radius: 14px;
+    max-height: calc(100dvh - 1.5rem);
     display: flex;
     flex-direction: column;
-    padding: 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     
     .calendar-grid {
       flex: 1;
@@ -189,6 +198,7 @@
   
   .day-cell {
     aspect-ratio: auto;
-    height: 48px;
+    height: 44px;
+    font-size: 13px;
   }
 }

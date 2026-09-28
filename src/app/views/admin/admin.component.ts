@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, effect, OnInit, untracked } from '@angular/core';
+import { Component, computed, inject, signal, effect, OnInit, OnDestroy, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
@@ -49,7 +49,7 @@ import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, OnDestroy {
   private productsService = inject(ProductsService);
   private suppliersService = inject(SuppliersService);
   private categoryService = inject(ProductCategoriesService);
@@ -137,6 +137,23 @@ export class AdminComponent implements OnInit {
         this.loadData();
       });
     }, { allowSignalWrites: true });
+
+    effect(() => {
+      const anyModal = this.isEntityModalOpen() || this.isConfirmModalOpen() || this.isResponseModalOpen() || this.isRoutesTutorialOpen();
+      if (typeof document !== 'undefined') {
+        if (anyModal) {
+          document.body.classList.add('modal-open-lock');
+        } else {
+          document.body.classList.remove('modal-open-lock');
+        }
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('modal-open-lock');
+    }
   }
 
   ngOnInit() {
