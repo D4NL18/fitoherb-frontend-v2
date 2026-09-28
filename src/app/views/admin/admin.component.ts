@@ -26,6 +26,7 @@ import { TableColumn } from './types/TableColumn.interface';
 import { TokenService } from '../../services/token/token.service';
 import { environment } from '../../../environments/environment';
 import { BannersService } from '../../services/banners/banners.service';
+import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal/routes-tutorial-modal.component';
 
 @Component({
   selector: 'app-admin',
@@ -42,7 +43,8 @@ import { BannersService } from '../../services/banners/banners.service';
     ModalEntityComponent,
     ModalConfirmComponent,
     ModalResponseComponent,
-    ToastComponent
+    ToastComponent,
+    RoutesTutorialModalComponent
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
@@ -56,6 +58,8 @@ export class AdminComponent implements OnInit {
   private fb = inject(FormBuilder);
   private tokenService = inject(TokenService);
   private bannersService = inject(BannersService);
+
+  readonly isRoutesTutorialOpen = signal<boolean>(false);
 
   pageTitle = signal<AdminTab>('Produtos');
 

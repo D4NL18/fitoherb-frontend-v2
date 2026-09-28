@@ -1,0 +1,96 @@
+@if (isOpen()) {
+  <div class="tutorial-overlay" (click)="closeModal()">
+    <div class="tutorial-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+      
+      <!-- Topo: Badge do passo e Botão Fechar -->
+      <div class="tutorial-header">
+        <span class="step-badge">
+          <i [class]="currentStepData.icon"></i>
+          {{ currentStepData.badge }}
+        </span>
+
+        <button 
+          type="button" 
+          class="btn-close" 
+          (click)="closeModal()" 
+          title="Fechar tutorial" 
+          aria-label="Fechar tutorial"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Corpo do Modal -->
+      <div class="tutorial-body">
+        <h2 id="tutorialTitle" class="step-title">
+          {{ currentStepData.title }}
+        </h2>
+
+        <p class="step-description">
+          {{ currentStepData.description }}
+        </p>
+
+        <div class="step-items-list">
+          @for (item of currentStepData.items; track item.title) {
+            <div class="step-item">
+              <div class="item-icon-wrapper">
+                <i [class]="item.icon"></i>
+              </div>
+              <div class="item-text-wrapper">
+                <strong class="item-title">{{ item.title }}</strong>
+                <span class="item-description">{{ item.text }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Rodapé: Botões e Paginação Central -->
+      <div class="tutorial-footer">
+        <!-- Botão Anterior: Branco com borda preta -->
+        <div class="action-slot action-slot--prev">
+          @if (!isFirstStep) {
+            <button 
+              type="button" 
+              class="btn-prev" 
+              (click)="prevStep()"
+              aria-label="Voltar para o passo anterior"
+            >
+              <i class="fa-solid fa-chevron-left"></i>
+              <span>Anterior</span>
+            </button>
+          }
+        </div>
+
+        <!-- Indicador Central de Bolinhas (Dots) -->
+        <div class="pagination-dots" role="tablist" aria-label="Indicadores de página">
+          @for (step of steps; track step.stepNumber; let idx = $index) {
+            <button
+              type="button"
+              class="dot-btn"
+              [class.dot-btn--active]="idx === currentStep()"
+              (click)="goToStep(idx)"
+              [attr.aria-label]="'Ir para o ' + step.badge"
+              [title]="step.badge + ': ' + step.title"
+            >
+            </button>
+          }
+        </div>
+
+        <!-- Botão Próximo: Verde cor principal -->
+        <div class="action-slot action-slot--next">
+          <button 
+            type="button" 
+            class="btn-next" 
+            (click)="nextStep()"
+            [attr.aria-label]="isLastStep ? 'Concluir tutorial' : 'Avançar para o próximo passo'"
+          >
+            <span>{{ isLastStep ? 'Entendido' : 'Próximo' }}</span>
+            <i [class]="isLastStep ? 'fa-solid fa-check' : 'fa-solid fa-chevron-right'"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}
