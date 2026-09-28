@@ -69,7 +69,7 @@ export class RouteCalendarComponent implements OnInit {
         year: prevYear,
         dateStr,
         isCurrentMonth: false,
-        isEnabled: this.isDateEnabled(date),
+        isEnabled: this.isDateEnabled(date, dateStr),
         isToday: this.isToday(dateStr),
         isSelected: this.isSelected(dateStr),
         hasRoute: this.hasRoute(dateStr)
@@ -87,7 +87,7 @@ export class RouteCalendarComponent implements OnInit {
         year,
         dateStr,
         isCurrentMonth: true,
-        isEnabled: this.isDateEnabled(date),
+        isEnabled: this.isDateEnabled(date, dateStr),
         isToday: this.isToday(dateStr),
         isSelected: this.isSelected(dateStr),
         hasRoute: this.hasRoute(dateStr)
@@ -108,7 +108,7 @@ export class RouteCalendarComponent implements OnInit {
         year: nextYear,
         dateStr,
         isCurrentMonth: false,
-        isEnabled: this.isDateEnabled(date),
+        isEnabled: this.isDateEnabled(date, dateStr),
         isToday: this.isToday(dateStr),
         isSelected: this.isSelected(dateStr),
         hasRoute: this.hasRoute(dateStr)
@@ -161,7 +161,7 @@ export class RouteCalendarComponent implements OnInit {
     this.currentMonth.set(this.today.getMonth());
     this.currentYear.set(this.today.getFullYear());
     
-    if (this.isDateEnabled(this.today)) {
+    if (this.isDateEnabled(this.today, this.todayStr)) {
       this.dateSelected.emit(this.todayStr);
     }
   }
@@ -176,15 +176,23 @@ export class RouteCalendarComponent implements OnInit {
     this.closed.emit();
   }
   
-  isDateEnabled(date: Date): boolean {
+  isDateEnabled(date: Date, dateStr: string): boolean {
     const d = new Date(date);
-    d.setHours(0,0,0,0);
+    d.setHours(0, 0, 0, 0);
+    const today = new Date(this.today);
+    today.setHours(0, 0, 0, 0);
     const min = new Date(this.minDate);
-    min.setHours(0,0,0,0);
+    min.setHours(0, 0, 0, 0);
     const max = new Date(this.maxDate);
-    max.setHours(0,0,0,0);
+    max.setHours(0, 0, 0, 0);
     
-    return d >= min && d <= max;
+    // Dias anteriores a hoje: só podem ser visualizados/selecionados caso tenham rotas salvas no dia
+    if (d.getTime() < today.getTime()) {
+      return d.getTime() >= min.getTime() && this.hasRoute(dateStr);
+    }
+    
+    // Hoje e dias futuros até o limite de 30 dias à frente
+    return d.getTime() <= max.getTime();
   }
   
   hasRoute(dateStr: string): boolean {

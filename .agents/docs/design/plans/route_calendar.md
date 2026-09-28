@@ -28,7 +28,7 @@ A feature de Calendário de Rotas Agendadas permite aos vendedores (Sellers) pla
   - **Dia Selecionado:** Preenchimento com fundo `$green-600` e texto em `$white`.
   - **Dia com Rota Salva (Indicador):** Ponto verde (`6px dot`) localizado centralizado abaixo do número do dia.
   - **Dias Habilitados para Hover:** Recebem fundo `$bg-green-base` ao passar o mouse.
-  - **Dias Desabilitados (Fora da Janela P-201/P-202):** Texto em cor `$gray-300`, cursor `not-allowed`, sem comportamento de hover.
+  - **Dias Desabilitados:** Dias fora da janela permitida ou dias anteriores a hoje sem rota salva ficam com texto em cor `$gray-300`, cursor `not-allowed`, sem comportamento de hover e não clicáveis. Apenas dias anteriores com rotas salvas registradas no banco são exibidos como ativos para consulta.
   - **Preenchimento da Grid:** Dias do mês anterior ou próximo que entram para completar as semanas da grid ficam com cor `$gray-300` e não são clicáveis.
 - **Footer do Modal:** Botão 'Hoje' (Today) que foca imediatamente no dia atual, facilitando o retorno ao dia vigente.
 

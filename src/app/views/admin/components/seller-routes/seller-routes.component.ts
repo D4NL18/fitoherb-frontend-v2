@@ -104,20 +104,20 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   // Trecho Ativo / Filtrado para Destaque no Mapa
   readonly selectedLegIndex = signal<number | null>(null);
 
-  // Paleta Harmoniosa de Cores para Identificação Visual dos Trechos
+  // Paleta Harmoniosa de Cores para Identificação Visual dos Trechos (Brand Fitoherb)
   readonly ROUTE_LEG_COLORS: string[] = [
-    '#2563eb', // Trecho 1: Azul Real Vibrante
-    '#d97706', // Trecho 2: Âmbar / Laranja
-    '#7c3aed', // Trecho 3: Violeta / Roxo
-    '#059669', // Trecho 4: Verde Esmeralda
-    '#dc2626', // Trecho 5: Vermelho Carmim
-    '#0891b2', // Trecho 6: Azul Petróleo / Ciano
-    '#ea580c', // Trecho 7: Laranja Queimado
-    '#4f46e5', // Trecho 8: Índigo
-    '#c026d3', // Trecho 9: Magenta
-    '#0d9488', // Trecho 10: Teal
-    '#65a30d', // Trecho 11: Verde Lima
-    '#475569'  // Trecho Retorno à Base: Ardósia
+    '#38582f', // Trecho 1: Verde Fitoherb
+    '#4d7a42', // Trecho 2: Verde Claro
+    '#2e4f24', // Trecho 3: Verde Escuro
+    '#5b4636', // Trecho 4: Marrom Terra
+    '#7b6247', // Trecho 5: Marrom Claro
+    '#827b5e', // Trecho 6: Oliva
+    '#4a5c43', // Trecho 7: Floresta
+    '#3b4238', // Trecho 8: Floresta Escuro
+    '#8a8a7a', // Trecho 9: Cinza Escuro
+    '#595950', // Trecho 10: Cinza Médio
+    '#1a1a12', // Trecho 11: Preto Fitoherb
+    '#729668'  // Trecho Retorno à Base: Verde Suave
   ];
 
   getLegColor(legIndex: number): string {
