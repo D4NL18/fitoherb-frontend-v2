@@ -24,6 +24,14 @@
   color: $white;
   padding: 0.85rem 1.4rem;
   border-radius: 10px;
+
+    &--conflict {
+      .timeline-content {
+        border-color: #fca5a5 !important;
+        background-color: #fff5f5 !important;
+        box-shadow: 0 0 0 1.5px #f87171 !important;
+      }
+    }
   box-shadow: 0 10px 25px rgba(26, 45, 20, 0.25);
   font-size: 0.92rem;
   font-weight: 500;
@@ -957,6 +965,31 @@
     }
   }
 
+  .stop-item__target-time-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.76rem;
+    color: #92400e;
+    background-color: #fef3c7;
+    border: 1px solid #fde68a;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    width: fit-content;
+
+    i {
+      color: #d97706;
+      font-size: 0.78rem;
+    }
+
+    .target-time-val {
+      font-weight: 500;
+      strong {
+        font-weight: 700;
+      }
+    }
+  }
+
   .stop-item__controls {
     display: flex;
     align-items: center;
@@ -1135,6 +1168,39 @@
         white-space: nowrap;
       }
     }
+  }
+}
+
+/* Alerta de Conflito de Horário Agendado no Itinerário da IA (Regra P-207) */
+.time-conflict-banner {
+  background-color: #fff1f2;
+  border: 1.5px solid #fecdd3;
+  border-left: 4px solid #e11d48;
+  border-radius: 8px;
+  padding: 0.75rem 0.95rem;
+  margin-bottom: 0.95rem;
+  color: #881337;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #9f1239;
+    margin-bottom: 0.3rem;
+
+    i {
+      font-size: 1rem;
+      color: #e11d48;
+    }
+  }
+
+  &__desc {
+    font-size: 0.76rem;
+    line-height: 1.35;
+    color: #4c0519;
+    margin: 0;
   }
 }
 
@@ -1468,6 +1534,33 @@
         gap: 0.35rem;
         margin-top: 0.3rem;
 
+        .tag-time-conflict {
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #9f1239;
+          background-color: #ffe4e6;
+          border: 1px solid #f43f5e;
+          padding: 0.2rem 0.55rem;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          animation: pulseConflict 2s infinite ease-in-out;
+        }
+
+        .tag-target-time-ok {
+          font-size: 0.68rem;
+          font-weight: 600;
+          color: #065f46;
+          background-color: #ecfdf5;
+          border: 1px solid #a7f3d0;
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+
         .tag-focused-leg {
           font-size: 0.68rem;
           font-weight: 700;
@@ -1752,6 +1845,41 @@
           accent-color: $green-600;
           width: 16px;
           height: 16px;
+        }
+      }
+    }
+
+    .modal-conflict-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      background: #fff1f2;
+      border: 1.5px solid #fecdd3;
+      border-left: 4px solid #e11d48;
+      border-radius: 8px;
+      padding: 0.75rem 0.95rem;
+      color: #881337;
+
+      i {
+        font-size: 1.1rem;
+        color: #e11d48;
+        margin-top: 2px;
+      }
+
+      &__text {
+        strong {
+          display: block;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #9f1239;
+          margin-bottom: 0.2rem;
+        }
+
+        p {
+          font-size: 0.75rem;
+          line-height: 1.35;
+          color: #4c0519;
+          margin: 0;
         }
       }
     }
@@ -2346,5 +2474,15 @@
   &:focus-visible {
     outline: 2px solid rgba(56, 88, 47, 0.4);
     outline-offset: 2px;
+  }
+}
+
+
+@keyframes pulseConflict {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(225, 29, 72, 0);
   }
 }

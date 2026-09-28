@@ -21,6 +21,7 @@ export interface DeliveryStopDto extends LocationPointDto {
   fixed_order?: number | null;
   demand?: number;
   service_duration_minutes?: number | null;
+  target_arrival_time?: string | null;
 }
 
 export interface OptimizeRouteRequest {
@@ -48,6 +49,9 @@ export interface OrderedStopDto {
   service_duration_minutes?: number;
   traffic_factor?: number;
   traffic_condition?: string;
+  target_arrival_time?: string | null;
+  has_time_conflict?: boolean;
+  time_conflict_message?: string | null;
 }
 
 export interface OptimizeRouteResponse {
@@ -62,4 +66,6 @@ export interface OptimizeRouteResponse {
   total_transit_minutes?: number;
   total_service_minutes?: number;
   peak_hours_encountered?: number;
+  has_any_time_conflict?: boolean;
+  time_conflict_count?: number;
 }

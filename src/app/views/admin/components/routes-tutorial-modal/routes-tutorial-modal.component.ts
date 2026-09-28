@@ -117,7 +117,7 @@ export class RoutesTutorialModalComponent {
         {
           icon: 'fa-solid fa-house',
           title: 'Ponto de Partida (Sua Base)',
-          text: 'É o local de onde você sai (sua casa ou depósito). Ao adicionar um ponto no mapa, marque "Definir como Ponto de Partida (Base)". O sistema sempre iniciará seu percurso desse local.'
+          text: 'É o local de onde você sai. Ao adicionar um ponto no mapa, marque "Definir como Ponto de Partida (Base)". O sistema sempre iniciará seu percurso desse local.'
         },
         {
           icon: 'fa-solid fa-star',
@@ -135,23 +135,28 @@ export class RoutesTutorialModalComponent {
       stepNumber: 5,
       badge: 'Passo 5 de 7',
       icon: 'fa-solid fa-list-check',
-      title: 'Prioridades e Fixar Ordem das Visitas',
-      description: 'Defina a urgência dos clientes e trave paradas em posições obrigatórias.',
+      title: 'Prioridades, Horário Marcado e Fixar Ordem',
+      description: 'Defina a urgência dos clientes, agende horários específicos ou trave paradas em posições obrigatórias.',
       items: [
         {
           icon: 'fa-solid fa-flag',
           title: 'Prioridade da Visita',
-          text: 'Classifique o atendimento como "Normal", "Alta" ou "Urgente" para destacar clientes de maior importância comercial.'
+          text: 'Classifique o atendimento como "Normal", "Alta" ou "Urgente". A urgência influencia diretamente a ordem da rota: clientes urgentes e de alta prioridade são visitados primeiro.'
+        },
+        {
+          icon: 'fa-solid fa-business-time',
+          title: 'Horário Marcado no Cliente (Prioridade Máxima)',
+          text: 'Defina um horário específico de chegada (ex: 14:00). O sistema prioriza chegar no horário combinado. Se houver sobreposição impossível entre clientes, o sistema avisa na criação do ponto e destaca qualquer atraso no itinerário gerado.'
         },
         {
           icon: 'fa-solid fa-lock',
           title: 'Fixar Ordem de Parada',
-          text: 'Se você tem hora marcada ou precisa ir em um cliente antes de todos, escolha "1ª Parada Fixa" (ou 2ª, 3ª...). O sistema vai travar esse cliente no lugar certo e organizar os outros ao redor dele.'
+          text: 'Se você precisa ir em um cliente em uma posição exata, escolha "1ª Parada Fixa" (ou 2ª, 3ª...). O sistema vai travar esse cliente no lugar certo e organizar os outros ao redor dele.'
         },
         {
           icon: 'fa-solid fa-route',
           title: 'Paradas Livres',
-          text: 'Os clientes sem ordem fixada serão organizados pelo sistema no trajeto mais rápido possível.'
+          text: 'Os clientes sem horário ou ordem fixada serão organizados pelo sistema no trajeto mais rápido possível.'
         }
       ]
     },
@@ -176,6 +181,11 @@ export class RoutesTutorialModalComponent {
           icon: 'fa-solid fa-ban',
           title: 'Se não preencher em nenhum cliente',
           text: 'O sistema desconsidera o tempo de atendimento e calcula a rota considerando apenas o tempo de volante nas ruas.'
+        },
+        {
+          icon: 'fa-solid fa-utensils',
+          title: 'Dica: Horário e Local de Almoço',
+          text: 'Adicione um ponto com o local onde você deseja almoçar e preencha o "Horário Marcado" (ex: 12:00) e a "Duração da Visita" (ex: 60 min). O cálculo da rota organizará suas visitas considerando sua pausa de almoço.'
         }
       ]
     },

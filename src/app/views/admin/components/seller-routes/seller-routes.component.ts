@@ -143,6 +143,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   modalPointPriority: 'REGULAR' | 'HIGH' | 'CRITICAL' = 'REGULAR';
   modalPointFixedOrder: number | null = null;
   modalPointServiceMinutes: number | null = null;
+  modalPointTargetArrivalTime: string | null = null;
+  readonly modalTimeConflictWarning = signal<string | null>(null);
   modalPointSaveFavorite: boolean = false;
   readonly modalIsReverseGeocoding = signal<boolean>(false);
 
@@ -369,6 +371,62 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderMarkers();
   }
 
+  // Utilitário para converter 'HH:MM' em minutos desde 00:00
+  parseTimeToMinutes(timeStr: string | null | undefined): number | null {
+    if (!timeStr) return null;
+    const parts = timeStr.trim().split(':');
+    if (parts.length < 2) return null;
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+  }
+
+  formatMinutesToTime(totalMins: number): string {
+    const norm = ((totalMins % 1440) + 1440) % 1440;
+    const h = Math.floor(norm / 60);
+    const m = norm % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  // Validação Imediata de Conflito de Horário entre Clientes (Regra P-207)
+  checkModalTimeConflict() {
+    this.modalTimeConflictWarning.set(null);
+    if (!this.modalPointTargetArrivalTime || this.modalPointType === 'base') {
+      return;
+    }
+
+    const currentTargetMin = this.parseTimeToMinutes(this.modalPointTargetArrivalTime);
+    if (currentTargetMin === null) return;
+
+    // Se duration não especificada, assumir 20 min como padrão
+    const currentDuration = (this.modalPointServiceMinutes && Number(this.modalPointServiceMinutes) > 0)
+      ? Number(this.modalPointServiceMinutes)
+      : 20;
+    const currentEndMin = currentTargetMin + currentDuration;
+
+    const currentEditIdx = this.editingStopIndex();
+    const otherStops = this.stops().filter((_, idx) => idx !== currentEditIdx);
+
+    for (const other of otherStops) {
+      if (other.target_arrival_time) {
+        const otherTargetMin = this.parseTimeToMinutes(other.target_arrival_time);
+        if (otherTargetMin !== null) {
+          const otherDuration = other.service_duration_minutes ?? 20;
+          const otherEndMin = otherTargetMin + otherDuration;
+
+          // Checa sobreposição temporal: dois intervalos [startA, endA) e [startB, endB) se sobrepõem se startA < endB && otherTargetMin < currentEndMin
+          if (currentTargetMin < otherEndMin && otherTargetMin < currentEndMin) {
+            this.modalTimeConflictWarning.set(
+              `Atenção: Horário conflitante com "${other.name}" (marcado às ${other.target_arrival_time} com ~${otherDuration} min de duração). É impossível estar nos dois pontos no mesmo intervalo.`
+            );
+            return;
+          }
+        }
+      }
+    }
+  }
+
   // Geocodificação reversa automática ao clicar no mapa
   openPointModalFromMapClick(lat: number, lon: number) {
     this.editingStopIndex.set(null);
@@ -379,6 +437,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalPointPriority = 'REGULAR';
     this.modalPointFixedOrder = null;
     this.modalPointServiceMinutes = null;
+    this.modalPointTargetArrivalTime = null;
+    this.modalTimeConflictWarning.set(null);
     this.modalPointSaveFavorite = false;
     this.modalIsReverseGeocoding.set(true);
     this.showPointModal.set(true);
@@ -422,6 +482,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalPointPriority = s.priority || 'REGULAR';
     this.modalPointFixedOrder = s.fixed_order || null;
     this.modalPointServiceMinutes = s.service_duration_minutes ?? null;
+    this.modalPointTargetArrivalTime = s.target_arrival_time || null;
     this.modalPointSaveFavorite = false;
     this.modalIsReverseGeocoding.set(false);
     this.modalAddress = {
@@ -433,6 +494,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       postalCode: s.address?.postal_code || '',
       fullAddress: s.address?.full_address || ''
     };
+    this.checkModalTimeConflict();
     this.showPointModal.set(true);
   }
 
@@ -456,6 +518,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
             name: this.modalPointTitle,
             priority: this.modalPointPriority,
             fixed_order: this.modalPointFixedOrder,
+            target_arrival_time: this.modalPointTargetArrivalTime ? this.modalPointTargetArrivalTime.trim() : null,
             service_duration_minutes: durationVal,
             address: {
               ...item.address,
@@ -530,6 +593,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       lon: this.modalPointLon,
       priority: this.modalPointPriority,
       fixed_order: this.modalPointFixedOrder,
+      target_arrival_time: this.modalPointTargetArrivalTime ? this.modalPointTargetArrivalTime.trim() : null,
       service_duration_minutes: durationVal,
       address: {
         street: this.modalAddress.street,
@@ -954,6 +1018,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         lon: vs.lon ?? orig?.lon ?? 0,
         priority: (vs.priority ?? orig?.priority ?? 'REGULAR') as any,
         service_duration_minutes: vs.service_duration_minutes ?? orig?.service_duration_minutes,
+        target_arrival_time: vs.target_arrival_time ?? orig?.target_arrival_time,
         address: vs.address ?? orig?.address,
         fixed_order: orig?.fixed_order
       };
