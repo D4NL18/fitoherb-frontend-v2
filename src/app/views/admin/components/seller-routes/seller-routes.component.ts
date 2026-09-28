@@ -23,13 +23,16 @@ import {
   OptimizeRouteResponse, 
   OrderedStopDto 
 } from '../../../../types/routing/routing.interface';
+import { ScheduledRoutesService } from '../../../../services/scheduled-routes/scheduled-routes.service';
+import { RouteCalendarComponent } from '../route-calendar/route-calendar.component';
+import { ScheduledRouteReq } from '../../../../types/scheduled-routes/scheduled-route.interface';
 
 declare let L: any;
 
 @Component({
   selector: 'app-seller-routes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouteCalendarComponent],
   templateUrl: './seller-routes.component.html',
   styleUrl: './seller-routes.component.scss'
 })
@@ -44,6 +47,27 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly isExportingPdf = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
   readonly toastMessage = signal<string | null>(null);
+
+  readonly selectedDate = signal<string>(this.getTodayStr()); // yyyy-MM-dd
+  readonly isCalendarOpen = signal<boolean>(false);
+  readonly routeDates = signal<string[]>([]);
+  readonly isSavingRoute = signal<boolean>(false);
+  readonly isLoadingRoute = signal<boolean>(false);
+
+  private readonly scheduledRoutesService = inject(ScheduledRoutesService);
+
+  private getTodayStr(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  get formattedSelectedDate(): string {
+    const [year, month, day] = this.selectedDate().split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    return `${weekDays[date.getDay()]}, ${day} ${months[date.getMonth()]}`;
+  }
 
   // Aba lateral ativa: 'stops' (gerenciamento) ou 'results' (itinerário da IA)
   readonly activeSidebarTab = signal<'stops' | 'results'>('stops');
@@ -150,8 +174,111 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   private markersLayer: any = null;
   private routeLayer: any = null;
 
+  openCalendar(): void {
+    this.loadRouteDates();
+    this.isCalendarOpen.set(true);
+  }
+
+  loadRouteDates(): void {
+    this.scheduledRoutesService.getRouteDates().subscribe({
+      next: (dates) => this.routeDates.set(dates),
+      error: (err) => console.error('Erro ao carregar datas de rotas', err)
+    });
+  }
+
+  onDateSelected(dateStr: string): void {
+    this.selectedDate.set(dateStr);
+    this.isCalendarOpen.set(false);
+    this.loadRouteForDate(dateStr);
+  }
+
+  loadRouteForDate(dateStr: string): void {
+    this.isLoadingRoute.set(true);
+    this.scheduledRoutesService.getRouteByDate(dateStr).subscribe({
+      next: (route) => {
+        this.isLoadingRoute.set(false);
+        // Restaura o estado completo da rota
+        if (route.depot) this.depot.set(route.depot);
+        if (route.stops) {
+          this.stops.set(route.stops);
+        } else {
+          this.stops.set([]);
+        }
+        if (route.optimizationResult) {
+          this.optimizationResult.set(route.optimizationResult);
+          this.activeSidebarTab.set('results');
+          if (route.optimizationResult.geojson_geometry) {
+            // @ts-ignore
+            this.drawRouteOnMap(route.optimizationResult.geojson_geometry);
+          }
+        } else {
+          this.optimizationResult.set(null);
+          this.activeSidebarTab.set('stops');
+        }
+        if (route.departureTime) this.departureTime.set(route.departureTime);
+        // @ts-ignore
+        this.renderMarkers();
+        this.showToast(`Rota de ${this.formattedSelectedDate} carregada.`);
+      },
+      error: (err) => {
+        this.isLoadingRoute.set(false);
+        // 404 = não tem rota para essa data, limpa tudo
+        if (err.status === 404) {
+          this.stops.set([]);
+          this.optimizationResult.set(null);
+          this.activeSidebarTab.set('stops');
+          this.clearRouteFromMap();
+          // @ts-ignore
+          this.renderMarkers();
+          this.showToast(`Nenhuma rota salva para ${this.formattedSelectedDate}. Crie uma nova!`);
+        } else {
+          this.showToast('Erro ao carregar rota.');
+        }
+      }
+    });
+  }
+
+  saveCurrentRoute(): void {
+    if (this.stops().length === 0) {
+      this.showToast('Adicione ao menos uma parada antes de salvar.');
+      return;
+    }
+    this.isSavingRoute.set(true);
+    const req: ScheduledRouteReq = {
+      routeDate: this.selectedDate(),
+      departureTime: this.departureTime(),
+      returnToDepot: true,
+      depot: this.depot(),
+      stops: this.stops(),
+      optimizationResult: this.optimizationResult() || undefined
+    };
+    this.scheduledRoutesService.saveRoute(req).subscribe({
+      next: () => {
+        this.isSavingRoute.set(false);
+        this.loadRouteDates(); // atualiza indicadores do calendário
+        this.showToast(`Rota salva para ${this.formattedSelectedDate}!`);
+      },
+      error: (err) => {
+        this.isSavingRoute.set(false);
+        const msg = err.error?.message || 'Erro ao salvar rota.';
+        this.showToast(msg);
+      }
+    });
+  }
+
+  clearRouteFromMap(): void {
+    if (this.routeLayer) {
+      this.routeLayer.clearLayers();
+    }
+    // @ts-ignore
+    if (this.routeLayersMap) this.routeLayersMap.clear();
+    // @ts-ignore
+    this.fullGeoJson = null;
+  }
+
   ngOnInit() {
     this.loadSavedLocations();
+    this.loadRouteDates();
 
     // Autocomplete com debounce de 350ms para busca fluida ao digitar
     this.searchSubscription = this.searchSubject.pipe(

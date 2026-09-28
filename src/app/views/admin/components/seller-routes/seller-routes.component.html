@@ -12,16 +12,39 @@
 
   <!-- Barra Superior: Indicador Limpo de Ponto de Partida e Acesso aos Favoritos -->
   <div class="routes-header-bar">
-    <button 
-      type="button" 
-      class="btn-manage-favorites-header" 
-      (click)="showManageFavoritesModal.set(true)"
-      title="Gerenciar locais salvos e favoritos"
-    >
-      <i class="fa-solid fa-star"></i>
-      <span>Meus Favoritos</span>
-      <span *ngIf="savedLocations().length > 0" class="fav-count-badge">{{ savedLocations().length }}</span>
-    </button>
+    <div class="left-controls" style="display: flex; gap: 8px;">
+      <!-- Botão Seletor de Data com Calendário -->
+      <button class="date-picker-btn" (click)="openCalendar()" aria-label="Selecionar data">
+        <i class="fa-regular fa-calendar"></i>
+        <span class="date-label">{{ formattedSelectedDate }}</span>
+      </button>
+
+      <!-- Botão Salvar Rota -->
+      <button 
+        class="save-route-btn" 
+        (click)="saveCurrentRoute()" 
+        [disabled]="isSavingRoute() || stops().length === 0"
+        aria-label="Salvar rota para a data selecionada"
+      >
+        @if (isSavingRoute()) {
+          <i class="fa-solid fa-spinner fa-spin"></i>
+        } @else {
+          <i class="fa-solid fa-floppy-disk"></i>
+        }
+        <span>Salvar Rota</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="btn-manage-favorites-header" 
+        (click)="showManageFavoritesModal.set(true)"
+        title="Gerenciar locais salvos e favoritos"
+      >
+        <i class="fa-solid fa-star"></i>
+        <span>Meus Favoritos</span>
+        <span *ngIf="savedLocations().length > 0" class="fav-count-badge">{{ savedLocations().length }}</span>
+      </button>
+    </div>
 
     <div class="base-badge" [class.base-badge--custom]="isUsingCustomBase()">
       <i class="fa-solid" [class.fa-house-chimney]="isUsingCustomBase()" [class.fa-building]="!isUsingCustomBase()"></i>
@@ -647,5 +670,14 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal Calendário -->
+  <app-route-calendar
+    [isOpen]="isCalendarOpen()"
+    [selectedDate]="selectedDate()"
+    [routeDates]="routeDates()"
+    (dateSelected)="onDateSelected($event)"
+    (closed)="isCalendarOpen.set(false)"
+  />
 
 </div>

@@ -2288,3 +2288,63 @@
     }
   }
 }
+// === Controles de Data e Salvamento ===
+.date-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid $gray-200;
+  border-radius: 8px;
+  background: $white;
+  color: $gray-900;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 200ms ease;
+  
+  i {
+    color: $green-600;
+    font-size: 16px;
+  }
+  
+  &:hover {
+    background: $bg-green-base;
+    border-color: $green-400;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid rgba(56, 88, 47, 0.4);
+    outline-offset: 2px;
+  }
+}
+
+.save-route-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: $green-600;
+  color: $white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  
+  &:hover:not(:disabled) {
+    background: $forest-light;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid rgba(56, 88, 47, 0.4);
+    outline-offset: 2px;
+  }
+}
