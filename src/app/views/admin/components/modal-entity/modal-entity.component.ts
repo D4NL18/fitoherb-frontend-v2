@@ -75,7 +75,7 @@ export class ModalEntityComponent implements OnInit {
     return '';
   });
 
-  roleOptions = ['USER', 'ADMIN'];
+  roleOptions = ['USER', 'ADMIN', 'SELLER'];
 
   ngOnInit() {
     this.buildForm();

@@ -1,10 +1,11 @@
-import { Component, computed, inject, signal, effect, OnInit, untracked } from '@angular/core';
+import { Component, computed, inject, signal, effect, OnInit, OnDestroy, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
-import { AdminNavComponent } from './components/admin-nav/admin-nav.component';
+import { AdminNavComponent, AdminTab } from './components/admin-nav/admin-nav.component';
+import { SellerRoutesComponent } from './components/seller-routes/seller-routes.component';
 import { InputComponent } from '../../shared/input/input.component';
 import { SelectComponent } from '../../shared/select/select.component';
 import { ButtonComponent } from '../../shared/button/button.component';
@@ -25,12 +26,14 @@ import { TableColumn } from './types/TableColumn.interface';
 import { TokenService } from '../../services/token/token.service';
 import { environment } from '../../../environments/environment';
 import { BannersService } from '../../services/banners/banners.service';
+import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal/routes-tutorial-modal.component';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
   imports: [
     AdminNavComponent,
+    SellerRoutesComponent,
     CommonModule,
     ReactiveFormsModule,
     InputComponent,
@@ -40,29 +43,32 @@ import { BannersService } from '../../services/banners/banners.service';
     ModalEntityComponent,
     ModalConfirmComponent,
     ModalResponseComponent,
-    ToastComponent
+    ToastComponent,
+    RoutesTutorialModalComponent
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
 })
-export class AdminComponent implements OnInit {
-  private productsService = inject(ProductsService);
-  private suppliersService = inject(SuppliersService);
-  private categoryService = inject(ProductCategoriesService);
-  private usersService = inject(UsersService);
-  private authService = inject(AuthService);
-  private fb = inject(FormBuilder);
-  private tokenService = inject(TokenService);
-  private bannersService = inject(BannersService);
+export class AdminComponent implements OnInit, OnDestroy {
+  private readonly productsService = inject(ProductsService);
+  private readonly suppliersService = inject(SuppliersService);
+  private readonly categoryService = inject(ProductCategoriesService);
+  private readonly usersService = inject(UsersService);
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly tokenService = inject(TokenService);
+  private readonly bannersService = inject(BannersService);
 
-  pageTitle = signal<'Usuários' | 'Produtos' | 'Categorias de Produtos' | 'Fornecedores' | 'Banners' | 'Alterar Senha'>('Produtos');
+  readonly isRoutesTutorialOpen = signal<boolean>(false);
+
+  pageTitle = signal<AdminTab>('Produtos');
 
   isEntityModalOpen = signal(false);
   isConfirmModalOpen = signal(false);
   cascadeItems = signal<any[] | undefined>(undefined);
   modalMode = signal<'create' | 'edit'>('create');
   selectedItem = signal<any>(null);
-  currentUserRole = signal<'ADMIN' | 'USER' | null>(null);
+  currentUserRole = signal<'ADMIN' | 'USER' | 'SELLER' | null>(null);
   
   isSaving = signal(false);
 
@@ -97,7 +103,7 @@ export class AdminComponent implements OnInit {
   });
 
   totalElements = computed(() => {
-    if (this.pageTitle() === 'Alterar Senha') return 0;
+    if (this.pageTitle() === 'Alterar Senha' || this.pageTitle() === 'Rotas') return 0;
 
     const sourceMap: Record<string, any> = {
       'Produtos': this.productsService.adminProducts(),
@@ -131,19 +137,45 @@ export class AdminComponent implements OnInit {
         this.loadData();
       });
     }, { allowSignalWrites: true });
+
+    effect(() => {
+      const anyModal = this.isEntityModalOpen() || this.isConfirmModalOpen() || this.isResponseModalOpen() || this.isRoutesTutorialOpen();
+      if (typeof document !== 'undefined') {
+        if (anyModal) {
+          document.body.classList.add('modal-open-lock');
+        } else {
+          document.body.classList.remove('modal-open-lock');
+        }
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('modal-open-lock');
+    }
   }
 
   ngOnInit() {
-    this.categoryService.getAll();
-    this.suppliersService.getAll();
-    this.bannersService.getActive();
-
     const email = this.tokenService.getUserEmail();
     if (email) {
       this.usersService.getByEmail(email).subscribe({
-        next: (user) => this.currentUserRole.set(user.role),
+        next: (user) => {
+          this.currentUserRole.set(user.role);
+          if (user.role === 'SELLER') {
+            this.pageTitle.set('Rotas');
+          } else {
+            this.categoryService.getAll();
+            this.suppliersService.getAll();
+            this.bannersService.getActive();
+          }
+        },
         error: (err) => console.error('Failed to load user role', err)
       });
+    } else {
+      this.categoryService.getAll();
+      this.suppliersService.getAll();
+      this.bannersService.getActive();
     }
 
     this.search.valueChanges
@@ -159,8 +191,19 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  onTabChange(tab: AdminTab) {
+    if (this.currentUserRole() === 'SELLER' && tab !== 'Rotas' && tab !== 'Alterar Senha') {
+      return;
+    }
+    this.pageTitle.set(tab);
+  }
+
   loadData() {
-    if (this.pageTitle() === 'Alterar Senha') return;
+    if (this.currentUserRole() === 'SELLER' && this.pageTitle() !== 'Rotas' && this.pageTitle() !== 'Alterar Senha') {
+      this.pageTitle.set('Rotas');
+      return;
+    }
+    if (this.pageTitle() === 'Alterar Senha' || this.pageTitle() === 'Rotas') return;
 
     const term = this.search.value || '';
     const orderValue = this.orderBy.value || 'Nome (A-Z)';
@@ -240,7 +283,7 @@ export class AdminComponent implements OnInit {
   });
 
   columns = computed<TableColumn[]>(() => {
-    if (this.pageTitle() === 'Alterar Senha') return [];
+    if (this.pageTitle() === 'Alterar Senha' || this.pageTitle() === 'Rotas') return [];
 
     const cols: Record<string, TableColumn[]> = {
       'Usuários': [
@@ -290,7 +333,7 @@ export class AdminComponent implements OnInit {
   });
 
   tableData = computed(() => {
-    if (this.pageTitle() === 'Alterar Senha') return [];
+    if (this.pageTitle() === 'Alterar Senha' || this.pageTitle() === 'Rotas') return [];
 
     const sourceMap: Record<string, any> = {
       'Produtos': this.productsService.adminProducts(),
