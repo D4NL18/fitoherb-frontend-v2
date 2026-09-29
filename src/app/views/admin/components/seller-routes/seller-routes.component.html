@@ -12,16 +12,40 @@
 
   <!-- Barra Superior: Indicador Limpo de Ponto de Partida e Acesso aos Favoritos -->
   <div class="routes-header-bar">
-    <button 
-      type="button" 
-      class="btn-manage-favorites-header" 
-      (click)="showManageFavoritesModal.set(true)"
-      title="Gerenciar locais salvos e favoritos"
-    >
-      <i class="fa-solid fa-star"></i>
-      <span>Meus Favoritos</span>
-      <span *ngIf="savedLocations().length > 0" class="fav-count-badge">{{ savedLocations().length }}</span>
-    </button>
+    <div class="header-controls-group">
+      <!-- Botão Seletor de Data com Calendário -->
+      <button type="button" class="date-picker-btn" (click)="openCalendar()" title="Alterar data da rota">
+        <i class="fa-regular fa-calendar"></i>
+        <span class="date-label">{{ formattedSelectedDate }}</span>
+      </button>
+
+      <!-- Botão Salvar Rota -->
+      <button 
+        type="button"
+        class="save-route-btn" 
+        (click)="saveCurrentRoute()" 
+        [disabled]="isSavingRoute() || stops().length === 0"
+        title="Salvar rota para a data selecionada"
+      >
+        @if (isSavingRoute()) {
+          <i class="fa-solid fa-spinner fa-spin"></i>
+        } @else {
+          <i class="fa-solid fa-floppy-disk"></i>
+        }
+        <span class="btn-text">Salvar Rota</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="btn-manage-favorites-header" 
+        (click)="showManageFavoritesModal.set(true)"
+        title="Gerenciar locais salvos e favoritos"
+      >
+        <i class="fa-solid fa-star"></i>
+        <span class="btn-text">Favoritos</span>
+        <span *ngIf="savedLocations().length > 0" class="fav-count-badge">{{ savedLocations().length }}</span>
+      </button>
+    </div>
 
     <div class="base-badge" [class.base-badge--custom]="isUsingCustomBase()">
       <i class="fa-solid" [class.fa-house-chimney]="isUsingCustomBase()" [class.fa-building]="!isUsingCustomBase()"></i>
@@ -43,13 +67,13 @@
         (ngModelChange)="onSearchInput($event)"
         (focus)="onSearchFocus()"
         (keydown.enter)="executeAddressSearch()"
-        placeholder="Buscar endereço, cliente ou ponto no mapa..."
+        placeholder="Buscar endereço ou cliente..."
         aria-label="Buscar endereço, cliente ou ponto no mapa"
         class="search-input"
       />
       <button *ngIf="searchQuery" class="clear-btn" (click)="onSearchInput('')" title="Limpar busca">✕</button>
       <button class="submit-search-btn" (click)="executeAddressSearch()" [disabled]="isSearchingAddress()">
-        <span *ngIf="!isSearchingAddress()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</span>
+        <span *ngIf="!isSearchingAddress()"><i class="fa-solid fa-magnifying-glass"></i> <span class="btn-search-label">Buscar</span></span>
         <span *ngIf="isSearchingAddress()"><i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
     </div>
@@ -271,6 +295,12 @@
                 <span *ngIf="!stop.service_duration_minutes" class="duration-auto">Média dos outros pontos</span>
               </div>
 
+              <!-- Horário Marcado no Cliente (Prioridade Máxima) -->
+              <div *ngIf="stop.target_arrival_time" class="stop-item__target-time-row">
+                <i class="fa-solid fa-business-time"></i>
+                <span class="target-time-val">Marcado às <strong>{{ stop.target_arrival_time }}</strong> (Prioridade Máxima)</span>
+              </div>
+
               <!-- Controle de Ordem no Trajeto -->
               <div class="stop-item__controls">
                 <div class="control-label-group">
@@ -337,6 +367,17 @@
             </div>
           </div>
 
+          <!-- Alerta de Conflito de Horário Agendado no Itinerário da IA (Regra P-207) -->
+          <div *ngIf="optimizationResult()?.has_any_time_conflict" class="time-conflict-banner animate-fade-in">
+            <div class="time-conflict-banner__header">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <strong>Atenção: Horário Impossível Detectado pela IA!</strong>
+            </div>
+            <p class="time-conflict-banner__desc">
+              Existem {{ optimizationResult()?.time_conflict_count }} cliente(s) com horário marcado que não poderão ser atendidos no horário previsto devido ao tempo de visita e trânsito nas ruas. Veja os detalhes em destaque abaixo no itinerário:
+            </p>
+          </div>
+
           <!-- Alerta de Trechos sob Horário de Pico -->
           <div *ngIf="optimizationResult()?.peak_hours_encountered && optimizationResult()!.peak_hours_encountered! > 0" class="peak-warning-pill">
             <i class="fa-solid fa-triangle-exclamation"></i>
@@ -366,10 +407,12 @@
               *ngFor="let s of optimizationResult()?.ordered_stops; let idx = index" 
               class="timeline-step"
               [class.timeline-step--active]="s.step > 0 && selectedLegIndex() === (s.step - 1)"
+              [class.timeline-step--conflict]="s.has_time_conflict"
               [class.timeline-step--draggable]="s.action === 'VISIT'"
               [class.timeline-step--dragging]="draggedStopIndex() === idx"
               [class.timeline-step--drag-over]="dragOverIndex() === idx"
               [draggable]="s.action === 'VISIT' && !isRecalculating()"
+              role="button"
               tabindex="0"
               (dragstart)="onTimelineDragStart($event, idx, s)"
               (dragover)="onTimelineDragOver($event, idx, s)"
@@ -429,6 +472,12 @@
                 <div class="step-addr">{{ s.address?.full_address || (s.address?.street + ', ' + s.address?.number) }}</div>
                 
                 <div class="step-tags">
+                  <span *ngIf="s.has_time_conflict" class="tag-time-conflict" [title]="s.time_conflict_message || 'Atraso em relação ao horário marcado'">
+                    <i class="fa-solid fa-triangle-exclamation"></i> {{ s.time_conflict_message }}
+                  </span>
+                  <span *ngIf="s.target_arrival_time && !s.has_time_conflict" class="tag-target-time-ok">
+                    <i class="fa-solid fa-circle-check"></i> Marcado: {{ s.target_arrival_time }} (No Horário)
+                  </span>
                   <span *ngIf="s.step > 0 && selectedLegIndex() === (s.step - 1)" class="tag-focused-leg">
                     <i class="fa-solid fa-eye"></i> Trecho em Destaque
                   </span>
@@ -471,8 +520,21 @@
   </div>
 
   <!-- MODAL DE ADIÇÃO DE PONTO / BASE (Regras P-101 e P-102) -->
-  <div *ngIf="showPointModal()" class="modal-backdrop">
-    <div class="modal-dialog animate-scale-up">
+  <div 
+    *ngIf="showPointModal()" 
+    class="modal-backdrop" 
+    (click)="showPointModal.set(false)"
+    (keydown.escape)="showPointModal.set(false)"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div 
+      class="modal-dialog animate-scale-up" 
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      role="region"
+      aria-label="Configuração de Parada"
+    >
       <div class="modal-dialog__header">
         <h3>
           <i class="fa-solid" [class.fa-pen-to-square]="editingStopIndex() !== null" [class.fa-location-dot]="editingStopIndex() === null"></i>
@@ -524,26 +586,48 @@
         <!-- Opções extras se for Parada de Visita -->
         <div *ngIf="modalPointType === 'delivery'" class="delivery-options-grid">
           <div class="form-group">
-            <label for="modalPointPrioritySelect" class="form-label">Prioridade da Visita:</label>
+            <label for="modalPointPrioritySelect" class="form-label">
+              <i class="fa-solid fa-flag"></i> Prioridade da Visita:
+            </label>
             <select id="modalPointPrioritySelect" [(ngModel)]="modalPointPriority" class="modal-select">
               <option value="REGULAR">Regular</option>
               <option value="HIGH">Alta</option>
               <option value="CRITICAL">Urgente</option>
             </select>
+            <small class="form-field-hint">Urgência influencia a ordem da rota.</small>
           </div>
 
           <div class="form-group">
-            <label for="modalPointFixedOrderSelect" class="form-label">Fixar Ordem Manual (Opcional):</label>
+            <label for="modalPointTargetArrivalTimeInput" class="form-label">
+              <i class="fa-regular fa-clock"></i> Horário Marcado (Opcional):
+            </label>
+            <input 
+              id="modalPointTargetArrivalTimeInput"
+              type="time" 
+              [(ngModel)]="modalPointTargetArrivalTime" 
+              (ngModelChange)="checkModalTimeConflict()"
+              class="modal-input" 
+            />
+            <small class="form-field-hint">Prioridade máxima: chegar no horário ou antes.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="modalPointFixedOrderSelect" class="form-label">
+              <i class="fa-solid fa-lock"></i> Fixar Ordem (Opcional):
+            </label>
             <select id="modalPointFixedOrderSelect" [(ngModel)]="modalPointFixedOrder" class="modal-select">
               <option [ngValue]="null">⚡ Automático (IA)</option>
               <option *ngFor="let opt of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" [ngValue]="opt">
                 🔒 Fixar como Parada #{{ opt }}
               </option>
             </select>
+            <small class="form-field-hint">Trava a parada em posição específica.</small>
           </div>
 
           <div class="form-group">
-            <label for="modalPointServiceMinutesInput" class="form-label">Tempo de Atendimento nesta Parada:</label>
+            <label for="modalPointServiceMinutesInput" class="form-label">
+              <i class="fa-solid fa-stopwatch"></i> Duração do Atendimento:
+            </label>
             <div class="input-with-unit">
               <input 
                 id="modalPointServiceMinutesInput"
@@ -552,11 +636,22 @@
                 max="360" 
                 step="5" 
                 [(ngModel)]="modalPointServiceMinutes" 
+                (ngModelChange)="checkModalTimeConflict()"
+                placeholder="20"
                 class="modal-input" 
               />
               <span class="unit-pill">min</span>
             </div>
-            <small class="form-field-hint">Se deixado em branco, assumirá automaticamente a média de tempo dos demais clientes.</small>
+            <small class="form-field-hint">Se vazio, assume a média dos outros clientes.</small>
+          </div>
+        </div>
+
+        <!-- Alerta de Conflito de Horário Imediato no Cadastro/Edição (Regra P-207) -->
+        <div *ngIf="modalTimeConflictWarning()" class="modal-conflict-alert animate-fade-in">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div class="modal-conflict-alert__text">
+            <strong>Impossibilidade de Horário Detectada!</strong>
+            <p>{{ modalTimeConflictWarning() }}</p>
           </div>
         </div>
 
@@ -580,8 +675,21 @@
   </div>
 
   <!-- MODAL DE GERENCIAMENTO E EXCLUSÃO DE FAVORITOS (Regra P-101) -->
-  <div *ngIf="showManageFavoritesModal()" class="modal-backdrop">
-    <div class="modal-dialog modal-dialog--wide animate-scale-up">
+  <div 
+    *ngIf="showManageFavoritesModal()" 
+    class="modal-backdrop" 
+    (click)="showManageFavoritesModal.set(false)"
+    (keydown.escape)="showManageFavoritesModal.set(false)"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div 
+      class="modal-dialog modal-dialog--wide animate-scale-up" 
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      role="region"
+      aria-label="Gerenciamento de Favoritos"
+    >
       <div class="modal-dialog__header">
         <h3><i class="fa-solid fa-star"></i> Gerenciar Meus Locais Salvos / Favoritos</h3>
         <button class="modal-close-btn" (click)="showManageFavoritesModal.set(false)">✕</button>
@@ -647,5 +755,14 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal Calendário -->
+  <app-route-calendar
+    [isOpen]="isCalendarOpen()"
+    [selectedDate]="selectedDate()"
+    [routeDates]="routeDates()"
+    (dateSelected)="onDateSelected($event)"
+    (closed)="isCalendarOpen.set(false)"
+  />
 
 </div>

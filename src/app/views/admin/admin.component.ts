@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, effect, OnInit, untracked } from '@angular/core';
+import { Component, computed, inject, signal, effect, OnInit, OnDestroy, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
@@ -26,6 +26,7 @@ import { TableColumn } from './types/TableColumn.interface';
 import { TokenService } from '../../services/token/token.service';
 import { environment } from '../../../environments/environment';
 import { BannersService } from '../../services/banners/banners.service';
+import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal/routes-tutorial-modal.component';
 
 @Component({
   selector: 'app-admin',
@@ -42,20 +43,23 @@ import { BannersService } from '../../services/banners/banners.service';
     ModalEntityComponent,
     ModalConfirmComponent,
     ModalResponseComponent,
-    ToastComponent
+    ToastComponent,
+    RoutesTutorialModalComponent
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
 })
-export class AdminComponent implements OnInit {
-  private productsService = inject(ProductsService);
-  private suppliersService = inject(SuppliersService);
-  private categoryService = inject(ProductCategoriesService);
-  private usersService = inject(UsersService);
-  private authService = inject(AuthService);
-  private fb = inject(FormBuilder);
-  private tokenService = inject(TokenService);
-  private bannersService = inject(BannersService);
+export class AdminComponent implements OnInit, OnDestroy {
+  private readonly productsService = inject(ProductsService);
+  private readonly suppliersService = inject(SuppliersService);
+  private readonly categoryService = inject(ProductCategoriesService);
+  private readonly usersService = inject(UsersService);
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly tokenService = inject(TokenService);
+  private readonly bannersService = inject(BannersService);
+
+  readonly isRoutesTutorialOpen = signal<boolean>(false);
 
   pageTitle = signal<AdminTab>('Produtos');
 
@@ -133,6 +137,23 @@ export class AdminComponent implements OnInit {
         this.loadData();
       });
     }, { allowSignalWrites: true });
+
+    effect(() => {
+      const anyModal = this.isEntityModalOpen() || this.isConfirmModalOpen() || this.isResponseModalOpen() || this.isRoutesTutorialOpen();
+      if (typeof document !== 'undefined') {
+        if (anyModal) {
+          document.body.classList.add('modal-open-lock');
+        } else {
+          document.body.classList.remove('modal-open-lock');
+        }
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('modal-open-lock');
+    }
   }
 
   ngOnInit() {

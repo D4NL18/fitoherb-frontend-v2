@@ -5,7 +5,9 @@ import {
   OnDestroy, 
   signal, 
   inject, 
-  ChangeDetectorRef 
+  ChangeDetectorRef,
+  effect,
+  HostListener 
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,13 +25,16 @@ import {
   OptimizeRouteResponse, 
   OrderedStopDto 
 } from '../../../../types/routing/routing.interface';
+import { ScheduledRoutesService } from '../../../../services/scheduled-routes/scheduled-routes.service';
+import { RouteCalendarComponent } from '../route-calendar/route-calendar.component';
+import { ScheduledRouteReq } from '../../../../types/scheduled-routes/scheduled-route.interface';
 
 declare let L: any;
 
 @Component({
   selector: 'app-seller-routes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouteCalendarComponent],
   templateUrl: './seller-routes.component.html',
   styleUrl: './seller-routes.component.scss'
 })
@@ -44,6 +49,27 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly isExportingPdf = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
   readonly toastMessage = signal<string | null>(null);
+
+  readonly selectedDate = signal<string>(this.getTodayStr()); // yyyy-MM-dd
+  readonly isCalendarOpen = signal<boolean>(false);
+  readonly routeDates = signal<string[]>([]);
+  readonly isSavingRoute = signal<boolean>(false);
+  readonly isLoadingRoute = signal<boolean>(false);
+
+  private readonly scheduledRoutesService = inject(ScheduledRoutesService);
+
+  private getTodayStr(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  get formattedSelectedDate(): string {
+    const [year, month, day] = this.selectedDate().split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    return `${weekDays[date.getDay()]}, ${day} ${months[date.getMonth()]}`;
+  }
 
   // Aba lateral ativa: 'stops' (gerenciamento) ou 'results' (itinerário da IA)
   readonly activeSidebarTab = signal<'stops' | 'results'>('stops');
@@ -80,20 +106,20 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   // Trecho Ativo / Filtrado para Destaque no Mapa
   readonly selectedLegIndex = signal<number | null>(null);
 
-  // Paleta Harmoniosa de Cores para Identificação Visual dos Trechos
+  // Paleta Harmoniosa de Cores para Identificação Visual dos Trechos (Brand Fitoherb)
   readonly ROUTE_LEG_COLORS: string[] = [
-    '#2563eb', // Trecho 1: Azul Real Vibrante
-    '#d97706', // Trecho 2: Âmbar / Laranja
-    '#7c3aed', // Trecho 3: Violeta / Roxo
-    '#059669', // Trecho 4: Verde Esmeralda
-    '#dc2626', // Trecho 5: Vermelho Carmim
-    '#0891b2', // Trecho 6: Azul Petróleo / Ciano
-    '#ea580c', // Trecho 7: Laranja Queimado
-    '#4f46e5', // Trecho 8: Índigo
-    '#c026d3', // Trecho 9: Magenta
-    '#0d9488', // Trecho 10: Teal
-    '#65a30d', // Trecho 11: Verde Lima
-    '#475569'  // Trecho Retorno à Base: Ardósia
+    '#38582f', // Trecho 1: Verde Fitoherb
+    '#4d7a42', // Trecho 2: Verde Claro
+    '#2e4f24', // Trecho 3: Verde Escuro
+    '#5b4636', // Trecho 4: Marrom Terra
+    '#7b6247', // Trecho 5: Marrom Claro
+    '#827b5e', // Trecho 6: Oliva
+    '#4a5c43', // Trecho 7: Floresta
+    '#3b4238', // Trecho 8: Floresta Escuro
+    '#8a8a7a', // Trecho 9: Cinza Escuro
+    '#595950', // Trecho 10: Cinza Médio
+    '#1a1a12', // Trecho 11: Preto Fitoherb
+    '#729668'  // Trecho Retorno à Base: Verde Suave
   ];
 
   getLegColor(legIndex: number): string {
@@ -119,6 +145,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   modalPointPriority: 'REGULAR' | 'HIGH' | 'CRITICAL' = 'REGULAR';
   modalPointFixedOrder: number | null = null;
   modalPointServiceMinutes: number | null = null;
+  modalPointTargetArrivalTime: string | null = null;
+  readonly modalTimeConflictWarning = signal<string | null>(null);
   modalPointSaveFavorite: boolean = false;
   readonly modalIsReverseGeocoding = signal<boolean>(false);
 
@@ -150,8 +178,133 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   private markersLayer: any = null;
   private routeLayer: any = null;
 
+  constructor() {
+    effect(() => {
+      const anyOpen = this.showPointModal() || this.showManageFavoritesModal() || this.isCalendarOpen();
+      if (typeof document !== 'undefined') {
+        if (anyOpen) {
+          document.body.classList.add('modal-open-lock');
+        } else {
+          document.body.classList.remove('modal-open-lock');
+        }
+      }
+    });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.showSearchDropdown()) return;
+    const target = event.target as HTMLElement;
+    if (target && !target.closest('.search-section')) {
+      this.showSearchDropdown.set(false);
+    }
+  }
+
+  openCalendar(): void {
+    this.loadRouteDates();
+    this.isCalendarOpen.set(true);
+  }
+
+  loadRouteDates(): void {
+    this.scheduledRoutesService.getRouteDates().subscribe({
+      next: (dates) => this.routeDates.set(dates),
+      error: (err) => console.error('Erro ao carregar datas de rotas', err)
+    });
+  }
+
+  onDateSelected(dateStr: string): void {
+    this.selectedDate.set(dateStr);
+    this.isCalendarOpen.set(false);
+    this.loadRouteForDate(dateStr);
+  }
+
+  loadRouteForDate(dateStr: string): void {
+    this.isLoadingRoute.set(true);
+    this.scheduledRoutesService.getRouteByDate(dateStr).subscribe({
+      next: (route) => {
+        this.isLoadingRoute.set(false);
+        // Restaura o estado completo da rota
+        if (route.depot) this.depot.set(route.depot);
+        if (route.stops) {
+          this.stops.set(route.stops);
+        } else {
+          this.stops.set([]);
+        }
+        if (route.optimizationResult) {
+          this.optimizationResult.set(route.optimizationResult);
+          this.activeSidebarTab.set('results');
+          if (route.optimizationResult.geojson_geometry) {
+            // @ts-ignore
+            this.drawRouteOnMap(route.optimizationResult.geojson_geometry);
+          }
+        } else {
+          this.optimizationResult.set(null);
+          this.activeSidebarTab.set('stops');
+        }
+        if (route.departureTime) this.departureTime.set(route.departureTime);
+        // @ts-ignore
+        this.renderMarkers();
+        this.showToast(`Rota de ${this.formattedSelectedDate} carregada.`);
+      },
+      error: (err) => {
+        this.isLoadingRoute.set(false);
+        // 404 = não tem rota para essa data, limpa tudo
+        if (err.status === 404) {
+          this.stops.set([]);
+          this.optimizationResult.set(null);
+          this.activeSidebarTab.set('stops');
+          this.clearRouteFromMap();
+          // @ts-ignore
+          this.renderMarkers();
+          this.showToast(`Nenhuma rota salva para ${this.formattedSelectedDate}. Crie uma nova!`);
+        } else {
+          this.showToast('Erro ao carregar rota.');
+        }
+      }
+    });
+  }
+
+  saveCurrentRoute(): void {
+    if (this.stops().length === 0) {
+      this.showToast('Adicione ao menos uma parada antes de salvar.');
+      return;
+    }
+    this.isSavingRoute.set(true);
+    const req: ScheduledRouteReq = {
+      routeDate: this.selectedDate(),
+      departureTime: this.departureTime(),
+      returnToDepot: true,
+      depot: this.depot(),
+      stops: this.stops(),
+      optimizationResult: this.optimizationResult() || undefined
+    };
+    this.scheduledRoutesService.saveRoute(req).subscribe({
+      next: () => {
+        this.isSavingRoute.set(false);
+        this.loadRouteDates(); // atualiza indicadores do calendário
+        this.showToast(`Rota salva para ${this.formattedSelectedDate}!`);
+      },
+      error: (err) => {
+        this.isSavingRoute.set(false);
+        const msg = err.error?.message || 'Erro ao salvar rota.';
+        this.showToast(msg);
+      }
+    });
+  }
+
+  clearRouteFromMap(): void {
+    if (this.routeLayer) {
+      this.routeLayer.clearLayers();
+    }
+    // @ts-ignore
+    if (this.routeLayersMap) this.routeLayersMap.clear();
+    // @ts-ignore
+    this.fullGeoJson = null;
+  }
+
   ngOnInit() {
     this.loadSavedLocations();
+    this.loadRouteDates();
 
     // Autocomplete com debounce de 350ms para busca fluida ao digitar
     this.searchSubscription = this.searchSubject.pipe(
@@ -169,6 +322,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('modal-open-lock');
+    }
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
     }
@@ -242,6 +398,62 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderMarkers();
   }
 
+  // Utilitário para converter 'HH:MM' em minutos desde 00:00
+  parseTimeToMinutes(timeStr: string | null | undefined): number | null {
+    if (!timeStr) return null;
+    const parts = timeStr.trim().split(':');
+    if (parts.length < 2) return null;
+    const h = Number.parseInt(parts[0], 10);
+    const m = Number.parseInt(parts[1], 10);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    return h * 60 + m;
+  }
+
+  formatMinutesToTime(totalMins: number): string {
+    const norm = ((totalMins % 1440) + 1440) % 1440;
+    const h = Math.floor(norm / 60);
+    const m = norm % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  // Validação Imediata de Conflito de Horário entre Clientes (Regra P-207)
+  checkModalTimeConflict() {
+    this.modalTimeConflictWarning.set(null);
+    if (!this.modalPointTargetArrivalTime || this.modalPointType === 'base') {
+      return;
+    }
+
+    const currentTargetMin = this.parseTimeToMinutes(this.modalPointTargetArrivalTime);
+    if (currentTargetMin === null) return;
+
+    // Se duration não especificada, assumir 20 min como padrão
+    const currentDuration = (this.modalPointServiceMinutes && Number(this.modalPointServiceMinutes) > 0)
+      ? Number(this.modalPointServiceMinutes)
+      : 20;
+    const currentEndMin = currentTargetMin + currentDuration;
+
+    const currentEditIdx = this.editingStopIndex();
+    const otherStops = this.stops().filter((_, idx) => idx !== currentEditIdx);
+
+    for (const other of otherStops) {
+      if (other.target_arrival_time) {
+        const otherTargetMin = this.parseTimeToMinutes(other.target_arrival_time);
+        if (otherTargetMin !== null) {
+          const otherDuration = other.service_duration_minutes ?? 20;
+          const otherEndMin = otherTargetMin + otherDuration;
+
+          // Checa sobreposição temporal: dois intervalos [startA, endA) e [startB, endB) se sobrepõem se startA < endB && otherTargetMin < currentEndMin
+          if (currentTargetMin < otherEndMin && otherTargetMin < currentEndMin) {
+            this.modalTimeConflictWarning.set(
+              `Atenção: Horário conflitante com "${other.name}" (marcado às ${other.target_arrival_time} com ~${otherDuration} min de duração). É impossível estar nos dois pontos no mesmo intervalo.`
+            );
+            return;
+          }
+        }
+      }
+    }
+  }
+
   // Geocodificação reversa automática ao clicar no mapa
   openPointModalFromMapClick(lat: number, lon: number) {
     this.editingStopIndex.set(null);
@@ -252,6 +464,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalPointPriority = 'REGULAR';
     this.modalPointFixedOrder = null;
     this.modalPointServiceMinutes = null;
+    this.modalPointTargetArrivalTime = null;
+    this.modalTimeConflictWarning.set(null);
     this.modalPointSaveFavorite = false;
     this.modalIsReverseGeocoding.set(true);
     this.showPointModal.set(true);
@@ -295,6 +509,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalPointPriority = s.priority || 'REGULAR';
     this.modalPointFixedOrder = s.fixed_order || null;
     this.modalPointServiceMinutes = s.service_duration_minutes ?? null;
+    this.modalPointTargetArrivalTime = s.target_arrival_time || null;
     this.modalPointSaveFavorite = false;
     this.modalIsReverseGeocoding.set(false);
     this.modalAddress = {
@@ -306,6 +521,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       postalCode: s.address?.postal_code || '',
       fullAddress: s.address?.full_address || ''
     };
+    this.checkModalTimeConflict();
     this.showPointModal.set(true);
   }
 
@@ -329,6 +545,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
             name: this.modalPointTitle,
             priority: this.modalPointPriority,
             fixed_order: this.modalPointFixedOrder,
+            target_arrival_time: this.modalPointTargetArrivalTime ? this.modalPointTargetArrivalTime.trim() : null,
             service_duration_minutes: durationVal,
             address: {
               ...item.address,
@@ -403,6 +620,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       lon: this.modalPointLon,
       priority: this.modalPointPriority,
       fixed_order: this.modalPointFixedOrder,
+      target_arrival_time: this.modalPointTargetArrivalTime ? this.modalPointTargetArrivalTime.trim() : null,
       service_duration_minutes: durationVal,
       address: {
         street: this.modalAddress.street,
@@ -827,6 +1045,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         lon: vs.lon ?? orig?.lon ?? 0,
         priority: (vs.priority ?? orig?.priority ?? 'REGULAR') as any,
         service_duration_minutes: vs.service_duration_minutes ?? orig?.service_duration_minutes,
+        target_arrival_time: vs.target_arrival_time ?? orig?.target_arrival_time,
         address: vs.address ?? orig?.address,
         fixed_order: orig?.fixed_order
       };
