@@ -1,6 +1,18 @@
 @if (isOpen()) {
-  <div class="calendar-overlay" (click)="closeModal()">
-    <div class="calendar-modal" (click)="$event.stopPropagation()">
+  <div 
+    class="calendar-overlay" 
+    (click)="closeModal()"
+    (keydown.escape)="closeModal()"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div 
+      class="calendar-modal" 
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      role="region"
+      aria-label="Calendário de Seleção de Data"
+    >
       <!-- Header com navegação de mês -->
       <div class="calendar-header">
         <button class="nav-btn" (click)="previousMonth()" [attr.aria-label]="'Mês anterior'">

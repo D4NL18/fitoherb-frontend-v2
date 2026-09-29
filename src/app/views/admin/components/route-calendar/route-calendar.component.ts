@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, input, output, signal } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface CalendarDay {
@@ -20,7 +20,7 @@ export interface CalendarDay {
   templateUrl: './route-calendar.component.html',
   styleUrl: './route-calendar.component.scss'
 })
-export class RouteCalendarComponent implements OnInit {
+export class RouteCalendarComponent {
   // Inputs
   readonly isOpen = input<boolean>(false);
   readonly selectedDate = input<string>('');
@@ -136,8 +136,6 @@ export class RouteCalendarComponent implements OnInit {
     this.maxDate.setDate(this.today.getDate() + 30);
     this.maxDate.setHours(23,59,59,999);
   }
-  
-  ngOnInit(): void {}
   
   previousMonth(): void {
     if (this.currentMonth() === 0) {

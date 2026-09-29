@@ -14,17 +14,18 @@
   <div class="routes-header-bar">
     <div class="header-controls-group">
       <!-- Botão Seletor de Data com Calendário -->
-      <button class="date-picker-btn" (click)="openCalendar()" aria-label="Selecionar data">
+      <button type="button" class="date-picker-btn" (click)="openCalendar()" title="Alterar data da rota">
         <i class="fa-regular fa-calendar"></i>
         <span class="date-label">{{ formattedSelectedDate }}</span>
       </button>
 
       <!-- Botão Salvar Rota -->
       <button 
+        type="button"
         class="save-route-btn" 
         (click)="saveCurrentRoute()" 
         [disabled]="isSavingRoute() || stops().length === 0"
-        aria-label="Salvar rota para a data selecionada"
+        title="Salvar rota para a data selecionada"
       >
         @if (isSavingRoute()) {
           <i class="fa-solid fa-spinner fa-spin"></i>
@@ -411,6 +412,7 @@
               [class.timeline-step--dragging]="draggedStopIndex() === idx"
               [class.timeline-step--drag-over]="dragOverIndex() === idx"
               [draggable]="s.action === 'VISIT' && !isRecalculating()"
+              role="button"
               tabindex="0"
               (dragstart)="onTimelineDragStart($event, idx, s)"
               (dragover)="onTimelineDragOver($event, idx, s)"
@@ -518,8 +520,21 @@
   </div>
 
   <!-- MODAL DE ADIÇÃO DE PONTO / BASE (Regras P-101 e P-102) -->
-  <div *ngIf="showPointModal()" class="modal-backdrop" (click)="showPointModal.set(false)">
-    <div class="modal-dialog animate-scale-up" (click)="$event.stopPropagation()">
+  <div 
+    *ngIf="showPointModal()" 
+    class="modal-backdrop" 
+    (click)="showPointModal.set(false)"
+    (keydown.escape)="showPointModal.set(false)"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div 
+      class="modal-dialog animate-scale-up" 
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      role="region"
+      aria-label="Configuração de Parada"
+    >
       <div class="modal-dialog__header">
         <h3>
           <i class="fa-solid" [class.fa-pen-to-square]="editingStopIndex() !== null" [class.fa-location-dot]="editingStopIndex() === null"></i>
@@ -660,8 +675,21 @@
   </div>
 
   <!-- MODAL DE GERENCIAMENTO E EXCLUSÃO DE FAVORITOS (Regra P-101) -->
-  <div *ngIf="showManageFavoritesModal()" class="modal-backdrop" (click)="showManageFavoritesModal.set(false)">
-    <div class="modal-dialog modal-dialog--wide animate-scale-up" (click)="$event.stopPropagation()">
+  <div 
+    *ngIf="showManageFavoritesModal()" 
+    class="modal-backdrop" 
+    (click)="showManageFavoritesModal.set(false)"
+    (keydown.escape)="showManageFavoritesModal.set(false)"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div 
+      class="modal-dialog modal-dialog--wide animate-scale-up" 
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      role="region"
+      aria-label="Gerenciamento de Favoritos"
+    >
       <div class="modal-dialog__header">
         <h3><i class="fa-solid fa-star"></i> Gerenciar Meus Locais Salvos / Favoritos</h3>
         <button class="modal-close-btn" (click)="showManageFavoritesModal.set(false)">✕</button>

@@ -403,9 +403,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!timeStr) return null;
     const parts = timeStr.trim().split(':');
     if (parts.length < 2) return null;
-    const h = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10);
-    if (isNaN(h) || isNaN(m)) return null;
+    const h = Number.parseInt(parts[0], 10);
+    const m = Number.parseInt(parts[1], 10);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
     return h * 60 + m;
   }
 

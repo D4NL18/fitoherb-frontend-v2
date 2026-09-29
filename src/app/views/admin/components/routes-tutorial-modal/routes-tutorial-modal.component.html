@@ -1,6 +1,18 @@
 @if (isOpen()) {
-  <div class="tutorial-overlay" (click)="closeModal()">
-    <div class="tutorial-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+  <div 
+    class="tutorial-overlay" 
+    (click)="closeModal()"
+    (keydown.escape)="closeModal()"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div 
+      class="tutorial-card" 
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      role="region"
+      aria-labelledby="tutorialTitle"
+    >
       
       <!-- Topo: Badge do passo e Botão Fechar -->
       <div class="tutorial-header">

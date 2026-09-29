@@ -50,14 +50,14 @@ import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal
   styleUrl: './admin.component.scss',
 })
 export class AdminComponent implements OnInit, OnDestroy {
-  private productsService = inject(ProductsService);
-  private suppliersService = inject(SuppliersService);
-  private categoryService = inject(ProductCategoriesService);
-  private usersService = inject(UsersService);
-  private authService = inject(AuthService);
-  private fb = inject(FormBuilder);
-  private tokenService = inject(TokenService);
-  private bannersService = inject(BannersService);
+  private readonly productsService = inject(ProductsService);
+  private readonly suppliersService = inject(SuppliersService);
+  private readonly categoryService = inject(ProductCategoriesService);
+  private readonly usersService = inject(UsersService);
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly tokenService = inject(TokenService);
+  private readonly bannersService = inject(BannersService);
 
   readonly isRoutesTutorialOpen = signal<boolean>(false);
 
