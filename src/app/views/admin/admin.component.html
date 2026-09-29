@@ -3,7 +3,20 @@
 
 <section class="admin-page-main">
   <header>
-    <h1>{{ pageTitle() === 'Alterar Senha' ? 'Segurança' : (pageTitle() === 'Rotas' ? 'Roteirização Comercial' : 'Gerenciar ' + pageTitle()) }}</h1>
+    <div class="header-title-row">
+      <h1>{{ pageTitle() === 'Alterar Senha' ? 'Segurança' : (pageTitle() === 'Rotas' ? 'Roteirização Comercial' : 'Gerenciar ' + pageTitle()) }}</h1>
+      @if (pageTitle() === 'Rotas') {
+        <button 
+          type="button" 
+          class="btn-routes-info" 
+          (click)="isRoutesTutorialOpen.set(true)" 
+          title="Instruções de como utilizar a Roteirização Comercial"
+          aria-label="Como utilizar a Roteirização Comercial"
+        >
+          <i class="fa-solid fa-circle-info"></i>
+        </button>
+      }
+    </div>
     <p>{{ pageTitle() === 'Alterar Senha' ? 'Atualize suas credenciais de acesso' : (pageTitle() === 'Rotas' ? 'Planejamento e otimização inteligente de visitas a clientes' : 'Adicione, edite ou remova ' + (pageTitle() | lowercase)) }}</p>
   </header>
 
@@ -77,3 +90,8 @@
 @if (isToastOpen()) {
   <app-toast [message]="toastMessage()"></app-toast>
 }
+
+<app-routes-tutorial-modal
+  [isOpen]="isRoutesTutorialOpen()"
+  (closed)="isRoutesTutorialOpen.set(false)"
+></app-routes-tutorial-modal>

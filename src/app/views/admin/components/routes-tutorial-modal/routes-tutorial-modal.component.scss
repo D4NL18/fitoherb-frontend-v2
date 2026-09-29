@@ -1,0 +1,332 @@
+@use '../../../../../colors' as c;
+
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 20, 15, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 200ms ease-out;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 640px) {
+    padding: 0.75rem;
+    align-items: flex-start;
+  }
+}
+
+.tutorial-card {
+  background: c.$white;
+  border-radius: 16px;
+  max-width: 560px;
+  width: 100%;
+  max-height: calc(100dvh - 2rem);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  margin: auto;
+
+  @media (max-width: 640px) {
+    max-height: calc(100dvh - 1.5rem);
+    border-radius: 14px;
+  }
+}
+
+// Cabeçalho do Modal
+.tutorial-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid c.$gray-200;
+
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: c.$bg-green-base;
+    color: c.$green-600;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(56, 88, 47, 0.15);
+
+    i {
+      font-size: 14px;
+    }
+  }
+
+  .btn-close {
+    background: transparent;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: c.$gray-500;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 200ms ease;
+
+    &:hover {
+      background: c.$gray-100;
+      color: c.$gray-900;
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(56, 88, 47, 0.4);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Corpo do Modal
+.tutorial-body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  .step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: c.$gray-900;
+    margin: 0 0 8px;
+    line-height: 1.3;
+  }
+
+  .step-description {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    color: c.$gray-700;
+    margin: 0 0 20px;
+    line-height: 1.5;
+  }
+
+  .step-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: c.$gray-100;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border-left: 4px solid c.$green-600;
+    transition: background 150ms ease;
+
+    &:hover {
+      background: c.$bg-green-base;
+    }
+
+    .item-icon-wrapper {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      border-radius: 8px;
+      background: c.$white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: c.$green-600;
+      font-size: 16px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .item-text-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+
+      .item-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: c.$gray-900;
+      }
+
+      .item-description {
+        font-family: 'Outfit', sans-serif;
+        font-size: 13px;
+        color: c.$gray-700;
+        line-height: 1.45;
+      }
+    }
+  }
+}
+
+// Rodapé de Ações com Paginação Central
+.tutorial-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: c.$cream;
+  border-top: 1px solid c.$gray-200;
+  gap: 12px;
+
+  .action-slot {
+    min-width: 110px;
+    display: flex;
+
+    &--prev {
+      justify-content: flex-start;
+    }
+
+    &--next {
+      justify-content: flex-end;
+    }
+  }
+
+  // Botão Anterior: Branco com border preto
+  .btn-prev {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: c.$white;
+    color: c.$gray-900;
+    border: 1.5px solid c.$gray-900;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 180ms ease;
+
+    &:hover {
+      background: c.$gray-100;
+      transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid c.$gray-900;
+      outline-offset: 2px;
+    }
+  }
+
+  // Indicadores de Bolinhas no Centro
+  .pagination-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    .dot-btn {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: c.$gray-300;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: all 220ms ease;
+
+      &:hover {
+        background: c.$green-400;
+      }
+
+      &--active {
+        width: 24px;
+        border-radius: 10px;
+        background: c.$green-600;
+      }
+
+      &:focus-visible {
+        outline: 2px solid c.$green-600;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  // Botão Próximo: Verde da cor principal
+  .btn-next {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: c.$green-600;
+    color: c.$white;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 180ms ease;
+    box-shadow: 0 4px 10px rgba(56, 88, 47, 0.25);
+
+    &:hover {
+      background: c.$forest-light;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(56, 88, 47, 0.35);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(56, 88, 47, 0.4);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Animações
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Responsividade
+@media (max-width: 640px) {
+  .tutorial-card {
+    max-height: 90vh;
+  }
+
+  .tutorial-body {
+    padding: 18px 20px;
+  }
+
+  .tutorial-footer {
+    padding: 14px 16px;
+
+    .action-slot {
+      min-width: auto;
+    }
+
+    .btn-prev, .btn-next {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+  }
+}

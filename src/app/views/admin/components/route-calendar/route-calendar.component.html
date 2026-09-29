@@ -1,0 +1,64 @@
+@if (isOpen()) {
+  <div 
+    class="calendar-overlay" 
+    (click)="closeModal()"
+    (keydown.escape)="closeModal()"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div 
+      class="calendar-modal" 
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      role="region"
+      aria-label="Calendário de Seleção de Data"
+    >
+      <!-- Header com navegação de mês -->
+      <div class="calendar-header">
+        <button class="nav-btn" (click)="previousMonth()" [attr.aria-label]="'Mês anterior'">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h3 class="month-title">{{ monthName() }}</h3>
+        <button class="nav-btn" (click)="nextMonth()" [attr.aria-label]="'Próximo mês'">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+      
+      <!-- Dias da semana -->
+      <div class="calendar-weekdays">
+        @for (day of weekDays; track day) {
+          <div class="weekday">{{ day }}</div>
+        }
+      </div>
+      
+      <!-- Grid de dias -->
+      <div class="calendar-grid">
+        @for (day of calendarDays(); track day.dateStr) {
+          <button 
+            class="day-cell"
+            [class.other-month]="!day.isCurrentMonth"
+            [class.today]="day.isToday"
+            [class.selected]="day.isSelected"
+            [class.has-route]="day.hasRoute"
+            [class.disabled]="!day.isEnabled"
+            [disabled]="!day.isEnabled || !day.isCurrentMonth"
+            (click)="selectDay(day)"
+            [attr.aria-label]="day.dateStr"
+          >
+            <span class="day-number">{{ day.day }}</span>
+            @if (day.hasRoute && day.isCurrentMonth) {
+              <span class="route-dot"></span>
+            }
+          </button>
+        }
+      </div>
+      
+      <!-- Footer -->
+      <div class="calendar-footer">
+        <button class="today-btn" (click)="goToToday()">
+          <i class="fa-solid fa-calendar-day"></i> Hoje
+        </button>
+      </div>
+    </div>
+  </div>
+}

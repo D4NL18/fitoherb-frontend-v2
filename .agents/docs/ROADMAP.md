@@ -34,11 +34,14 @@ O **Fitoherb Frontend v2** é a Single Page Application (SPA) oficial da **Fitoh
 ### Épico 3: Evolução Contínua, Performance & Anti-IA Polish
 - [ ] **US-10 — Refinamento de Micro-interações e Polish Visual Anti-IA:** Otimização de micro-animações, estados de erro e skeletons customizados. `[PARALLEL]`
 - [ ] **US-11 — Auditoria de Acessibilidade (WCAG 2.1 AA):** Revisão completa de contraste, navegação por teclado e semântica de leitor de tela. `[PARALLEL]`
+- [x] **US-12 — Calendário e Agendamento de Rotas Comerciais:** Agendamento com seletor mensal, filtro de histórico e persistência no banco. `[P-200 a P-206]`
+- [x] **US-13 — Guia Passo a Passo da Roteirização Comercial:** Tour guiado em modal sequencial para vendedores leigos com botões customizados e paginação central. `[P-210 a P-215]`
 
 ---
 
 ## 3. Histórico de Entregas Recentes
 
+- **feat/scheduled-routes-calendar:** Calendário de agendamento de rotas e tutorial sequencial de uso.
 - **feature/about-team-section:** Adição e ajuste da seção "Nossa Equipe Comercial" no módulo institucional.
 - **feature/products-api-slug-update:** Integração de slugs dinâmicos com o backend e melhorias no catálogo.
 - **feature/LGPD-secure-login:** Conformidade de privacidade na autenticação e cookies seguros.
