@@ -157,6 +157,18 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    const cachedRole = this.tokenService.getUserRole();
+    if (cachedRole) {
+      this.currentUserRole.set(cachedRole);
+      if (cachedRole === 'SELLER') {
+        this.pageTitle.set('Rotas');
+      } else {
+        this.categoryService.getAll();
+        this.suppliersService.getAll();
+        this.bannersService.getActive();
+      }
+    }
+
     const email = this.tokenService.getUserEmail();
     if (email) {
       this.usersService.getByEmail(email).subscribe({
@@ -172,7 +184,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         },
         error: (err) => console.error('Failed to load user role', err)
       });
-    } else {
+    } else if (!cachedRole) {
       this.categoryService.getAll();
       this.suppliersService.getAll();
       this.bannersService.getActive();
@@ -195,12 +207,19 @@ export class AdminComponent implements OnInit, OnDestroy {
     if (this.currentUserRole() === 'SELLER' && tab !== 'Rotas' && tab !== 'Alterar Senha') {
       return;
     }
+    if (this.currentUserRole() === 'USER' && (tab === 'Usuários' || tab === 'Rotas')) {
+      return;
+    }
     this.pageTitle.set(tab);
   }
 
   loadData() {
     if (this.currentUserRole() === 'SELLER' && this.pageTitle() !== 'Rotas' && this.pageTitle() !== 'Alterar Senha') {
       this.pageTitle.set('Rotas');
+      return;
+    }
+    if (this.currentUserRole() === 'USER' && (this.pageTitle() === 'Usuários' || this.pageTitle() === 'Rotas')) {
+      this.pageTitle.set('Produtos');
       return;
     }
     if (this.pageTitle() === 'Alterar Senha' || this.pageTitle() === 'Rotas') return;
