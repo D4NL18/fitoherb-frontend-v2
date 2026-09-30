@@ -32,15 +32,30 @@ export class AdminNavComponent {
     { label: 'Alterar Senha', icon: 'fa-solid fa-lock' }
   ];
 
+  private readonly userTabs: { label: AdminTab, icon: string }[] = [
+    { label: 'Produtos', icon: 'fa-solid fa-box' },
+    { label: 'Categorias de Produtos', icon: 'fa-solid fa-tags' },
+    { label: 'Fornecedores', icon: 'fa-solid fa-truck-fast' },
+    { label: 'Banners', icon: 'fa-solid fa-image' },
+    { label: 'Alterar Senha', icon: 'fa-solid fa-lock' }
+  ];
+
   private readonly sellerTabs: { label: AdminTab, icon: string }[] = [
     { label: 'Rotas', icon: 'fa-solid fa-route' },
     { label: 'Alterar Senha', icon: 'fa-solid fa-lock' }
   ];
 
-  // Regra P-100: Vendedor visualiza exclusivamente as abas Rotas e Alterar Senha
+  // Regras P-100 e P-107:
+  // - Vendedor (SELLER): Rotas e Alterar Senha
+  // - Usuário (USER): Acesso aos CRUDs (Produtos, Categorias, Fornecedores, Banners) e Alterar Senha
+  // - Administrador (ADMIN): Acesso total a todas as abas
   tabs = computed(() => {
-    if (this.userRole() === 'SELLER') {
+    const role = this.userRole();
+    if (role === 'SELLER') {
       return this.sellerTabs;
+    }
+    if (role === 'USER') {
+      return this.userTabs;
     }
     return this.adminTabs;
   });
