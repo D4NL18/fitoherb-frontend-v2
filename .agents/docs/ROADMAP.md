@@ -36,11 +36,13 @@ O **Fitoherb Frontend v2** é a Single Page Application (SPA) oficial da **Fitoh
 - [ ] **US-11 — Auditoria de Acessibilidade (WCAG 2.1 AA):** Revisão completa de contraste, navegação por teclado e semântica de leitor de tela. `[PARALLEL]`
 - [x] **US-12 — Calendário e Agendamento de Rotas Comerciais:** Agendamento com seletor mensal, filtro de histórico e persistência no banco. `[P-200 a P-206]`
 - [x] **US-13 — Guia Passo a Passo da Roteirização Comercial:** Tour guiado em modal sequencial para vendedores leigos com botões customizados e paginação central. `[P-210 a P-215]`
+- [x] **US-14 — Busca Inteligente por Similaridade e Modal de Exportação PDF:** Busca tolerante a erros de digitação (fuzzy) em locais salvos e via API de mapas com prioridade por proximidade à base, além de modal de escolha de exportação com/sem mapa. `[P-220 a P-225]`
 
 ---
 
 ## 3. Histórico de Entregas Recentes
 
+- **feat/routes-fuzzy-search-pdf-modal:** Busca por similaridade geográfica e modal de exportação de PDF.
 - **feat/scheduled-routes-calendar:** Calendário de agendamento de rotas e tutorial sequencial de uso.
 - **feature/about-team-section:** Adição e ajuste da seção "Nossa Equipe Comercial" no módulo institucional.
 - **feature/products-api-slug-update:** Integração de slugs dinâmicos com o backend e melhorias no catálogo.

@@ -533,6 +533,28 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .proximity-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #1e40af;
+        background-color: #eff6ff;
+        border: 1px solid #bfdbfe;
+        padding: 0.12rem 0.45rem;
+        border-radius: 9999px;
+        flex-shrink: 0;
+
+        i {
+          font-size: 0.65rem;
+          color: #2563eb;
+        }
       }
 
       &__subtitle {
@@ -2669,3 +2691,171 @@
     box-shadow: 0 0 0 4px rgba(225, 29, 72, 0);
   }
 }
+
+/* Modal de Exportação de PDF com ou sem Mapa (Regras P-222 e P-223) */
+.modal-dialog--export {
+  max-width: 540px;
+
+  .modal-dialog__header {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .modal-header-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+
+    .modal-header-icon-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+      line-height: 1.25;
+    }
+
+    .modal-header-subtitle {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin: 0.2rem 0 0 0;
+      line-height: 1.3;
+    }
+  }
+
+  .modal-dialog__body--export {
+    padding: 1.5rem;
+    background: #ffffff;
+  }
+
+  .export-options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+  }
+
+  .export-option-card {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1.15rem 1.25rem;
+    border-radius: 14px;
+    background-color: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
+
+    &:hover, &:focus-visible {
+      background-color: #f0fdf4;
+      border-color: #10b981;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.15);
+
+      .export-option-card__arrow {
+        color: #10b981;
+        transform: translateX(3px);
+      }
+    }
+
+    &:active {
+      transform: scale(0.99);
+    }
+
+    &__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      flex-shrink: 0;
+
+      &--map {
+        background-color: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+      }
+
+      &--table {
+        background-color: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+      }
+    }
+
+    &__info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    &__header-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.3rem;
+    }
+
+    &__title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    &__desc {
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    &__arrow {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      transition: transform 0.2s ease, color 0.2s ease;
+      flex-shrink: 0;
+    }
+  }
+
+  .export-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+
+    &--full {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    &--fast {
+      background-color: #d1fae5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+  }
+}
+
