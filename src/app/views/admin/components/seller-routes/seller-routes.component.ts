@@ -47,6 +47,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly isLoading = signal<boolean>(false);
   readonly isOptimizing = signal<boolean>(false);
   readonly isExportingPdf = signal<boolean>(false);
+  readonly showExportPdfModal = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
   readonly toastMessage = signal<string | null>(null);
 
@@ -264,11 +265,10 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  saveCurrentRoute(): void {
-    if (this.stops().length === 0) {
-      this.showToast('Adicione ao menos uma parada antes de salvar.');
-      return;
-    }
+  // Salva automaticamente a rota gerada para a data selecionada (Regra P-226)
+  autoSaveRoute(optResult?: OptimizeRouteResponse): void {
+    if (this.stops().length === 0) return;
+
     this.isSavingRoute.set(true);
     const req: ScheduledRouteReq = {
       routeDate: this.selectedDate(),
@@ -276,20 +276,23 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       returnToDepot: true,
       depot: this.depot(),
       stops: this.stops(),
-      optimizationResult: this.optimizationResult() || undefined
+      optimizationResult: optResult || this.optimizationResult() || undefined
     };
+
     this.scheduledRoutesService.saveRoute(req).subscribe({
       next: () => {
         this.isSavingRoute.set(false);
         this.loadRouteDates(); // atualiza indicadores do calendário
-        this.showToast(`Rota salva para ${this.formattedSelectedDate}!`);
       },
       error: (err) => {
         this.isSavingRoute.set(false);
-        const msg = err.error?.message || 'Erro ao salvar rota.';
-        this.showToast(msg);
+        console.warn('Falha ao salvar rota automaticamente:', err);
       }
     });
+  }
+
+  saveCurrentRoute(): void {
+    this.autoSaveRoute();
   }
 
   clearRouteFromMap(): void {
@@ -674,16 +677,181 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchSubject.next(trimmed);
   }
 
-  // Locais salvos filtrados pela busca
-  get filteredSavedLocations(): SavedLocation[] {
-    const q = this.searchQuery.trim().toLowerCase();
-    if (!q) return this.savedLocations();
-    return this.savedLocations().filter(l => 
-      l.title?.toLowerCase().includes(q) ||
-      l.neighborhood?.toLowerCase().includes(q) ||
-      l.city?.toLowerCase().includes(q) ||
-      l.street?.toLowerCase().includes(q)
-    );
+  // Normalização de texto removendo acentos e convertendo para minúsculas
+  private normalizeText(text?: string | null): string {
+    if (!text) return '';
+    return text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  // Chave fonética simplificada para variações do Português Brasileiro (Regras P-220/P-221)
+  // Trata alternâncias como itapuã <-> itapoan, pituaçu <-> pituassu, drogazil <-> drogasil, etc.
+  private phoneticKey(text?: string | null): string {
+    const norm = this.normalizeText(text);
+    if (!norm) return '';
+    return norm
+      .replaceAll('ph', 'f')
+      .replaceAll('y', 'i')
+      .replaceAll('w', 'v')
+      .replace(/h+(?![cgl])/g, '')
+      .replace(/ç|z|ss|c(?=[eiy])/g, 's')
+      .replace(/qu(?=[eiy])|k|c(?=[aou])/g, 'k')
+      .replaceAll('oa', 'ua')
+      .replaceAll('oe', 'ue')
+      .replace(/u[anm]?\b/g, 'ua')
+      .replace(/[anm]\b/g, '')
+      .replace(/(\w)\1+/g, '$1');
+  }
+
+  // Similaridade de Levenshtein normalizada (0.0 a 1.0) para tolerância a erros tipográficos (Regra P-220)
+  private stringSimilarity(a: string, b: string): number {
+    if (a === b) return 1.0;
+    if (!a || !b) return 0.0;
+    if (a.includes(b) || b.includes(a)) {
+      return 0.85;
+    }
+    const lenA = a.length;
+    const lenB = b.length;
+    const matrix: number[][] = [];
+    for (let i = 0; i <= lenA; i++) matrix[i] = [i];
+    for (let j = 0; j <= lenB; j++) matrix[0][j] = j;
+    for (let i = 1; i <= lenA; i++) {
+      for (let j = 1; j <= lenB; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    const dist = matrix[lenA][lenB];
+    const maxLen = Math.max(lenA, lenB);
+    return Math.max(0, 1.0 - (dist / maxLen));
+  }
+
+  // Distância geodésica em KM (Haversine)
+  private calculateHaversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371.0;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  // Avalia relevância textual e fonética de um local salvo em relação à busca (Regra P-220)
+  private scoreSavedLocation(
+    loc: SavedLocation,
+    queryTokens: string[],
+    queryPhonTokens: string[]
+  ): { matchScore: number; matchedTokensCount: number } {
+    const titleNorm = this.normalizeText(loc.title);
+    const streetNorm = this.normalizeText(loc.street);
+    const neighNorm = this.normalizeText(loc.neighborhood);
+    const cityNorm = this.normalizeText(loc.city);
+    const fullAddrNorm = this.normalizeText(loc.fullAddress);
+    const combined = `${titleNorm} ${streetNorm} ${neighNorm} ${cityNorm} ${fullAddrNorm}`;
+    const locTokens = combined.split(/\s+/).filter(t => t.length > 0);
+
+    const titlePhon = this.phoneticKey(loc.title);
+    const streetPhon = this.phoneticKey(loc.street);
+    const neighPhon = this.phoneticKey(loc.neighborhood);
+    const cityPhon = this.phoneticKey(loc.city);
+    const fullAddrPhon = this.phoneticKey(loc.fullAddress);
+    const combinedPhon = `${titlePhon} ${streetPhon} ${neighPhon} ${cityPhon} ${fullAddrPhon}`;
+    const locPhonTokens = combinedPhon.split(/\s+/).filter(t => t.length > 0);
+
+    let matchScore = 0;
+    let matchedTokensCount = 0;
+
+    for (let i = 0; i < queryTokens.length; i++) {
+      const qToken = queryTokens[i];
+      const qPhon = queryPhonTokens[i] || this.phoneticKey(qToken);
+
+      if (combined.includes(qToken)) {
+        matchScore += 1.0;
+        matchedTokensCount++;
+        continue;
+      }
+
+      if (qPhon && combinedPhon.includes(qPhon)) {
+        matchScore += 0.95;
+        matchedTokensCount++;
+        continue;
+      }
+
+      let bestTokenSim = 0;
+      for (const lToken of locTokens) {
+        const sim = this.stringSimilarity(qToken, lToken);
+        if (sim > bestTokenSim) bestTokenSim = sim;
+      }
+      for (const lPhon of locPhonTokens) {
+        const simPhon = this.stringSimilarity(qPhon, lPhon);
+        if (simPhon > bestTokenSim) bestTokenSim = simPhon;
+      }
+
+      if (bestTokenSim >= 0.70) {
+        matchScore += bestTokenSim * 0.8;
+        matchedTokensCount++;
+      }
+    }
+
+    return { matchScore, matchedTokensCount };
+  }
+
+  // Locais salvos com busca tolerante a erros e priorização geográfica por proximidade da base (Regras P-220 e P-221)
+  get filteredSavedLocations(): (SavedLocation & { _distanceKm?: number })[] {
+    const rawQuery = this.searchQuery.trim();
+    const allLocations = this.savedLocations();
+    const depot = this.depot();
+
+    if (!rawQuery) {
+      return allLocations
+        .map(l => ({
+          ...l,
+          _distanceKm: this.calculateHaversineKm(depot.lat, depot.lon, l.latitude, l.longitude)
+        }))
+        .sort((a, b) => (a._distanceKm || 0) - (b._distanceKm || 0));
+    }
+
+    const normQ = this.normalizeText(rawQuery);
+    const queryTokens = normQ.split(/\s+/).filter(t => t.length > 0);
+    const phonQ = this.phoneticKey(rawQuery);
+    const queryPhonTokens = phonQ.split(/\s+/).filter(t => t.length > 0);
+
+    const scored = allLocations.map(loc => {
+      const { matchScore, matchedTokensCount } = this.scoreSavedLocation(loc, queryTokens, queryPhonTokens);
+      const distKm = this.calculateHaversineKm(depot.lat, depot.lon, loc.latitude, loc.longitude);
+      return {
+        location: loc,
+        matchScore,
+        matchedTokensCount,
+        distKm
+      };
+    });
+
+    const matches = scored.filter(s => s.matchedTokensCount > 0 || s.matchScore > 0);
+
+    // Prioriza relevância textual com desempate por proximidade geográfica da base
+    matches.sort((a, b) => {
+      const scoreDiff = b.matchScore - a.matchScore;
+      if (Math.abs(scoreDiff) > 0.4) {
+        return scoreDiff;
+      }
+      return a.distKm - b.distKm;
+    });
+
+    return matches.map(m => ({
+      ...m.location,
+      _distanceKm: m.distKm
+    }));
   }
 
   // Foco no campo de busca: exibe sugestões imediatamente se houver favoritos salvos
@@ -847,18 +1015,23 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.optimizationResult.set(null);
   }
 
-  // Lista de favoritos filtrados para o modal de gerenciamento
+  // Lista de favoritos filtrados para o modal de gerenciamento com suporte fuzzy (Regra P-220)
   get manageFilteredFavorites(): SavedLocation[] {
-    const q = this.manageFavoritesSearchQuery.trim().toLowerCase();
+    const raw = this.manageFavoritesSearchQuery.trim();
     const favs = this.savedLocations().filter(l => l.type === 'FAVORITE');
-    if (!q) return favs;
-    return favs.filter(l => 
-      l.title?.toLowerCase().includes(q) ||
-      l.neighborhood?.toLowerCase().includes(q) ||
-      l.city?.toLowerCase().includes(q) ||
-      l.street?.toLowerCase().includes(q) ||
-      l.fullAddress?.toLowerCase().includes(q)
-    );
+    if (!raw) return favs;
+
+    const normQ = this.normalizeText(raw);
+    const queryTokens = normQ.split(/\s+/).filter(Boolean);
+
+    return favs.filter(fav => {
+      const combined = this.normalizeText(`${fav.title} ${fav.neighborhood} ${fav.city} ${fav.street} ${fav.fullAddress}`);
+      return queryTokens.every(qTok => {
+        if (combined.includes(qTok)) return true;
+        const locTokens = combined.split(/\s+/);
+        return locTokens.some(lTok => this.stringSimilarity(qTok, lTok) >= 0.70);
+      });
+    });
   }
 
   // Exclui um local salvo (favorito) permanentemente do banco de dados (Regra P-101)
@@ -932,7 +1105,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.activeSidebarTab.set('results');
         this.drawRouteOnMap(res.geojson_geometry);
         this.renderMarkers();
-        this.showToast('Rota otimizada com sucesso pelo Algoritmo Genético!');
+        this.autoSaveRoute(res);
+        this.showToast('Rota otimizada e salva com sucesso!');
       },
       error: (err) => {
         this.isOptimizing.set(false);
@@ -1068,7 +1242,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.optimizationResult.set(res);
         this.drawRouteOnMap(res.geojson_geometry);
         this.renderMarkers();
-        this.showToast('Ordem alterada manualmente e rota recalculada!');
+        this.autoSaveRoute(res);
+        this.showToast('Ordem alterada e rota salva com sucesso!');
       },
       error: (err) => {
         this.isRecalculating.set(false);
@@ -1395,8 +1570,24 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Exportação Oficial em PDF com Imagem do Mapa (Regra P-105)
-  async exportPdf() {
+  // Abre o modal institucional para escolha de exportação de PDF (Regra P-222)
+  openExportPdfModal() {
+    const res = this.optimizationResult();
+    if (!res) {
+      this.showToast('Otimize a rota antes de exportar o PDF.');
+      return;
+    }
+    this.showExportPdfModal.set(true);
+  }
+
+  // Confirma a opção de exportação do modal (Com Mapa ou Sem Mapa)
+  confirmExportPdf(includeMap: boolean) {
+    this.showExportPdfModal.set(false);
+    void this.exportPdf(includeMap);
+  }
+
+  // Exportação Oficial em PDF com ou sem Imagem do Mapa (Regras P-105, P-222 e P-223)
+  async exportPdf(includeMap: boolean = true) {
     const res = this.optimizationResult();
     if (!res) {
       this.showToast('Otimize a rota antes de exportar o PDF.');
@@ -1406,32 +1597,34 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isExportingPdf.set(true);
 
     try {
-      // 1. Captura da imagem do mapa
-      const mapElement = document.getElementById('sellerRouteMap');
       let mapImgBase64 = '';
 
-      if (mapElement && this.map) {
-        // Assegura que todos os trechos estão com opacidade total no PDF
-        const prevFilter = this.selectedLegIndex();
-        this.selectedLegIndex.set(null);
-        this.updateRouteStyles();
-
-        // Aguarda estabilização da renderização no canvas do Leaflet
-        await new Promise(resolve => setTimeout(resolve, 150));
-
-        const canvas = await html2canvas(mapElement, {
-          useCORS: true,
-          allowTaint: true,
-          scale: 1.5,
-          logging: false
-        });
-
-        mapImgBase64 = canvas.toDataURL('image/png');
-
-        // Restaura estado prévio de filtro
-        if (prevFilter !== null) {
-          this.selectedLegIndex.set(prevFilter);
+      // 1. Captura da imagem do mapa somente se includeMap for verdadeiro
+      if (includeMap) {
+        const mapElement = document.getElementById('sellerRouteMap');
+        if (mapElement && this.map) {
+          // Assegura que todos os trechos estão com opacidade total no PDF
+          const prevFilter = this.selectedLegIndex();
+          this.selectedLegIndex.set(null);
           this.updateRouteStyles();
+
+          // Aguarda estabilização da renderização no canvas do Leaflet
+          await new Promise(resolve => setTimeout(resolve, 150));
+
+          const canvas = await html2canvas(mapElement, {
+            useCORS: true,
+            allowTaint: true,
+            scale: 1.5,
+            logging: false
+          });
+
+          mapImgBase64 = canvas.toDataURL('image/png');
+
+          // Restaura estado prévio de filtro
+          if (prevFilter !== null) {
+            this.selectedLegIndex.set(prevFilter);
+            this.updateRouteStyles();
+          }
         }
       }
 
@@ -1456,7 +1649,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(secondaryColor);
       const today = new Date().toLocaleDateString('pt-BR');
-      doc.text(`Roteiro Oficial de Visitas Comerciais - ${today}`, 14, 26);
+      const docSubtitle = includeMap ? 'Roteiro Oficial de Visitas (com Mapa)' : 'Roteiro Oficial de Visitas (Itinerário)';
+      doc.text(`${docSubtitle} - ${today}`, 14, 26);
       doc.text(`Ponto de Partida: ${this.depot().name}`, 14, 31);
 
       // KPI Box
@@ -1468,13 +1662,16 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       doc.text(`Tempo Estimado: ${res.total_time_minutes.toFixed(0)} min`, 85, 46);
       doc.text(`Total de Paradas: ${res.stops_count} visitas`, 145, 46);
 
-      // Imagem do Mapa
-      if (mapImgBase64) {
+      // Posição inicial da tabela dependente da inclusão do mapa (Regra P-223)
+      let y = 58;
+
+      // Imagem do Mapa (se includeMap estiver ativo)
+      if (includeMap && mapImgBase64) {
         doc.addImage(mapImgBase64, 'PNG', 14, 56, 182, 75);
+        y = 140;
       }
 
       // Tabela de Paradas
-      let y = 140;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(primaryColor);
@@ -1538,9 +1735,10 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         290
       );
 
-      // Download
-      doc.save(`roteiro_fitoherb_${today.replaceAll('/', '-')}.pdf`);
-      this.showToast('PDF exportado com sucesso!');
+      // Download com nomenclatura explicativa
+      const fileSuffix = includeMap ? 'com_mapa' : 'sem_mapa';
+      doc.save(`roteiro_fitoherb_${fileSuffix}_${today.replaceAll('/', '-')}.pdf`);
+      this.showToast(`PDF ${includeMap ? 'com mapa' : 'sem mapa'} exportado com sucesso!`);
     } catch (e) {
       console.error('Erro ao gerar PDF', e);
       this.showToast('Erro ao exportar PDF.');
@@ -1548,6 +1746,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isExportingPdf.set(false);
     }
   }
+
 
   showToast(msg: string) {
     this.toastMessage.set(msg);
