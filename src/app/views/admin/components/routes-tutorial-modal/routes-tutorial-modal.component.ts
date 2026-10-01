@@ -77,9 +77,9 @@ export class RoutesTutorialModalComponent {
           text: 'Você pode agendar rotas de hoje até 30 dias para frente (números pretos no calendário).'
         },
         {
-          icon: 'fa-solid fa-floppy-disk',
-          title: 'Salvar a Rota',
-          text: 'Após organizar seus clientes, clique no botão "Salvar Rota" para gravar os dados do dia escolhido no sistema.'
+          icon: 'fa-solid fa-cloud-arrow-up',
+          title: 'Salvamento Automático',
+          text: 'Ao gerar ou reorganizar o seu roteiro, o sistema salva automaticamente todas as paradas e horários no dia agendado.'
         }
       ]
     },

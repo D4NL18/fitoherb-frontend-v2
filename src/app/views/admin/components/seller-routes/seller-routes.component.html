@@ -19,21 +19,7 @@
         <span class="date-label">{{ formattedSelectedDate }}</span>
       </button>
 
-      <!-- Botão Salvar Rota -->
-      <button 
-        type="button"
-        class="save-route-btn" 
-        (click)="saveCurrentRoute()" 
-        [disabled]="isSavingRoute() || stops().length === 0"
-        title="Salvar rota para a data selecionada"
-      >
-        @if (isSavingRoute()) {
-          <i class="fa-solid fa-spinner fa-spin"></i>
-        } @else {
-          <i class="fa-solid fa-floppy-disk"></i>
-        }
-        <span class="btn-text">Salvar Rota</span>
-      </button>
+
 
       <button 
         type="button" 

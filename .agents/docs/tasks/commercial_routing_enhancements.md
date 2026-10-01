@@ -27,9 +27,12 @@
   - Se `includeMap === true`: captura o mapa e mantém o posicionamento clássico.
 - [x] Estilizar o modal de acordo com o Design System da Fitoherb (SCSS moderno, sombras suaves, estados hover e responsividade).
 - [x] Criar testes unitários no frontend (`seller-routes.component.spec.ts`) cobrindo as opções de exportação e busca fuzzy.
+- [x] Remover botão manual de "Salvar Rota" do cabeçalho de controles (Regra P-226).
+- [x] Implementar auto-save transparente (`autoSaveRoute`) acionado automaticamente ao gerar ou recalcular a rota (Regra P-226).
+- [x] Atualizar tutorial interativo refletindo o comportamento de salvamento automático das rotas agendadas.
 
 ### 3. Validação e Qualidade
 - [x] Rodar suíte de testes no backend `fitoherb-ai` (21 testes aprovados).
-- [x] Rodar suíte de testes no frontend `fitoherb-frontend-v2` (27 testes aprovados).
+- [x] Rodar suíte de testes no frontend `fitoherb-frontend-v2` (28 testes aprovados).
 - [x] Validação de build em produção (`ng build --configuration production`).
 - [x] Revisão de código (Clean Code, LGPD e Anti-IA Vibe Check).

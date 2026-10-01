@@ -265,11 +265,10 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  saveCurrentRoute(): void {
-    if (this.stops().length === 0) {
-      this.showToast('Adicione ao menos uma parada antes de salvar.');
-      return;
-    }
+  // Salva automaticamente a rota gerada para a data selecionada (Regra P-226)
+  autoSaveRoute(optResult?: OptimizeRouteResponse): void {
+    if (this.stops().length === 0) return;
+
     this.isSavingRoute.set(true);
     const req: ScheduledRouteReq = {
       routeDate: this.selectedDate(),
@@ -277,20 +276,23 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       returnToDepot: true,
       depot: this.depot(),
       stops: this.stops(),
-      optimizationResult: this.optimizationResult() || undefined
+      optimizationResult: optResult || this.optimizationResult() || undefined
     };
+
     this.scheduledRoutesService.saveRoute(req).subscribe({
       next: () => {
         this.isSavingRoute.set(false);
         this.loadRouteDates(); // atualiza indicadores do calendário
-        this.showToast(`Rota salva para ${this.formattedSelectedDate}!`);
       },
       error: (err) => {
         this.isSavingRoute.set(false);
-        const msg = err.error?.message || 'Erro ao salvar rota.';
-        this.showToast(msg);
+        console.warn('Falha ao salvar rota automaticamente:', err);
       }
     });
+  }
+
+  saveCurrentRoute(): void {
+    this.autoSaveRoute();
   }
 
   clearRouteFromMap(): void {
@@ -1053,7 +1055,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.activeSidebarTab.set('results');
         this.drawRouteOnMap(res.geojson_geometry);
         this.renderMarkers();
-        this.showToast('Rota otimizada com sucesso pelo Algoritmo Genético!');
+        this.autoSaveRoute(res);
+        this.showToast('Rota otimizada e salva com sucesso!');
       },
       error: (err) => {
         this.isOptimizing.set(false);
@@ -1189,7 +1192,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.optimizationResult.set(res);
         this.drawRouteOnMap(res.geojson_geometry);
         this.renderMarkers();
-        this.showToast('Ordem alterada manualmente e rota recalculada!');
+        this.autoSaveRoute(res);
+        this.showToast('Ordem alterada e rota salva com sucesso!');
       },
       error: (err) => {
         this.isRecalculating.set(false);

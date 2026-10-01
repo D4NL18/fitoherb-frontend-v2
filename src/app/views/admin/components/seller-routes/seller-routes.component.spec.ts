@@ -126,4 +126,29 @@ describe('SellerRoutesComponent - Fuzzy Search and PDF Modal', () => {
     expect(results[1].city).toBe('Salvador');
     expect(results[0]._distanceKm).toBeLessThan(results[1]._distanceKm!);
   });
+
+  it('should auto-save route when optimizeRoute succeeds', () => {
+    spyOn(component, 'autoSaveRoute');
+    component.stops.set([
+      {
+        id: 'stop-1',
+        name: 'Cliente 1',
+        lat: -12.9,
+        lon: -38.3,
+        demand: 1
+      }
+    ]);
+
+    const mockResponse: any = {
+      total_distance_km: 10,
+      total_time_minutes: 30,
+      stops_count: 1,
+      ordered_stops: [],
+      geojson_geometry: { type: 'FeatureCollection', features: [] }
+    };
+    routingService.optimizeRoute.and.returnValue(of(mockResponse));
+
+    component.optimizeRoute();
+    expect(component.autoSaveRoute).toHaveBeenCalledWith(mockResponse);
+  });
 });

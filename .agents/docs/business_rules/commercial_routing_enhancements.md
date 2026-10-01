@@ -56,3 +56,10 @@ Este documento estabelece as especificações das novas funcionalidades da aba d
 
 ## [P-225] Resiliência e Continuidade Operacional
 1. Caso a API de busca do microserviço esteja instável ou offline, o frontend deve acionar automaticamente os endpoints públicos com geocodificação tolerante, sem quebrar o fluxo de trabalho do vendedor.
+
+---
+
+## [P-226] Persistência Automática ao Gerar Rota (Auto-Save on Generation)
+1. O sistema dispensa botão manual de "Salvar Rota" no cabeçalho ou painel de controle.
+2. Ao gerar uma nova rota com o algoritmo genético (`optimizeRoute`) ou ao recalcular o trajeto viário após reorganização manual de paradas (`recalculateRoute`), o sistema deve invocar automaticamente o serviço de persistência (`scheduledRoutesService.saveRoute`).
+3. A persistência automática deve atualizar transparentemente os dados salvos para a data selecionada no calendário (`routeDate`), atualizando os indicadores de dias com rota agendada sem exigir ação manual do operador.
