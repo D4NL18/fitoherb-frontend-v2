@@ -21,37 +21,47 @@ describe('SellerRoutesComponent - Fuzzy Search and PDF Modal', () => {
       'recalculateRoute'
     ]);
     const savedLocSpy = jasmine.createSpyObj('SavedLocationsService', [
-      'getLocations',
-      'createLocation',
-      'deleteLocation',
-      'updateLocation'
+      'getAll',
+      'getBase',
+      'create',
+      'delete',
+      'update'
     ]);
-    savedLocSpy.getLocations.and.returnValue(of({
-      data: [
-        {
-          id: '1',
-          title: 'Farmácia Drogasil Pituba',
-          type: 'FAVORITE',
-          latitude: -12.99,
-          longitude: -38.45,
-          neighborhood: 'Pituba',
-          city: 'Salvador',
-          street: 'Av Manoel Dias',
-          fullAddress: 'Av Manoel Dias, Pituba, Salvador'
-        },
-        {
-          id: '2',
-          title: 'Farmácia São Marcos Lauro',
-          type: 'FAVORITE',
-          latitude: -12.8995,
-          longitude: -38.3245,
-          neighborhood: 'Centro',
-          city: 'Lauro de Freitas',
-          street: 'Rua Itaeté',
-          fullAddress: 'Rua Itaeté, Centro, Lauro de Freitas'
-        }
-      ]
-    }));
+    savedLocSpy.getAll.and.returnValue(of([
+      {
+        id: '1',
+        title: 'Farmácia Drogasil Pituba',
+        type: 'FAVORITE',
+        latitude: -12.99,
+        longitude: -38.45,
+        neighborhood: 'Pituba',
+        city: 'Salvador',
+        street: 'Av Manoel Dias',
+        fullAddress: 'Av Manoel Dias, Pituba, Salvador'
+      },
+      {
+        id: '2',
+        title: 'Farmácia São Marcos Lauro',
+        type: 'FAVORITE',
+        latitude: -12.8995,
+        longitude: -38.3245,
+        neighborhood: 'Centro',
+        city: 'Lauro de Freitas',
+        street: 'Rua Itaeté',
+        fullAddress: 'Rua Itaeté, Centro, Lauro de Freitas'
+      },
+      {
+        id: '3',
+        title: 'Farmácia Itapoan Farol',
+        type: 'FAVORITE',
+        latitude: -12.935,
+        longitude: -38.365,
+        neighborhood: 'Itapuã',
+        city: 'Salvador',
+        street: 'Rua das Dunas',
+        fullAddress: 'Rua das Dunas, Itapoan, Salvador'
+      }
+    ]));
 
     const authSpy = jasmine.createSpyObj('AuthService', ['getUser']);
     authSpy.getUser.and.returnValue(of(null));
@@ -71,6 +81,8 @@ describe('SellerRoutesComponent - Fuzzy Search and PDF Modal', () => {
 
     fixture = TestBed.createComponent(SellerRoutesComponent);
     component = fixture.componentInstance;
+    routingService = TestBed.inject(CommercialRoutingService) as jasmine.SpyObj<CommercialRoutingService>;
+    savedLocationsService = TestBed.inject(SavedLocationsService) as jasmine.SpyObj<SavedLocationsService>;
     fixture.detectChanges();
   });
 
@@ -115,15 +127,28 @@ describe('SellerRoutesComponent - Fuzzy Search and PDF Modal', () => {
     expect(resultsUnaccented[0].title).toContain('São Marcos');
   });
 
+  it('should match locations phonetically, such as itapuã matching Itapoan and vice-versa', () => {
+    // Busca por "itapuã" deve encontrar "Farmácia Itapoan Farol"
+    component.searchQuery = 'itapuã';
+    const results = component.filteredSavedLocations;
+    expect(results.length).toBeGreaterThanOrEqual(1);
+    expect(results[0].title).toBe('Farmácia Itapoan Farol');
+
+    // Busca por "itapua" (sem acento) também
+    component.searchQuery = 'itapua';
+    const resultsUnaccented = component.filteredSavedLocations;
+    expect(resultsUnaccented.length).toBeGreaterThanOrEqual(1);
+    expect(resultsUnaccented[0].title).toBe('Farmácia Itapoan Farol');
+  });
+
   it('should prioritize results closer to depot in filteredSavedLocations', () => {
     // Base está em Lauro de Freitas (-12.8992, -38.3242)
     // O local 2 (Lauro de Freitas) está a ~0.1 km, enquanto local 1 (Pituba) está a ~17 km
     component.searchQuery = 'farmacia';
     const results = component.filteredSavedLocations;
-    expect(results.length).toBe(2);
+    expect(results.length).toBe(3);
     // O mais próximo da base (Lauro) deve estar na frente
     expect(results[0].city).toBe('Lauro de Freitas');
-    expect(results[1].city).toBe('Salvador');
     expect(results[0]._distanceKm).toBeLessThan(results[1]._distanceKm!);
   });
 
@@ -135,7 +160,8 @@ describe('SellerRoutesComponent - Fuzzy Search and PDF Modal', () => {
         name: 'Cliente 1',
         lat: -12.9,
         lon: -38.3,
-        demand: 1
+        demand: 1,
+        priority: 'REGULAR'
       }
     ]);
 

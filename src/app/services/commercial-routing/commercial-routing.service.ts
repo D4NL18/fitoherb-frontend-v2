@@ -29,7 +29,7 @@ export class CommercialRoutingService {
       proxyUrl += `&lat=${lat}&lon=${lon}`;
     }
 
-    let photonDirect = `https://photon.komoot.io/api/?q=${encoded}&lang=pt&limit=12`;
+    let photonDirect = `https://photon.komoot.io/api/?q=${encoded}&limit=12`;
     if (lat !== undefined && lon !== undefined) {
       photonDirect += `&lat=${lat}&lon=${lon}`;
     }

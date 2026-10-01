@@ -687,6 +687,25 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       .trim();
   }
 
+  // Chave fonética simplificada para variações do Português Brasileiro (Regras P-220/P-221)
+  // Trata alternâncias como itapuã <-> itapoan, pituaçu <-> pituassu, drogazil <-> drogasil, etc.
+  private phoneticKey(text?: string | null): string {
+    const norm = this.normalizeText(text);
+    if (!norm) return '';
+    return norm
+      .replace(/ph/g, 'f')
+      .replace(/y/g, 'i')
+      .replace(/w/g, 'v')
+      .replace(/h+(?![cgl])/g, '')
+      .replace(/ç|z|ss|c(?=[eiy])/g, 's')
+      .replace(/qu(?=[eiy])|k|c(?=[aou])/g, 'k')
+      .replace(/oa/g, 'ua')
+      .replace(/oe/g, 'ue')
+      .replace(/u[anm]?\b/g, 'ua')
+      .replace(/[anm]\b/g, '')
+      .replace(/(\w)\1+/g, '$1');
+  }
+
   // Similaridade de Levenshtein normalizada (0.0 a 1.0) para tolerância a erros tipográficos (Regra P-220)
   private stringSimilarity(a: string, b: string): number {
     if (a === b) return 1.0;
@@ -744,6 +763,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const normQ = this.normalizeText(rawQuery);
     const queryTokens = normQ.split(/\s+/).filter(t => t.length > 0);
+    const phonQ = this.phoneticKey(rawQuery);
+    const queryPhonTokens = phonQ.split(/\s+/).filter(t => t.length > 0);
 
     const scored = allLocations.map(loc => {
       const titleNorm = this.normalizeText(loc.title);
@@ -754,21 +775,45 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       const combined = `${titleNorm} ${streetNorm} ${neighNorm} ${cityNorm} ${fullAddrNorm}`;
       const locTokens = combined.split(/\s+/).filter(t => t.length > 0);
 
+      const titlePhon = this.phoneticKey(loc.title);
+      const streetPhon = this.phoneticKey(loc.street);
+      const neighPhon = this.phoneticKey(loc.neighborhood);
+      const cityPhon = this.phoneticKey(loc.city);
+      const fullAddrPhon = this.phoneticKey(loc.fullAddress);
+      const combinedPhon = `${titlePhon} ${streetPhon} ${neighPhon} ${cityPhon} ${fullAddrPhon}`;
+      const locPhonTokens = combinedPhon.split(/\s+/).filter(t => t.length > 0);
+
       let matchScore = 0;
       let matchedTokensCount = 0;
 
-      for (const qToken of queryTokens) {
+      for (let i = 0; i < queryTokens.length; i++) {
+        const qToken = queryTokens[i];
+        const qPhon = queryPhonTokens[i] || this.phoneticKey(qToken);
+
+        // 1. Match exato ou substring direta
         if (combined.includes(qToken)) {
           matchScore += 1.0;
           matchedTokensCount++;
           continue;
         }
 
-        // Fuzzy match token a token
+        // 2. Match fonético PT-BR (ex: itapuã <-> itapoan)
+        if (qPhon && combinedPhon.includes(qPhon)) {
+          matchScore += 0.95;
+          matchedTokensCount++;
+          continue;
+        }
+
+        // 3. Fuzzy match token a token (ortográfico e fonético)
         let bestTokenSim = 0;
         for (const lToken of locTokens) {
           const sim = this.stringSimilarity(qToken, lToken);
           if (sim > bestTokenSim) bestTokenSim = sim;
+        }
+
+        for (const lPhon of locPhonTokens) {
+          const simPhon = this.stringSimilarity(qPhon, lPhon);
+          if (simPhon > bestTokenSim) bestTokenSim = simPhon;
         }
 
         if (bestTokenSim >= 0.70) {
