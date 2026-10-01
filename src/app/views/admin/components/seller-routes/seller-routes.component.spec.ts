@@ -146,7 +146,7 @@ describe('SellerRoutesComponent - Fuzzy Search and PDF Modal', () => {
     // O local 2 (Lauro de Freitas) está a ~0.1 km, enquanto local 1 (Pituba) está a ~17 km
     component.searchQuery = 'farmacia';
     const results = component.filteredSavedLocations;
-    expect(results.length).toBe(3);
+    expect(results).toHaveSize(3);
     // O mais próximo da base (Lauro) deve estar na frente
     expect(results[0].city).toBe('Lauro de Freitas');
     expect(results[0]._distanceKm).toBeLessThan(results[1]._distanceKm!);

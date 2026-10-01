@@ -693,14 +693,14 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     const norm = this.normalizeText(text);
     if (!norm) return '';
     return norm
-      .replace(/ph/g, 'f')
-      .replace(/y/g, 'i')
-      .replace(/w/g, 'v')
+      .replaceAll('ph', 'f')
+      .replaceAll('y', 'i')
+      .replaceAll('w', 'v')
       .replace(/h+(?![cgl])/g, '')
       .replace(/ç|z|ss|c(?=[eiy])/g, 's')
       .replace(/qu(?=[eiy])|k|c(?=[aou])/g, 'k')
-      .replace(/oa/g, 'ua')
-      .replace(/oe/g, 'ue')
+      .replaceAll('oa', 'ua')
+      .replaceAll('oe', 'ue')
       .replace(/u[anm]?\b/g, 'ua')
       .replace(/[anm]\b/g, '')
       .replace(/(\w)\1+/g, '$1');
@@ -746,6 +746,66 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     return R * c;
   }
 
+  // Avalia relevância textual e fonética de um local salvo em relação à busca (Regra P-220)
+  private scoreSavedLocation(
+    loc: SavedLocation,
+    queryTokens: string[],
+    queryPhonTokens: string[]
+  ): { matchScore: number; matchedTokensCount: number } {
+    const titleNorm = this.normalizeText(loc.title);
+    const streetNorm = this.normalizeText(loc.street);
+    const neighNorm = this.normalizeText(loc.neighborhood);
+    const cityNorm = this.normalizeText(loc.city);
+    const fullAddrNorm = this.normalizeText(loc.fullAddress);
+    const combined = `${titleNorm} ${streetNorm} ${neighNorm} ${cityNorm} ${fullAddrNorm}`;
+    const locTokens = combined.split(/\s+/).filter(t => t.length > 0);
+
+    const titlePhon = this.phoneticKey(loc.title);
+    const streetPhon = this.phoneticKey(loc.street);
+    const neighPhon = this.phoneticKey(loc.neighborhood);
+    const cityPhon = this.phoneticKey(loc.city);
+    const fullAddrPhon = this.phoneticKey(loc.fullAddress);
+    const combinedPhon = `${titlePhon} ${streetPhon} ${neighPhon} ${cityPhon} ${fullAddrPhon}`;
+    const locPhonTokens = combinedPhon.split(/\s+/).filter(t => t.length > 0);
+
+    let matchScore = 0;
+    let matchedTokensCount = 0;
+
+    for (let i = 0; i < queryTokens.length; i++) {
+      const qToken = queryTokens[i];
+      const qPhon = queryPhonTokens[i] || this.phoneticKey(qToken);
+
+      if (combined.includes(qToken)) {
+        matchScore += 1.0;
+        matchedTokensCount++;
+        continue;
+      }
+
+      if (qPhon && combinedPhon.includes(qPhon)) {
+        matchScore += 0.95;
+        matchedTokensCount++;
+        continue;
+      }
+
+      let bestTokenSim = 0;
+      for (const lToken of locTokens) {
+        const sim = this.stringSimilarity(qToken, lToken);
+        if (sim > bestTokenSim) bestTokenSim = sim;
+      }
+      for (const lPhon of locPhonTokens) {
+        const simPhon = this.stringSimilarity(qPhon, lPhon);
+        if (simPhon > bestTokenSim) bestTokenSim = simPhon;
+      }
+
+      if (bestTokenSim >= 0.70) {
+        matchScore += bestTokenSim * 0.8;
+        matchedTokensCount++;
+      }
+    }
+
+    return { matchScore, matchedTokensCount };
+  }
+
   // Locais salvos com busca tolerante a erros e priorização geográfica por proximidade da base (Regras P-220 e P-221)
   get filteredSavedLocations(): (SavedLocation & { _distanceKm?: number })[] {
     const rawQuery = this.searchQuery.trim();
@@ -767,63 +827,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     const queryPhonTokens = phonQ.split(/\s+/).filter(t => t.length > 0);
 
     const scored = allLocations.map(loc => {
-      const titleNorm = this.normalizeText(loc.title);
-      const streetNorm = this.normalizeText(loc.street);
-      const neighNorm = this.normalizeText(loc.neighborhood);
-      const cityNorm = this.normalizeText(loc.city);
-      const fullAddrNorm = this.normalizeText(loc.fullAddress);
-      const combined = `${titleNorm} ${streetNorm} ${neighNorm} ${cityNorm} ${fullAddrNorm}`;
-      const locTokens = combined.split(/\s+/).filter(t => t.length > 0);
-
-      const titlePhon = this.phoneticKey(loc.title);
-      const streetPhon = this.phoneticKey(loc.street);
-      const neighPhon = this.phoneticKey(loc.neighborhood);
-      const cityPhon = this.phoneticKey(loc.city);
-      const fullAddrPhon = this.phoneticKey(loc.fullAddress);
-      const combinedPhon = `${titlePhon} ${streetPhon} ${neighPhon} ${cityPhon} ${fullAddrPhon}`;
-      const locPhonTokens = combinedPhon.split(/\s+/).filter(t => t.length > 0);
-
-      let matchScore = 0;
-      let matchedTokensCount = 0;
-
-      for (let i = 0; i < queryTokens.length; i++) {
-        const qToken = queryTokens[i];
-        const qPhon = queryPhonTokens[i] || this.phoneticKey(qToken);
-
-        // 1. Match exato ou substring direta
-        if (combined.includes(qToken)) {
-          matchScore += 1.0;
-          matchedTokensCount++;
-          continue;
-        }
-
-        // 2. Match fonético PT-BR (ex: itapuã <-> itapoan)
-        if (qPhon && combinedPhon.includes(qPhon)) {
-          matchScore += 0.95;
-          matchedTokensCount++;
-          continue;
-        }
-
-        // 3. Fuzzy match token a token (ortográfico e fonético)
-        let bestTokenSim = 0;
-        for (const lToken of locTokens) {
-          const sim = this.stringSimilarity(qToken, lToken);
-          if (sim > bestTokenSim) bestTokenSim = sim;
-        }
-
-        for (const lPhon of locPhonTokens) {
-          const simPhon = this.stringSimilarity(qPhon, lPhon);
-          if (simPhon > bestTokenSim) bestTokenSim = simPhon;
-        }
-
-        if (bestTokenSim >= 0.70) {
-          matchScore += bestTokenSim * 0.8;
-          matchedTokensCount++;
-        }
-      }
-
+      const { matchScore, matchedTokensCount } = this.scoreSavedLocation(loc, queryTokens, queryPhonTokens);
       const distKm = this.calculateHaversineKm(depot.lat, depot.lon, loc.latitude, loc.longitude);
-
       return {
         location: loc,
         matchScore,
@@ -834,7 +839,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const matches = scored.filter(s => s.matchedTokensCount > 0 || s.matchScore > 0);
 
-    // Prioriza relevância textual com desempate rigoroso por proximidade geográfica da base
+    // Prioriza relevância textual com desempate por proximidade geográfica da base
     matches.sort((a, b) => {
       const scoreDiff = b.matchScore - a.matchScore;
       if (Math.abs(scoreDiff) > 0.4) {
@@ -1578,7 +1583,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   // Confirma a opção de exportação do modal (Com Mapa ou Sem Mapa)
   confirmExportPdf(includeMap: boolean) {
     this.showExportPdfModal.set(false);
-    this.exportPdf(includeMap);
+    void this.exportPdf(includeMap);
   }
 
   // Exportação Oficial em PDF com ou sem Imagem do Mapa (Regras P-105, P-222 e P-223)

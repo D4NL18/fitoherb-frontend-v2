@@ -39,7 +39,7 @@ export class CommercialRoutingService {
         // Fallback resiliente direto para Photon (com normalização de GeoJSON para formato OSM)
         return this.http.get<any>(photonDirect).pipe(
           map(res => {
-            if (res && res.features && Array.isArray(res.features)) {
+            if (Array.isArray(res?.features)) {
               return res.features.map((f: any) => {
                 const props = f.properties || {};
                 const coords = f.geometry?.coordinates || [0, 0];

@@ -761,11 +761,10 @@
     tabindex="-1"
     role="presentation"
   >
-    <div 
+    <section 
       class="modal-dialog modal-dialog--export animate-scale-up" 
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-      role="region"
       aria-label="Opções de Exportação em PDF"
     >
       <div class="modal-dialog__header">
@@ -784,11 +783,10 @@
       <div class="modal-dialog__body modal-dialog__body--export">
         <div class="export-options-grid">
           <!-- Opção 1: Com Mapa -->
-          <div 
+          <button 
+            type="button"
             class="export-option-card"
-            tabindex="0"
             (click)="confirmExportPdf(true)"
-            (keydown.enter)="confirmExportPdf(true)"
           >
             <div class="export-option-card__icon export-option-card__icon--map">
               <i class="fa-solid fa-map-location-dot"></i>
@@ -805,14 +803,13 @@
             <div class="export-option-card__arrow">
               <i class="fa-solid fa-chevron-right"></i>
             </div>
-          </div>
+          </button>
 
           <!-- Opção 2: Sem Mapa -->
-          <div 
+          <button 
+            type="button"
             class="export-option-card"
-            tabindex="0"
             (click)="confirmExportPdf(false)"
-            (keydown.enter)="confirmExportPdf(false)"
           >
             <div class="export-option-card__icon export-option-card__icon--table">
               <i class="fa-solid fa-table-list"></i>
@@ -829,14 +826,14 @@
             <div class="export-option-card__arrow">
               <i class="fa-solid fa-chevron-right"></i>
             </div>
-          </div>
+          </button>
         </div>
       </div>
 
       <div class="modal-dialog__footer">
         <button type="button" class="btn-cancel" (click)="showExportPdfModal.set(false)">Cancelar</button>
       </div>
-    </div>
+    </section>
   </div>
 
   <!-- Modal Calendário -->
