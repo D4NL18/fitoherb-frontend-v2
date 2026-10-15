@@ -2,13 +2,13 @@ import { Component, HostListener, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavComponent } from './shared/nav/nav.component';
 import { FooterComponent } from "./shared/footer/footer.component";
+import { ChatWidgetComponent } from './shared/chat-widget/chat-widget.component';
 import { filter } from 'rxjs';
-import { CommonModule } from "../../node_modules/@angular/common/index";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavComponent, FooterComponent],
+  imports: [RouterOutlet, NavComponent, FooterComponent, ChatWidgetComponent],
   templateUrl: './app.component.html',
 })
 export class AppComponent {
