@@ -279,14 +279,15 @@
 
       textarea {
         width: 100%;
-        min-height: 38px;
-        max-height: 84px;
-        padding: 8px 46px 6px 12px;
+        min-height: 54px;
+        height: 54px;
+        max-height: 96px;
+        padding: 8px 52px 8px 14px;
         border: 1px solid $gray-300;
         border-radius: 18px;
         font-size: 0.85rem;
         font-family: inherit;
-        line-height: 1.35;
+        line-height: 1.4;
         outline: none;
         resize: none; /* Não permite controlar o tamanho com o mouse */
         overflow-y: auto;
@@ -298,7 +299,10 @@
           width: 4px;
         }
 
-        &::-webkit-scrollbar-button {
+        &::-webkit-scrollbar-button,
+        &::-webkit-scrollbar-button:single-button,
+        &::-webkit-scrollbar-button:vertical:decrement,
+        &::-webkit-scrollbar-button:vertical:increment {
           display: none !important;
           width: 0 !important;
           height: 0 !important;
@@ -333,7 +337,7 @@
       .char-counter {
         position: absolute;
         right: 12px;
-        bottom: 6px;
+        bottom: 8px;
         font-size: 0.65rem;
         color: $gray-500;
         pointer-events: none;
@@ -349,7 +353,7 @@
       width: 40px;
       height: 40px;
       flex-shrink: 0;
-      margin-bottom: 1px;
+      margin-bottom: 7px;
       border-radius: 50%;
       background-color: $green-600;
       color: $white;
