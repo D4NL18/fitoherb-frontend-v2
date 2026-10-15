@@ -20,11 +20,10 @@
       <div class="chat-header">
         <div class="header-left">
           <div class="avatar-badge">
-            <i class="fas fa-leaf"></i>
+            <img src="/assets/images/fitoherb-leaf-white.png" alt="Folha Fitoherb" class="logo-leaf" />
           </div>
           <div class="title-wrap">
             <h3 id="chat-title">Assistente Fitoherb</h3>
-            <span class="sub-status"><i class="fas fa-circle online-dot"></i> Inteligência Artificial Oficial</span>
           </div>
         </div>
         <div class="header-actions">
@@ -72,7 +71,6 @@
 
       <!-- Sugestões Rápidas -->
       <div class="suggestions-bar">
-        <button class="chip" (click)="sendPreset('Quais as opções de Whey 100%?')">Whey 100%</button>
         <button class="chip" (click)="sendPreset('Onde fica a Fitoherb?')">Onde fica?</button>
         <button class="chip" (click)="sendPreset('Como falar com o comercial?')">Contato</button>
       </div>
@@ -81,16 +79,17 @@
       <div class="chat-footer">
         <form (submit)="onSubmit($event)" class="input-form">
           <div class="input-container">
-            <input
-              type="text"
+            <textarea
               #msgInput
               [value]="inputText()"
               (input)="onInputChange(msgInput.value)"
+              (keydown)="onKeydown($event)"
               placeholder="Pergunte sobre produtos ou sobre a Fitoherb..."
               maxlength="255"
+              rows="1"
               aria-label="Mensagem para o assistente"
               [disabled]="chatService.isLoading()"
-            />
+            ></textarea>
             <span class="char-counter" [class.limit-reached]="inputText().length >= 255">
               {{ inputText().length }}/255
             </span>

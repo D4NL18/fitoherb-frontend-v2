@@ -82,30 +82,23 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
-      color: $green-300;
+      padding: 6px;
+
+      .logo-leaf {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
     }
 
     .title-wrap {
       h3 {
         margin: 0;
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         font-family: 'Playfair Display', serif;
         font-weight: 700;
         letter-spacing: 0.3px;
-      }
-
-      .sub-status {
-        font-size: 0.72rem;
-        color: $green-200;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-
-        .online-dot {
-          font-size: 0.45rem;
-          color: #2ecc71;
-        }
+        line-height: 1.2;
       }
     }
   }
@@ -277,20 +270,28 @@
   .input-form {
     display: flex;
     gap: 8px;
-    align-items: center;
+    align-items: flex-end;
 
     .input-container {
       flex: 1;
       position: relative;
+      display: flex;
 
-      input {
+      textarea {
         width: 100%;
-        padding: 9px 42px 9px 12px;
+        min-height: 42px;
+        max-height: 90px;
+        padding: 10px 48px 10px 14px;
         border: 1px solid $gray-300;
-        border-radius: 22px;
+        border-radius: 18px;
         font-size: 0.85rem;
+        font-family: inherit;
+        line-height: 1.35;
         outline: none;
+        resize: none; /* Não permite controlar o tamanho com o mouse */
+        overflow-y: auto;
         transition: border-color 0.2s;
+        box-sizing: border-box;
 
         &:focus {
           border-color: $green-600;
@@ -304,8 +305,7 @@
       .char-counter {
         position: absolute;
         right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
+        bottom: 7px;
         font-size: 0.65rem;
         color: $gray-500;
         pointer-events: none;
@@ -318,8 +318,10 @@
     }
 
     .send-btn {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      margin-bottom: 1px;
       border-radius: 50%;
       background-color: $green-600;
       color: $white;

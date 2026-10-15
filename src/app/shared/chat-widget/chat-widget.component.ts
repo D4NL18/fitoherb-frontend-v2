@@ -30,8 +30,19 @@ export class ChatWidgetComponent {
     }
   }
 
+  onKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendMessageInternal();
+    }
+  }
+
   onSubmit(event: Event) {
     event.preventDefault();
+    this.sendMessageInternal();
+  }
+
+  private sendMessageInternal() {
     const txt = this.inputText().trim();
     if (txt && !this.chatService.isLoading()) {
       this.chatService.sendMessage(txt);
