@@ -279,20 +279,27 @@
 
       textarea {
         width: 100%;
-        min-height: 54px;
-        height: 54px;
+        min-height: 56px;
+        height: 56px;
         max-height: 96px;
-        padding: 8px 52px 8px 14px;
+        padding: 7px 48px 7px 12px;
         border: 1px solid $gray-300;
         border-radius: 18px;
         font-size: 0.85rem;
         font-family: inherit;
-        line-height: 1.4;
+        line-height: 1.35;
         outline: none;
         resize: none; /* Não permite controlar o tamanho com o mouse */
         overflow-y: auto;
+        overflow-x: hidden;
         transition: border-color 0.2s;
         box-sizing: border-box;
+
+        /* Proíbe absolutamente qualquer scrollbar quando o campo estiver vazio (placeholder exibido) */
+        &:placeholder-shown {
+          overflow: hidden !important;
+          overflow-y: hidden !important;
+        }
 
         /* Estilização moderna do scrollbar sem setas no Windows/Webkit */
         &::-webkit-scrollbar {
@@ -306,6 +313,7 @@
           display: none !important;
           width: 0 !important;
           height: 0 !important;
+          background: transparent !important;
         }
 
         &::-webkit-scrollbar-track {
