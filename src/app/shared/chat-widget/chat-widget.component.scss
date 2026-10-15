@@ -279,9 +279,9 @@
 
       textarea {
         width: 100%;
-        min-height: 42px;
-        max-height: 90px;
-        padding: 10px 48px 10px 14px;
+        min-height: 38px;
+        max-height: 84px;
+        padding: 8px 46px 6px 12px;
         border: 1px solid $gray-300;
         border-radius: 18px;
         font-size: 0.85rem;
@@ -292,6 +292,34 @@
         overflow-y: auto;
         transition: border-color 0.2s;
         box-sizing: border-box;
+
+        /* Estilização moderna do scrollbar sem setas no Windows/Webkit */
+        &::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        &::-webkit-scrollbar-button {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background-color: rgba(0, 0, 0, 0.2);
+          border-radius: 4px;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.35);
+          }
+        }
+
+        /* Firefox */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 
         &:focus {
           border-color: $green-600;
@@ -305,7 +333,7 @@
       .char-counter {
         position: absolute;
         right: 12px;
-        bottom: 7px;
+        bottom: 6px;
         font-size: 0.65rem;
         color: $gray-500;
         pointer-events: none;
