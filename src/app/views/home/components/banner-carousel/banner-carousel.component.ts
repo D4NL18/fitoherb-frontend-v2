@@ -184,4 +184,11 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
       this.startAutoplay();
     }
   }
+
+  onBannerError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target && !target.src.includes('Banner-image-1.jpg')) {
+      target.src = '/assets/images/banner/Banner-image-1.jpg';
+    }
+  }
 }

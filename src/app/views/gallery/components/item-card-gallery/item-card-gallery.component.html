@@ -15,6 +15,8 @@
         [src]="formattedImageUrl()"
         [alt]="product().name"
         draggable="false"
+        (error)="onImageError()"
+        [class.fallback-image]="hasImageError()"
       />
     }
   </div>

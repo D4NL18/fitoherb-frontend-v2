@@ -87,6 +87,12 @@
       object-fit: contain;
       mix-blend-mode: multiply;
       transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+
+      &.fallback-supplier-image {
+        opacity: 0.5;
+        max-height: 60px;
+        filter: grayscale(10%);
+      }
     }
   }
 
