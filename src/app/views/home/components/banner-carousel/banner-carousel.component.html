@@ -25,7 +25,7 @@
     >
       @for (img of displayImages; track $index) {
         <div class="carousel-slide">
-          <img [src]="img" alt="Banner promocional Fitoherb" draggable="false" />
+          <img [src]="img" alt="Banner promocional Fitoherb" draggable="false" (error)="onBannerError($event)" />
         </div>
       }
     </div>

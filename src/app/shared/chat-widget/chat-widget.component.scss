@@ -177,10 +177,32 @@
         text-align: right;
       }
 
+      .chat-link, a {
+        color: #1b5e20;
+        font-weight: 600;
+        text-decoration: underline;
+        word-break: break-all;
+        transition: color 0.2s ease, opacity 0.2s ease;
+
+        &:hover {
+          color: #0d3813;
+          opacity: 0.85;
+        }
+      }
+
       &.bubble-user {
         background-color: $green-600;
         color: $white;
         border-bottom-right-radius: 2px;
+
+        .chat-link, a {
+          color: $white;
+          text-decoration: underline;
+
+          &:hover {
+            opacity: 0.9;
+          }
+        }
       }
 
       &.bubble-assistant {
