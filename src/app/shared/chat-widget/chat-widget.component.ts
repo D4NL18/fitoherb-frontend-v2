@@ -1,7 +1,12 @@
 import { Component, ElementRef, ViewChild, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ChatService } from '../../services/chat/chat.service';
+
+export interface MessageSegment {
+  text: string;
+  isLink: boolean;
+  linkUrl?: string;
+}
 
 @Component({
   selector: 'app-chat-widget',
@@ -12,14 +17,12 @@ import { ChatService } from '../../services/chat/chat.service';
 })
 export class ChatWidgetComponent {
   chatService = inject(ChatService);
-  private sanitizer = inject(DomSanitizer);
 
   @ViewChild('scrollBody') scrollBody?: ElementRef<HTMLDivElement>;
 
   inputText = signal<string>('');
 
   constructor() {
-    // Rola automaticamente para o fim quando novas mensagens chegam
     effect(() => {
       const _ = this.chatService.messages();
       setTimeout(() => this.scrollToBottom(), 50);
@@ -65,32 +68,46 @@ export class ChatWidgetComponent {
     }
   }
 
-  formatMessage(content: string): SafeHtml {
-    if (!content) return '';
+  parseMessageSegments(content: string): MessageSegment[] {
+    if (!content) return [];
 
-    // 1. Sanitizar contra XSS escapando caracteres HTML
-    let escaped = content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+    const regex = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    const segments: MessageSegment[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
 
-    // 2. URLs (http/https): converter em links clicáveis sem engolir pontuação no final
-    const urlRegex = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g;
-    escaped = escaped.replace(urlRegex, (url) => {
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${url}</a>`;
-    });
+    while ((match = regex.exec(content)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push({
+          text: content.substring(lastIndex, match.index),
+          isLink: false
+        });
+      }
 
-    // 3. E-mails: converter em mailto:
-    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-    escaped = escaped.replace(emailRegex, (email) => {
-      return `<a href="mailto:${email}" target="_blank" rel="noopener noreferrer" class="chat-link">${email}</a>`;
-    });
+      if (match[1]) {
+        segments.push({
+          text: match[1],
+          isLink: true,
+          linkUrl: match[1]
+        });
+      } else if (match[2]) {
+        segments.push({
+          text: match[2],
+          isLink: true,
+          linkUrl: `mailto:${match[2]}`
+        });
+      }
 
-    // 4. Quebras de linha (\n) para <br>
-    escaped = escaped.replace(/\n/g, '<br>');
+      lastIndex = regex.lastIndex;
+    }
 
-    return this.sanitizer.bypassSecurityTrustHtml(escaped);
+    if (lastIndex < content.length) {
+      segments.push({
+        text: content.substring(lastIndex),
+        isLink: false
+      });
+    }
+
+    return segments;
   }
 }

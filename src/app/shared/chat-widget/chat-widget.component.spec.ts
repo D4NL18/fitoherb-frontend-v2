@@ -1,12 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { DomSanitizer } from '@angular/platform-browser';
 import { ChatWidgetComponent } from './chat-widget.component';
 
 describe('ChatWidgetComponent', () => {
   let component: ChatWidgetComponent;
-  let sanitizer: DomSanitizer;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -19,48 +17,58 @@ describe('ChatWidgetComponent', () => {
 
     const fixture = TestBed.createComponent(ChatWidgetComponent);
     component = fixture.componentInstance;
-    sanitizer = TestBed.inject(DomSanitizer);
   });
 
   it('should create the chat widget component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should convert URLs in text to clickable <a> links with target=_blank and rel=noopener', () => {
+  it('should parse URLs in text into link segments', () => {
     const raw = 'Fale conosco no WhatsApp https://wa.me/5571992419709 ou veja o site https://fitoherb.com.br';
-    const result = component.formatMessage(raw) as any;
-    const html = result.changingThisBreaksApplicationSecurity || '';
+    const segments = component.parseMessageSegments(raw);
 
-    expect(html).toContain('<a href="https://wa.me/5571992419709" target="_blank" rel="noopener noreferrer" class="chat-link">https://wa.me/5571992419709</a>');
-    expect(html).toContain('<a href="https://fitoherb.com.br" target="_blank" rel="noopener noreferrer" class="chat-link">https://fitoherb.com.br</a>');
+    const links = segments.filter(s => s.isLink);
+    expect(links.length).toBe(2);
+    expect(links[0].linkUrl).toBe('https://wa.me/5571992419709');
+    expect(links[1].linkUrl).toBe('https://fitoherb.com.br');
   });
 
   it('should correctly parse URLs enclosed in parentheses without including the closing parenthesis', () => {
     const raw = 'Acesse nosso WhatsApp (https://wa.me/5571992419709) e Instagram (https://www.instagram.com/fitoherb).';
-    const result = component.formatMessage(raw) as any;
-    const html = result.changingThisBreaksApplicationSecurity || '';
+    const segments = component.parseMessageSegments(raw);
 
-    expect(html).toContain('(<a href="https://wa.me/5571992419709" target="_blank" rel="noopener noreferrer" class="chat-link">https://wa.me/5571992419709</a>)');
-    expect(html).toContain('(<a href="https://www.instagram.com/fitoherb" target="_blank" rel="noopener noreferrer" class="chat-link">https://www.instagram.com/fitoherb</a>).');
+    const links = segments.filter(s => s.isLink);
+    expect(links.length).toBe(2);
+    expect(links[0].linkUrl).toBe('https://wa.me/5571992419709');
+    expect(links[0].text).toBe('https://wa.me/5571992419709');
+
+    expect(links[1].linkUrl).toBe('https://www.instagram.com/fitoherb');
+    expect(links[1].text).toBe('https://www.instagram.com/fitoherb');
+
+    // Confirm enclosing parentheses are in non-link segments
+    expect(segments[0].text).toContain('(');
+    expect(segments[2].text).toContain(')');
   });
 
-  it('should convert email addresses to clickable mailto: links', () => {
+  it('should convert email addresses to mailto: link segments', () => {
     const raw = 'Envie um e-mail para comercial@fitoherb.com.br para orçamentos.';
-    const result = component.formatMessage(raw) as any;
-    const html = result.changingThisBreaksApplicationSecurity || '';
+    const segments = component.parseMessageSegments(raw);
 
-    expect(html).toContain('<a href="mailto:comercial@fitoherb.com.br" target="_blank" rel="noopener noreferrer" class="chat-link">comercial@fitoherb.com.br</a>');
+    const emailSeg = segments.find(s => s.isLink && s.linkUrl?.startsWith('mailto:'));
+    expect(emailSeg).toBeTruthy();
+    expect(emailSeg?.linkUrl).toBe('mailto:comercial@fitoherb.com.br');
+    expect(emailSeg?.text).toBe('comercial@fitoherb.com.br');
   });
 
-  it('should escape malicious HTML to prevent XSS attacks while still parsing links', () => {
-    const raw = '<script>alert("xss")</script>Visite https://wa.me/5571992419709 <img src=x onerror=alert(1)>';
-    const result = component.formatMessage(raw) as any;
-    const html = result.changingThisBreaksApplicationSecurity || '';
+  it('should treat malicious HTML tags as plain text segments safely', () => {
+    const raw = '<script>alert("xss")</script>Visite https://wa.me/5571992419709';
+    const segments = component.parseMessageSegments(raw);
 
-    expect(html).not.toContain('<script>');
-    expect(html).toContain('&lt;script&gt;');
-    expect(html).not.toContain('<img');
-    expect(html).toContain('&lt;img');
-    expect(html).toContain('<a href="https://wa.me/5571992419709" target="_blank" rel="noopener noreferrer" class="chat-link">https://wa.me/5571992419709</a>');
+    // The script tag is just part of a plain text segment, not rendered as HTML
+    expect(segments[0].text).toBe('<script>alert("xss")</script>Visite ');
+    expect(segments[0].isLink).toBeFalse();
+
+    expect(segments[1].linkUrl).toBe('https://wa.me/5571992419709');
+    expect(segments[1].isLink).toBeTrue();
   });
 });
