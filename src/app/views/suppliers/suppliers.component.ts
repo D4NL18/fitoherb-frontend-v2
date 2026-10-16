@@ -60,4 +60,12 @@ export class SuppliersComponent implements OnInit, AfterViewInit {
   goToGallery(slug: string) {
     this.router.navigate(['/produtos'], { queryParams: { supplier: slug } });
   }
+
+  onSupplierImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target && !target.src.includes('fitoherb-leaf-icon.png')) {
+      target.src = '/assets/images/fitoherb-leaf-icon.png';
+      target.classList.add('fallback-supplier-image');
+    }
+  }
 }

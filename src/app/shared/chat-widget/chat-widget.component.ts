@@ -2,6 +2,12 @@ import { Component, ElementRef, ViewChild, inject, signal, effect } from '@angul
 import { CommonModule } from '@angular/common';
 import { ChatService } from '../../services/chat/chat.service';
 
+export interface MessageSegment {
+  text: string;
+  isLink: boolean;
+  linkUrl?: string;
+}
+
 @Component({
   selector: 'app-chat-widget',
   standalone: true,
@@ -17,7 +23,6 @@ export class ChatWidgetComponent {
   inputText = signal<string>('');
 
   constructor() {
-    // Rola automaticamente para o fim quando novas mensagens chegam
     effect(() => {
       const _ = this.chatService.messages();
       setTimeout(() => this.scrollToBottom(), 50);
@@ -61,5 +66,48 @@ export class ChatWidgetComponent {
       const el = this.scrollBody.nativeElement;
       el.scrollTop = el.scrollHeight;
     }
+  }
+
+  parseMessageSegments(content: string): MessageSegment[] {
+    if (!content) return [];
+
+    const regex = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    const segments: MessageSegment[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(content)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push({
+          text: content.substring(lastIndex, match.index),
+          isLink: false
+        });
+      }
+
+      if (match[1]) {
+        segments.push({
+          text: match[1],
+          isLink: true,
+          linkUrl: match[1]
+        });
+      } else if (match[2]) {
+        segments.push({
+          text: match[2],
+          isLink: true,
+          linkUrl: `mailto:${match[2]}`
+        });
+      }
+
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < content.length) {
+      segments.push({
+        text: content.substring(lastIndex),
+        isLink: false
+      });
+    }
+
+    return segments;
   }
 }

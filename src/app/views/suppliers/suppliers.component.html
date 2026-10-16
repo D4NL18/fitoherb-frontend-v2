@@ -21,7 +21,7 @@
 
         <div class="image-box">
           @if (item.imageUrl) {
-            <img [src]="item.imageUrl" [alt]="item.name" draggable="false">
+            <img [src]="item.imageUrl" [alt]="item.name" draggable="false" (error)="onSupplierImageError($event)">
           }
         </div>
 

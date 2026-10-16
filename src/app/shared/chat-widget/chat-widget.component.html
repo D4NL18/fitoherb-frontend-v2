@@ -47,7 +47,15 @@
         @for (msg of chatService.messages(); track $index) {
           <div class="message-row" [class.user-row]="msg.role === 'user'" [class.assistant-row]="msg.role === 'assistant'">
             <div class="bubble" [class.bubble-user]="msg.role === 'user'" [class.bubble-assistant]="msg.role === 'assistant'" [class.bubble-error]="msg.isError">
-              <p class="bubble-text">{{ msg.content }}</p>
+              <p class="bubble-text">
+                @for (seg of parseMessageSegments(msg.content); track $index) {
+                  @if (seg.isLink) {
+                    <a [href]="seg.linkUrl" target="_blank" rel="noopener noreferrer" class="chat-link">{{ seg.text }}</a>
+                  } @else {
+                    {{ seg.text }}
+                  }
+                }
+              </p>
               @if (msg.timestamp) {
                 <span class="bubble-time">{{ msg.timestamp }}</span>
               }

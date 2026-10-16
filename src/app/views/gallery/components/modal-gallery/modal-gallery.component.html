@@ -16,7 +16,12 @@
 
       <div class="modal-content">
         <div class="image-side">
-          <img [src]="formattedImageUrl()" [alt]="product()?.name">
+          <img
+            [src]="formattedImageUrl()"
+            [alt]="product()?.name"
+            (error)="onImageError()"
+            [class.fallback-image]="hasImageError()"
+          />
         </div>
 
         <div class="info-side">
