@@ -1,0 +1,117 @@
+<div class="chat-widget-wrapper">
+  <!-- Botão Flutuante (FAB) -->
+  <button
+    class="chat-fab-btn"
+    (click)="chatService.toggleOpen()"
+    [attr.aria-expanded]="chatService.isOpen()"
+    aria-label="Abrir assistente virtual Fitoherb"
+  >
+    @if (!chatService.isOpen()) {
+      <i class="fas fa-comment-dots"></i>
+    } @else {
+      <i class="fas fa-times"></i>
+    }
+  </button>
+
+  <!-- Janela de Conversa Flutuante -->
+  @if (chatService.isOpen()) {
+    <div class="chat-panel" role="dialog" aria-labelledby="chat-title">
+      <!-- Cabeçalho -->
+      <div class="chat-header">
+        <div class="header-left">
+          <div class="avatar-badge">
+            <img src="/assets/images/fitoherb-leaf-white.png" alt="Folha Fitoherb" class="logo-leaf" />
+          </div>
+          <div class="title-wrap">
+            <h3 id="chat-title">Assistente Fitoherb</h3>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="action-btn" (click)="chatService.clearHistory()" title="Limpar conversa" aria-label="Limpar histórico">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          <button class="action-btn" (click)="chatService.closeChat()" title="Fechar chat" aria-label="Fechar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Aviso LGPD / Privacidade -->
+      <div class="privacy-banner">
+        <i class="fas fa-shield-alt"></i>
+        <span>Canal oficial. Não compartilhe senhas, dados de saúde ou bancários.</span>
+      </div>
+
+      <!-- Corpo das Mensagens -->
+      <div class="chat-body" #scrollBody>
+        @for (msg of chatService.messages(); track $index) {
+          <div class="message-row" [class.user-row]="msg.role === 'user'" [class.assistant-row]="msg.role === 'assistant'">
+            <div class="bubble" [class.bubble-user]="msg.role === 'user'" [class.bubble-assistant]="msg.role === 'assistant'" [class.bubble-error]="msg.isError">
+              <p class="bubble-text">
+                @for (seg of parseMessageSegments(msg.content); track $index) {
+                  @if (seg.isLink) {
+                    <a [href]="seg.linkUrl" target="_blank" rel="noopener noreferrer" class="chat-link">{{ seg.text }}</a>
+                  } @else {
+                    {{ seg.text }}
+                  }
+                }
+              </p>
+              @if (msg.timestamp) {
+                <span class="bubble-time">{{ msg.timestamp }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Estado de Digitando (Typing Dots) -->
+        @if (chatService.isLoading()) {
+          <div class="message-row assistant-row">
+            <div class="bubble bubble-assistant typing-bubble">
+              <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Sugestões Rápidas -->
+      <div class="suggestions-bar">
+        <button class="chip" (click)="sendPreset('Onde fica a Fitoherb?')">Onde fica?</button>
+        <button class="chip" (click)="sendPreset('Como falar com o comercial?')">Contato</button>
+      </div>
+
+      <!-- Input de Envio com contador de 255 chars -->
+      <div class="chat-footer">
+        <form (submit)="onSubmit($event)" class="input-form">
+          <div class="input-container">
+            <textarea
+              #msgInput
+              [value]="inputText()"
+              (input)="onInputChange(msgInput.value)"
+              (keydown)="onKeydown($event)"
+              placeholder="Pergunte sobre produtos ou sobre a Fitoherb..."
+              maxlength="255"
+              rows="2"
+              aria-label="Mensagem para o assistente"
+              [disabled]="chatService.isLoading()"
+            ></textarea>
+            <span class="char-counter" [class.limit-reached]="inputText().length >= 255">
+              {{ inputText().length }}/255
+            </span>
+          </div>
+          <button
+            type="submit"
+            class="send-btn"
+            [disabled]="!inputText().trim() || chatService.isLoading()"
+            aria-label="Enviar mensagem"
+          >
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+</div>

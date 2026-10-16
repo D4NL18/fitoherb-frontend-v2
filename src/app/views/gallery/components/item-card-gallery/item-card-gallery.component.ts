@@ -1,4 +1,4 @@
-import { Component, input, computed, output } from '@angular/core';
+import { Component, input, computed, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductRes } from '../../../../types/products/productRes.interface';
 import { environment } from '../../../../../environments/environment';
@@ -14,14 +14,22 @@ export class ItemCardGalleryComponent{
   product = input.required<ProductRes>();
   backendUrl = environment.imagesBaseUrl;
   productClicked = output<string>();
+  hasImageError = signal<boolean>(false);
 
   formattedImageUrl = computed(() => {
+    if (this.hasImageError()) {
+      return 'assets/images/fitoherb-leaf-icon.png';
+    }
     let url = this.product().imageUrl;
     if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
       url = this.backendUrl + (url.startsWith('/') ? '' : '/') + url;
     }
-    return url;
+    return url || 'assets/images/fitoherb-leaf-icon.png';
   });
+
+  onImageError() {
+    this.hasImageError.set(true);
+  }
 
   isNew = computed(() => {
     const dateStr = this.product().createdAt;

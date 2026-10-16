@@ -88,9 +88,14 @@ export class GalleryComponent implements OnInit, AfterViewInit {
     this.route.queryParams.subscribe((params) => {
       let cats = params['category'];
       let sups = params['supplier'];
+      let querySearch = params['search'];
 
       this.selectedCategories.set(cats ? (Array.isArray(cats) ? cats : [cats]) : []);
       this.selectedSuppliers.set(sups ? (Array.isArray(sups) ? sups : [sups]) : []);
+
+      if (querySearch !== undefined && querySearch !== null) {
+        this.search.setValue(querySearch, { emitEvent: false });
+      }
 
       this.resetAndSearch();
     });
