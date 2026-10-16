@@ -47,7 +47,7 @@
         @for (msg of chatService.messages(); track $index) {
           <div class="message-row" [class.user-row]="msg.role === 'user'" [class.assistant-row]="msg.role === 'assistant'">
             <div class="bubble" [class.bubble-user]="msg.role === 'user'" [class.bubble-assistant]="msg.role === 'assistant'" [class.bubble-error]="msg.isError">
-              <p class="bubble-text">{{ msg.content }}</p>
+              <p class="bubble-text" [innerHTML]="formatMessage(msg.content)"></p>
               @if (msg.timestamp) {
                 <span class="bubble-time">{{ msg.timestamp }}</span>
               }
