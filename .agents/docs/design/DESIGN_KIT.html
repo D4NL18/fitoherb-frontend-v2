@@ -1,0 +1,1661 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fitoherb Design Kit</title>
+  <meta name="description" content="Design Kit da Fitoherb Nordeste — padrões de cor, tipografia, espaçamento, movimento, hierarquia e componentes extraídos do frontend v2.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* =====================================================================
+       1. TOKENS CANÔNICOS
+       Espelham src/colors.scss + valores recorrentes encontrados nos SCSS.
+       Este bloco é a proposta oficial de CSS Custom Properties do projeto.
+       ===================================================================== */
+    :root {
+      /* Verde da marca */
+      --green-900: #1a2d14;
+      --green-800: #243d1c;
+      --green-700: #2e4f24;
+      --green-600: #38582f;
+      --green-500: #4a7040;
+      --green-400: #5d8a52;
+      --green-300: #82b074;
+      --green-200: #b5d4a8;
+      --green-100: #ddefd6;
+      --green-50:  #f0f8eb;
+
+      /* Semânticos */
+      --color-primary: var(--green-600);
+      --color-primary-hover: var(--green-700);
+      --color-primary-accent: #588a4a; /* lighten($primary-color, 15%) usado em títulos sobre fundo escuro */
+      --dark-green: #0f140f;
+      --forest-mid: #243620;
+      --forest-light: #3e5a39;
+
+      /* Fundos */
+      --bg-green-base: #f4f9f1;
+      --bg-green-glow: #e3f0d8;
+      --bg-green-darker: #d0e6c1;
+      --bg-body: #f5f5f5;
+      --bg-nav-hover: #e8f2e6;
+      --bg-field: #fdfdfd;
+      --bg-field-invalid: #fff9f9;
+
+      /* Neutros */
+      --cream: #faf8f3;
+      --white: #ffffff;
+      --gray-100: #f5f5f0;
+      --gray-200: #e8e8e0;
+      --gray-300: #d0d0c8;
+      --gray-500: #8a8a7a;
+      --gray-700: #4a4a3a;
+      --gray-900: #1a1a12;
+
+      /* Texto (valores hardcoded mais recorrentes no código) */
+      --text-strong: #1a1a1a;
+      --text-body: #333333;
+      --text-label: #444444;
+      --text-muted: #666666;
+      --text-subtle: #757575;
+      --border-field: #e0e0e0;
+
+      /* Feedback */
+      --error: #c0392b;
+      --error-ui: #e74c3c;  /* usado de fato em inputs/modais */
+      --success: #27ae60;
+      --warning: #e67e22;
+
+      /* Tags — padrão único: fundo escuro + texto branco */
+      --tag-fg: var(--white);
+      --tag-brand: var(--green-800);
+      --tag-primary: var(--green-600);
+      --tag-new: var(--green-700);
+      --tag-success: #065f46;
+      --tag-warning: #92400e;
+      --tag-danger: #991b1b;
+      --tag-info: #1e40af;
+
+      /* Superfícies de alerta (caixas de aviso, não tags) */
+      --surface-warning: #fef3c7; --surface-warning-fg: #92400e;
+      --surface-danger: #fee2e2;  --surface-danger-fg: #991b1b;
+
+      /* Tipografia */
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+      --text-display: 4.5rem;  /* Hero H1 */
+      --text-h1: 4rem;         /* Title-section / CTA */
+      --text-h2: 3.5rem;       /* Título de seção */
+      --text-h3: 2rem;         /* Modal / stat / admin H1 */
+      --text-h4: 1.4rem;       /* Tile de categoria */
+      --text-h5: 1.25rem;      /* Card / footer */
+      --text-lead: 1.125rem;   /* 1.1–1.15rem no código */
+      --text-base: 1rem;
+      --text-sm: 0.9rem;
+      --text-xs: 0.85rem;
+      --text-2xs: 0.75rem;
+      --text-micro: 0.7rem;
+
+      /* Espaçamento (base 4px / rem) */
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --space-24: 6rem;
+      --space-32: 8rem;
+
+      /* Raios */
+      --radius-xs: 4px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-2xl: 28px;
+      --radius-pill: 50px;
+      --radius-full: 50%;
+
+      /* Sombras */
+      --shadow-xs: 0 4px 10px rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.10);
+      --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.15);
+      --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.08);
+      --shadow-xl: 0 25px 60px rgba(0, 0, 0, 0.20);
+      --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.02);
+      --shadow-primary: 0 10px 20px rgba(56, 88, 47, 0.20);
+      --shadow-primary-hover: 0 15px 25px rgba(56, 88, 47, 0.30);
+      --ring-focus: 0 0 0 4px rgba(56, 88, 47, 0.10);
+      --outline-focus: 2px solid rgba(56, 88, 47, 0.4);
+
+      /* Movimento */
+      --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);      /* easeOutQuint — scroll reveal */
+      --ease-interact: cubic-bezier(0.165, 0.84, 0.44, 1); /* easeOutQuart — botões, cards */
+      --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);          /* easeOutExpo — chat, FAB */
+      --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275); /* modal de resposta */
+      --dur-fast: 200ms;
+      --dur-base: 300ms;
+      --dur-slow: 500ms;
+      --dur-reveal: 1200ms;
+
+      /* Camadas */
+      --z-raised: 10;
+      --z-dropdown: 100;
+      --z-backdrop: 998;
+      --z-sidebar: 999;
+      --z-nav: 1000;
+      --z-nav-menu: 1001;
+      --z-chat: 1050;
+      --z-overlay: 9999;
+
+      /* Layout */
+      --nav-height: 100px;
+    }
+
+    /* =====================================================================
+       2. ESTRUTURA DO KIT (chrome da página de documentação)
+       ===================================================================== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-strong);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); margin: 0; }
+    p { margin: 0; }
+    button, input, select, textarea { font-family: var(--font-body); }
+    button:focus, input:focus, select:focus, textarea:focus { outline: none; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+      outline: var(--outline-focus);
+      outline-offset: 2px;
+    }
+    code, .mono { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 0.82em; }
+
+    .kit {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .kit-side {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--white);
+      border-right: 1px solid var(--gray-200);
+      padding: var(--space-8) var(--space-6);
+    }
+    .kit-side img { height: 34px; width: auto; display: block; margin-bottom: var(--space-2); }
+    .kit-side .kit-version {
+      font-size: var(--text-micro);
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--green-600);
+      margin-bottom: var(--space-8);
+      display: block;
+    }
+    .kit-side nav ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; counter-reset: sec; }
+    .kit-side nav li { counter-increment: sec; }
+    .kit-side nav a {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+      color: var(--text-body);
+      text-decoration: none;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+    }
+    .kit-side nav a::before {
+      content: counter(sec, decimal-leading-zero);
+      font-size: var(--text-2xs);
+      color: var(--text-subtle);
+      font-weight: 600;
+      padding-top: 2px;
+    }
+    .kit-side nav a:hover { background: var(--bg-nav-hover); color: var(--green-700); }
+    .kit-side nav a.is-current { background: var(--bg-nav-hover); color: var(--green-600); font-weight: 700; }
+
+    .kit-main { min-width: 0; }
+
+    .kit-hero {
+      background: linear-gradient(180deg, var(--forest-mid) 0%, var(--forest-light) 100%);
+      color: var(--white);
+      padding: var(--space-24) 8% var(--space-16);
+      position: relative;
+      overflow: hidden;
+    }
+    .kit-hero::after {
+      content: "";
+      position: absolute;
+      top: -30%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+    }
+    .kit-hero .eyebrow { color: var(--green-300); }
+    .kit-hero h1 {
+      font-size: clamp(2.6rem, 6vw, var(--text-h1));
+      line-height: 1.1;
+      margin: var(--space-4) 0 var(--space-6);
+      max-width: 14ch;
+    }
+    .kit-hero h1 i { color: var(--green-300); font-weight: 400; }
+    .kit-hero p { color: var(--bg-green-darker); font-size: var(--text-lead); max-width: 62ch; }
+    .kit-hero .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+      margin-top: var(--space-12);
+      position: relative;
+      z-index: 1;
+    }
+    .kit-hero .meta div { display: flex; flex-direction: column; }
+    .kit-hero .meta strong { font-family: var(--font-display); font-size: var(--text-h3); }
+    .kit-hero .meta span { font-size: var(--text-xs); text-transform: uppercase; color: var(--green-200); letter-spacing: 1px; }
+
+    .kit-section {
+      padding: var(--space-16) 8%;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .kit-section:nth-of-type(even) { background: var(--white); }
+    .kit-section > header { max-width: 70ch; margin-bottom: var(--space-10); }
+    .kit-section > header h2 {
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      line-height: 1.15;
+      margin: var(--space-3) 0 var(--space-4);
+    }
+    .kit-section > header h2 span { color: var(--green-600); font-style: italic; font-weight: 400; }
+    .kit-section > header p { color: var(--text-muted); font-size: var(--text-lead); }
+
+    .kit-sub {
+      font-family: var(--font-body);
+      font-size: var(--text-2xs);
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: var(--space-12) 0 var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .kit-sub::after { content: ""; flex: 1; height: 1px; background: var(--gray-200); }
+    .kit-sub:first-of-type { margin-top: 0; }
+
+    .eyebrow {
+      display: inline-block;
+      text-transform: uppercase;
+      color: var(--green-600);
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      font-size: 0.875rem;
+    }
+
+    .kit-note {
+      background: var(--bg-green-base);
+      border-left: 4px solid var(--green-600);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: var(--space-4) var(--space-6);
+      color: var(--gray-700);
+      font-size: var(--text-sm);
+      margin-top: var(--space-6);
+      max-width: 80ch;
+    }
+    .kit-note.warn { background: var(--surface-warning); border-left-color: var(--warning); color: var(--surface-warning-fg); }
+    .kit-note strong { color: inherit; }
+
+    .stage {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-6);
+      align-items: flex-start;
+    }
+    .kit-section:nth-of-type(even) .stage { background: var(--bg-body); }
+    .stage.dark { background: linear-gradient(180deg, var(--dark-green) 0%, var(--forest-mid) 100%); border-color: transparent; }
+    .stage.green { background: var(--bg-green-base); }
+    .stage.col { flex-direction: column; }
+    .stage .caption {
+      width: 100%;
+      font-size: var(--text-xs);
+      color: var(--text-subtle);
+      margin-top: calc(var(--space-2) * -1);
+    }
+    .stage-item { display: flex; flex-direction: column; gap: var(--space-2); }
+    .stage-item > span { align-self: flex-start; }
+    .stage-item > small { font-size: var(--text-2xs); color: var(--text-subtle); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+    .spec {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+      margin-top: var(--space-4);
+      background: var(--white);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--gray-200);
+    }
+    .spec th, .spec td { text-align: left; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+    .spec th { background: var(--gray-100); font-weight: 600; color: var(--gray-900); white-space: nowrap; }
+    .spec tr:last-child td { border-bottom: none; }
+    .spec td code { background: var(--bg-green-base); color: var(--green-700); padding: 1px 6px; border-radius: var(--radius-xs); white-space: nowrap; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-4); }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); }
+
+    .btn-copy {
+      border: 1px solid var(--gray-200);
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-2xs);
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: var(--space-1) var(--space-2);
+      cursor: pointer;
+      transition: all var(--dur-fast) ease;
+    }
+    .btn-copy:hover { border-color: var(--green-600); color: var(--green-600); }
+
+    /* ---------- Swatches ---------- */
+    .swatch {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .swatch-chip {
+      height: 96px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-2xs);
+      font-weight: 700;
+    }
+    .swatch-body { padding: var(--space-3); display: flex; flex-direction: column; gap: 2px; }
+    .swatch-body strong { font-size: var(--text-sm); }
+    .swatch-body code { color: var(--text-muted); }
+    .swatch-body span { font-size: var(--text-2xs); color: var(--text-subtle); line-height: 1.4; }
+    .aa {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: var(--radius-xs);
+      background: rgba(255,255,255,0.85); color: var(--gray-900);
+    }
+    .aa.fail { background: var(--surface-danger); color: var(--surface-danger-fg); }
+
+    .scale-strip { display: flex; border-radius: var(--radius-md); overflow: hidden; height: 64px; margin-bottom: var(--space-6); }
+    .scale-strip div { flex: 1; display: flex; align-items: flex-end; padding: var(--space-2); font-size: 0.65rem; font-weight: 700; }
+
+    /* ---------- Tipografia ---------- */
+    .type-row {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: var(--space-6);
+      align-items: baseline;
+      padding: var(--space-6) 0;
+      border-bottom: 1px dashed var(--gray-300);
+    }
+    .type-row:last-child { border-bottom: none; }
+    .type-row .meta { display: flex; flex-direction: column; gap: 2px; font-size: var(--text-2xs); color: var(--text-subtle); }
+    .type-row .meta strong { font-size: var(--text-sm); color: var(--text-strong); }
+    .type-row .sample { min-width: 0; overflow-wrap: anywhere; }
+    .font-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+    }
+    .font-card .big { font-size: 5rem; line-height: 1; margin-bottom: var(--space-4); }
+    .font-card p { color: var(--text-muted); font-size: var(--text-sm); }
+    .font-card .weights { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-4); font-size: var(--text-lead); }
+
+    /* ---------- Espaçamento / raios / sombras ---------- */
+    .space-row { display: grid; grid-template-columns: 90px 90px minmax(0, 1fr); gap: var(--space-4); align-items: center; padding: var(--space-2) 0; font-size: var(--text-sm); }
+    .space-row .bar { height: 14px; background: var(--green-300); border-radius: 3px; }
+    .radius-box, .shadow-box {
+      width: 132px; height: 96px; background: var(--white); border: 1px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-size: var(--text-2xs); font-weight: 600; color: var(--text-muted); flex-direction: column; gap: 2px;
+    }
+    .radius-box { background: var(--green-50); border: 2px solid var(--green-400); }
+    .shadow-box { border: none; border-radius: var(--radius-lg); }
+
+    /* ---------- Movimento ---------- */
+    .motion-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .kit-section:nth-of-type(even) .motion-card { background: var(--bg-body); }
+    .motion-card header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
+    .motion-card h4 { font-family: var(--font-body); font-size: var(--text-base); font-weight: 700; }
+    .motion-card .motion-meta { font-size: var(--text-2xs); color: var(--text-subtle); }
+    .motion-track { height: 110px; background: var(--bg-green-base); border-radius: var(--radius-md); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .motion-dot { width: 56px; height: 56px; border-radius: var(--radius-md); background: var(--green-600); box-shadow: var(--shadow-primary); }
+    .ease-track { height: 36px; background: var(--bg-green-base); border-radius: var(--radius-pill); position: relative; }
+    .ease-track .ball { position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border-radius: 50%; background: var(--green-600); }
+    .ease-track.run .ball { left: calc(100% - 30px); }
+    .btn-play {
+      border: none; background: var(--green-600); color: var(--white); width: 34px; height: 34px; border-radius: 50%;
+      cursor: pointer; flex-shrink: 0; transition: transform var(--dur-fast) var(--ease-snap), background var(--dur-fast) ease;
+    }
+    .btn-play:hover { background: var(--green-700); transform: scale(1.08); }
+
+    .reveal-demo .r { opacity: 0; transition: all var(--dur-reveal) var(--ease-reveal); }
+    .reveal-demo .r.left { transform: translateX(-60px); }
+    .reveal-demo .r.right { transform: translateX(60px); }
+    .reveal-demo .r.bottom { transform: translateY(50px); transition-duration: 1.5s; }
+    .reveal-demo.is-visible .r { opacity: 1; transform: translate(0); }
+    .reveal-demo.is-visible .item-1 { transition-delay: 0.2s; }
+    .reveal-demo.is-visible .item-2 { transition-delay: 0.5s; }
+    .reveal-demo.is-visible .item-3 { transition-delay: 0.8s; }
+    .reveal-demo.is-visible .right { transition-delay: 0.6s; }
+    .reveal-demo { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-6); width: 100%; align-items: center; }
+    .reveal-demo .lines { display: flex; flex-direction: column; gap: var(--space-3); }
+    .reveal-demo .line { height: 14px; border-radius: 7px; background: var(--green-200); }
+    .reveal-demo .line.title { height: 34px; width: 80%; background: var(--green-600); }
+    .reveal-demo .block { height: 150px; border-radius: var(--radius-xl); background: linear-gradient(160deg, var(--green-300), var(--green-600)); }
+
+    @keyframes fh-fade-in { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fh-slide-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fh-slide-in-down { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fh-fade-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
+    @keyframes fh-bounce-in { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+    @keyframes fh-slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fh-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fh-spin { to { transform: rotate(360deg); } }
+    @keyframes fh-shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+
+    .play-fade-in { animation: fh-fade-in 0.3s ease-out both; }
+    .play-slide-in { animation: fh-slide-in 0.2s ease-out both; }
+    .play-slide-in-down { animation: fh-slide-in-down 0.3s ease-out both; }
+    .play-fade-out { animation: fh-fade-out 0.3s ease-in both; }
+    .play-bounce-in { animation: fh-bounce-in 0.5s var(--ease-bounce) both; }
+    .play-slide-up { animation: fh-slide-up 0.25s ease-out both; }
+
+    /* =====================================================================
+       3. COMPONENTES (réplica fiel dos estilos de src/app/shared e views)
+       ===================================================================== */
+
+    /* app-button */
+    .fh-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem;
+      padding: 1rem 2rem; border-radius: var(--radius-md); font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: all 0.3s var(--ease-interact);
+      border: 2px solid transparent; white-space: nowrap;
+    }
+    .fh-btn i { font-size: 1.1rem; }
+    .fh-btn.small { padding: 1rem 1.2rem; }
+    .fh-btn.large { padding: 1.25rem 2.5rem; font-size: 1.1rem; }
+    .fh-btn.full { width: 100%; }
+    .fh-btn.primary { background: var(--color-primary); color: var(--white); box-shadow: var(--shadow-primary); }
+    .fh-btn.primary:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: var(--shadow-primary-hover); }
+    .fh-btn.outline { background: transparent; color: var(--color-primary); border-color: var(--color-primary); box-shadow: 0 10px 20px rgba(56, 88, 47, 0.1); }
+    .fh-btn.outline:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(56, 88, 47, 0.2); }
+    .fh-btn.white { background: var(--white); color: var(--dark-green); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+    .fh-btn.white:hover { transform: translateY(-3px); background: var(--bg-green-base); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); }
+    .fh-btn.danger { background: var(--error); color: var(--white); box-shadow: 0 10px 20px rgba(192, 57, 43, 0.2); }
+    .fh-btn.danger:hover { transform: translateY(-3px); filter: brightness(1.1); }
+    .fh-btn:disabled { cursor: not-allowed; opacity: 0.6; filter: grayscale(0.5); box-shadow: none; transform: none; background: #ccc; color: #666; border-color: #ccc; }
+    .fh-btn.is-loading { cursor: wait; opacity: 0.8; filter: none; }
+    .fh-btn.is-loading i { animation: fh-spin 0.8s linear infinite; }
+
+    /* app-input / app-select / app-textarea */
+    .fh-field { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 360px; }
+    .fh-field label { font-weight: 600; color: var(--text-label); font-size: 0.9rem; }
+    .fh-field label span { color: var(--error-ui); margin-left: 2px; }
+    .fh-field .wrap { position: relative; }
+    .fh-field .prefix { position: absolute; left: 1.1rem; top: 50%; transform: translateY(-50%); color: #aaa; pointer-events: none; }
+    .fh-field .toggle { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #888; cursor: pointer; font-size: 1.1rem; padding: 0.5rem; transition: color 0.2s ease; }
+    .fh-field .toggle:hover { color: var(--color-primary); }
+    .fh-control {
+      width: 100%; padding: 1rem 1.2rem; border-radius: var(--radius-md); border: 1px solid var(--border-field);
+      font-family: var(--font-body); font-size: 1rem; background: var(--bg-field); color: var(--text-body); transition: all 0.3s ease;
+    }
+    .fh-control::placeholder { color: var(--text-subtle); }
+    .fh-control:focus, .fh-control.is-focus { outline: none; border-color: var(--color-primary); box-shadow: var(--ring-focus); }
+    .fh-control.invalid { border-color: var(--error-ui); background: var(--bg-field-invalid); }
+    .fh-control:disabled { opacity: 0.6; cursor: not-allowed; }
+    .has-icon .fh-control { padding-left: 3.2rem; }
+    .is-password .fh-control { padding-right: 3.2rem; }
+    textarea.fh-control { resize: none; min-height: 120px; }
+    .fh-error { font-size: 0.75rem; color: var(--error-ui); font-weight: 500; margin-top: 2px; animation: fh-slide-in 0.2s ease-out; display: flex; gap: 6px; align-items: center; }
+
+    .fh-select .selected { min-height: 54px; display: flex; align-items: center; cursor: pointer; padding-right: 2.8rem; }
+    .fh-select .selected.placeholder { color: var(--text-subtle); }
+    .fh-select .wrap::after { content: "\f0d7"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .fh-dropdown { margin-top: 4px; background: var(--white); border-radius: var(--radius-md); border: 1px solid var(--border-field); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .fh-dropdown .search { padding: 0.5rem; border-bottom: 1px solid var(--border-field); position: relative; }
+    .fh-dropdown .search input { width: 100%; padding: 0.8rem 2rem 0.8rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-field); font-size: 0.95rem; }
+    .fh-dropdown .search i { position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 0.9rem; }
+    .fh-dropdown .opt { padding: 0.8rem 1.2rem; font-size: 0.95rem; color: var(--text-body); cursor: pointer; transition: background 0.2s; }
+    .fh-dropdown .opt:hover { background: var(--bg-body); }
+    .fh-dropdown .opt.selected { background: rgba(56, 88, 47, 0.1); color: var(--color-primary); font-weight: 500; }
+
+    /* Tags: fundo escuro + texto branco (padrão único, referência .badge-stock) */
+    .fh-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--tag-fg); }
+    .fh-badge.new { background: var(--tag-new); }
+    .fh-badge.highlight { background: var(--tag-primary); }
+    .fh-badge-category { background: var(--tag-brand); color: var(--tag-fg); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+    .fh-count { background: var(--tag-brand); color: var(--tag-fg); padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+    .fh-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; color: var(--tag-fg); }
+    .fh-status.success { background: var(--tag-success); }
+    .fh-status.warning { background: var(--tag-warning); }
+    .fh-status.danger  { background: var(--tag-danger); }
+    .fh-status.info    { background: var(--tag-info); }
+
+    /* Tabs de categoria (galeria) */
+    .fh-tabs { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; max-width: 100%; }
+    .fh-tab { white-space: nowrap; background: #f8f9fa; border: 1px solid transparent; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 500; color: #555; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
+    .fh-tab:hover { background: #eef2eb; color: var(--color-primary); }
+    .fh-tab.active { background: var(--color-primary); color: var(--white); }
+    .fh-tab.active .fh-count { background: var(--green-900); }
+
+    /* Chips de filtro */
+    .fh-chips { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+    .fh-chip { background: #f8f9fa; border: 1px solid #eaeaea; padding: 0.5rem 0.8rem; border-radius: 30px; font-size: 0.85rem; font-weight: 500; color: #555; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s var(--ease-interact); }
+    .fh-chip:hover { background: var(--white); border-color: rgba(56, 88, 47, 0.4); color: var(--color-primary); transform: translateY(-2px); }
+    .fh-chip.active { background: var(--color-primary); border-color: var(--color-primary); color: var(--white); box-shadow: 0 4px 10px rgba(56, 88, 47, 0.2); }
+    .fh-chip.active .fh-count { background: var(--green-900); }
+
+    /* Botões de toolbar (galeria) */
+    .fh-tool-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--white); border: 1px solid #ddd; padding: 0 1rem; height: 48px; border-radius: var(--radius-md); font-weight: 600; color: #555; cursor: pointer; transition: all 0.3s; font-size: 0.95rem; }
+    .fh-tool-btn i { color: var(--color-primary); }
+    .fh-tool-btn:hover, .fh-tool-btn.active { border-color: var(--color-primary); box-shadow: var(--shadow-xs); }
+    .fh-tool-btn .pill { background: var(--color-primary); color: var(--white); padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; }
+    .fh-tool-btn.ghost { background: #f1f3f5; border-color: #e9ecef; color: #6c757d; }
+    .fh-tool-btn.ghost i { color: inherit; }
+    .fh-icon-btn { background: transparent; border: none; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--green-600); font-size: 1.35rem; transition: all 200ms ease; }
+    .fh-icon-btn:hover { background: var(--bg-green-base); color: var(--forest-light); transform: scale(1.1); }
+
+    /* Card de produto (galeria) */
+    .fh-product-card {
+      background: var(--white); border-radius: var(--radius-xl); overflow: hidden; width: 300px; max-width: 100%;
+      transition: all 0.5s var(--ease-interact); border: 1px solid rgba(0, 0, 0, 0.04); box-shadow: var(--shadow-card);
+      display: flex; flex-direction: column; cursor: pointer;
+    }
+    .fh-product-card .img { height: 220px; display: flex; align-items: center; justify-content: center; position: relative; padding: 1rem; background: var(--cream); }
+    .fh-product-card .img .ph { width: 110px; height: 150px; border-radius: 18px 18px 10px 10px; background: linear-gradient(170deg, var(--green-300), var(--green-600)); transition: transform 0.5s ease; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.85); font-size: 2rem; }
+    .fh-product-card .img .fh-badge { position: absolute; top: 15px; left: 15px; }
+    .fh-product-card .content { padding: 2rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .fh-product-card .cat { color: var(--green-500); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .fh-product-card h3 { font-size: 1.25rem; color: var(--text-strong); }
+    .fh-product-card .flav { font-size: 0.8rem; color: var(--text-label); line-height: 1.4; }
+    .fh-product-card .flav strong { color: #222; }
+    .fh-product-card .desc { color: var(--text-subtle); font-size: 0.85rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .fh-product-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-lg); border-color: rgba(0, 0, 0, 0.08); }
+    .fh-product-card:hover .ph { transform: scale(1.1); }
+
+    /* Tile de categoria (bento home) */
+    .fh-category {
+      position: relative; width: 300px; max-width: 100%; height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding: 2rem 1.5rem; border-radius: var(--radius-xl); overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.15);
+      background: radial-gradient(circle at 30% 25%, var(--green-200), var(--green-500) 60%, var(--green-800));
+      box-shadow: inset 0 -150px 100px -20px rgba(0, 0, 0, 0.7), 0 10px 30px rgba(0, 0, 0, 0.05);
+      transition: all 0.4s var(--ease-interact); cursor: pointer;
+    }
+    .fh-category h3 { font-size: 1.4rem; color: var(--white); margin-bottom: 0.8rem; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); transform: translateY(45px); transition: transform 0.4s ease; }
+    .fh-category .fh-btn { width: 100%; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.4s ease; }
+    .fh-category:hover { transform: translateY(-10px); box-shadow: inset 0 -180px 120px -20px rgba(0, 0, 0, 0.85); }
+    .fh-category:hover h3 { transform: translateY(0); }
+    .fh-category:hover .fh-btn { opacity: 1; visibility: visible; transform: translateY(0); }
+
+    /* Stats */
+    .fh-stats { display: flex; gap: 3rem; flex-wrap: wrap; }
+    .fh-stat { display: flex; flex-direction: column; }
+    .fh-stat strong { font-family: var(--font-display); font-size: 2rem; color: var(--text-strong); }
+    .fh-stat span { font-size: 0.85rem; color: var(--text-subtle); text-transform: uppercase; }
+
+    /* Toast */
+    .fh-toast { background: var(--white); border-radius: var(--radius-sm); box-shadow: var(--shadow-md); display: inline-flex; align-items: center; padding: 1rem 1.5rem; gap: 1rem; border-left: 5px solid var(--green-500); }
+    .fh-toast i { font-size: 1.5rem; color: var(--green-500); }
+    .fh-toast p { color: var(--gray-900); font-weight: 500; }
+
+    /* Modal de resposta */
+    .fh-modal-scrim { position: relative; width: 100%; padding: var(--space-10) var(--space-4); border-radius: var(--radius-lg); display: flex; justify-content: center; gap: var(--space-8); flex-wrap: wrap; overflow: hidden; isolation: isolate; }
+    .fh-modal-scrim::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, var(--green-100) 0 18px, var(--green-300) 18px 36px); z-index: -2; filter: blur(5px); }
+    .fh-modal-scrim::after { content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: -1; }
+    .fh-modal { background: var(--white); width: 100%; max-width: 360px; padding: 2.5rem; border-radius: var(--radius-2xl); text-align: center; box-shadow: var(--shadow-xl); border-top: 10px solid var(--color-primary); }
+    .fh-modal.error { border-top-color: var(--error-ui); }
+    .fh-modal .icon { font-size: 4.5rem; margin-bottom: 1.5rem; color: var(--color-primary); line-height: 1; }
+    .fh-modal.error .icon { color: var(--error-ui); }
+    .fh-modal h3 { font-size: 2rem; color: var(--text-strong); margin-bottom: 0.8rem; }
+    .fh-modal p { color: #555; line-height: 1.6; margin-bottom: 1rem; }
+    .fh-modal .code { display: block; font-size: 0.8rem; color: var(--text-subtle); margin-bottom: 2rem; font-weight: 600; }
+    .fh-modal .confirm { width: 100%; padding: 1.1rem; border: none; border-radius: 14px; background: var(--color-primary); color: var(--white); font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+    .fh-modal.error .confirm { background: var(--error-ui); }
+    .fh-modal .confirm:hover { filter: brightness(1.1); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); }
+    .fh-modal.confirm-delete { border-top: none; border-radius: 20px; }
+    .fh-modal.confirm-delete .icon { font-size: 3rem; color: var(--error); margin-bottom: 1rem; }
+    .fh-modal .cascade { margin-top: 1.5rem; padding: 1rem; background: rgba(192, 57, 43, 0.1); border-radius: var(--radius-md); border: 1px solid rgba(192, 57, 43, 0.2); text-align: left; color: var(--error); font-size: 0.9rem; }
+    .fh-modal .actions { display: flex; gap: 1rem; margin-top: 2rem; justify-content: center; }
+
+    /* Tabela (admin) */
+    .fh-table-wrap { width: 100%; overflow-x: auto; background: var(--white); border-radius: 15px; border: 1px solid var(--gray-200); }
+    .fh-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 620px; }
+    .fh-table thead { background: var(--gray-100); }
+    .fh-table th { padding: 1.2rem 1rem; font-size: 0.9rem; color: var(--gray-900); font-weight: 600; white-space: nowrap; }
+    .fh-table td { padding: 1rem; font-size: 0.95rem; color: var(--gray-700); vertical-align: middle; }
+    .fh-table tbody tr { border-bottom: 1px solid var(--gray-100); transition: background 0.2s; }
+    .fh-table tbody tr:hover { background: #fafafa; }
+    .fh-table tbody tr:last-child { border-bottom: none; }
+    .fh-table .thumb { width: 50px; height: 50px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); background: linear-gradient(160deg, var(--green-200), var(--green-500)); }
+    .fh-table .row-actions { display: flex; gap: 0.25rem; }
+    .fh-table .row-actions button { border: none; background: transparent; width: 34px; height: 34px; border-radius: var(--radius-sm); cursor: pointer; color: var(--gray-700); transition: all 0.2s; }
+    .fh-table .row-actions button:hover { background: var(--bg-green-base); color: var(--green-600); }
+    .fh-table .row-actions button.del:hover { background: var(--surface-danger); color: var(--error); }
+
+    /* Skeleton (padrão obrigatório) */
+    .fh-skeleton { background: linear-gradient(90deg, var(--gray-100) 0, var(--gray-200) 40%, var(--gray-100) 80%); background-size: 800px 100%; animation: fh-shimmer 1.4s linear infinite; border-radius: var(--radius-sm); }
+
+    /* Empty state (padrão obrigatório) */
+    .fh-empty { max-width: 420px; display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; padding: var(--space-8); background: var(--white); border: 1px dashed var(--green-200); border-radius: var(--radius-xl); }
+    .fh-empty .ico { width: 56px; height: 56px; border-radius: 50%; background: var(--bg-green-base); color: var(--green-600); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .fh-empty h4 { font-size: 1.4rem; }
+    .fh-empty p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* Navbar */
+    .fh-nav { width: 100%; height: var(--nav-height); display: flex; align-items: center; justify-content: space-evenly; gap: var(--space-4); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); border-radius: var(--radius-md); padding: 0 var(--space-4); }
+    .fh-nav img { height: 40px; width: auto; }
+    .fh-nav ul { list-style: none; display: flex; gap: 1rem; margin: 0; padding: 0; align-items: center; }
+    .fh-nav li { padding: 0.75rem; border-radius: 0.25rem; transition: 0.25s ease-in-out; }
+    .fh-nav li a { text-decoration: none; color: var(--text-body); font-weight: 500; }
+    .fh-nav li a.active { color: var(--color-primary); font-weight: 700; }
+    .fh-nav li:hover { background: var(--bg-nav-hover); transform: scale(1.05); }
+    .fh-nav li i { font-size: 0.8rem; margin-left: 0.2rem; }
+    .fh-admin-btn { display: flex; align-items: center; gap: 0.5rem; border: 1px solid rgb(218, 218, 218); background: transparent; cursor: pointer; border-radius: 0.375rem; padding: 0.75rem; transition: 0.2s ease; font-size: 1rem; color: var(--text-body); }
+    .fh-admin-btn:hover { background: var(--color-primary); color: var(--white); }
+
+    /* Footer */
+    .fh-footer { width: 100%; background: var(--color-primary); color: var(--white); display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; padding: 2rem; border-radius: var(--radius-md); }
+    .fh-footer section { text-align: center; display: flex; flex-direction: column; gap: 0.5rem; }
+    .fh-footer h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .fh-footer a { color: var(--white); text-decoration: none; }
+    .fh-footer a:hover { text-decoration: underline; }
+    .fh-footer .social { display: flex; justify-content: center; gap: 1rem; font-size: 1.5rem; }
+    .fh-footer .copy { grid-column: 1 / -1; text-align: center; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.875rem; }
+
+    /* FAB / voltar ao topo */
+    .fh-fab { width: 60px; height: 60px; border-radius: 50%; background: var(--green-600); color: var(--white); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 18px rgba(26, 45, 20, 0.35); transition: all 0.25s var(--ease-snap); }
+    .fh-fab:hover { background: var(--green-700); transform: scale(1.06); }
+    .fh-fab:active { transform: scale(0.95); }
+    .fh-top-btn { width: 50px; height: 50px; border-radius: 50px; background: var(--green-600); color: var(--white); border: none; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; }
+    .fh-top-btn:hover { background: var(--green-700); transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); }
+
+    /* Chat panel (resumo) */
+    .fh-chat { width: 340px; max-width: 100%; background: var(--white); border-radius: var(--radius-lg); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18); border: 1px solid var(--gray-200); overflow: hidden; }
+    .fh-chat header { background: linear-gradient(135deg, var(--green-900), var(--green-700)); color: var(--white); padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+    .fh-chat header button { background: none; border: none; color: var(--white); cursor: pointer; font-size: 1rem; }
+    .fh-chat .body { padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--cream); }
+    .fh-chat .msg { max-width: 82%; padding: 10px 14px; border-radius: 14px; font-size: 0.9rem; line-height: 1.45; }
+    .fh-chat .msg.bot { background: var(--white); border: 1px solid var(--gray-200); color: var(--text-body); border-bottom-left-radius: 4px; }
+    .fh-chat .msg.user { background: var(--green-600); color: var(--white); align-self: flex-end; border-bottom-right-radius: 4px; }
+
+    /* Padrões de seção (miniaturas) */
+    .fh-sec { width: 100%; border-radius: var(--radius-lg); overflow: hidden; position: relative; }
+    .fh-sec.hero { background-color: var(--bg-green-base); background-image: radial-gradient(at 0% 100%, var(--bg-green-darker) 0px, transparent 50%), radial-gradient(at 100% 0%, var(--bg-green-glow) 0px, transparent 50%); padding: var(--space-12) var(--space-10); display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-10); align-items: center; }
+    .fh-sec.hero h1 { font-size: clamp(2.2rem, 4.4vw, 3.4rem); line-height: 1.1; margin: var(--space-6) 0 var(--space-4); }
+    .fh-sec.hero h1 i { color: var(--color-primary); font-weight: 400; }
+    .fh-sec.hero h1 span { display: block; }
+    .fh-sec.hero p { color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; margin-bottom: var(--space-8); max-width: 46ch; }
+    .fh-sec.hero .cta { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: var(--space-8); }
+    .fh-sec.hero .visual { aspect-ratio: 4 / 3.4; border-radius: var(--radius-xl); background: linear-gradient(160deg, var(--green-200), var(--green-600)); filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.15)); }
+    .fh-sec.title { background: linear-gradient(180deg, var(--forest-mid) 0%, var(--forest-light) 100%); text-align: center; padding: var(--space-16) var(--space-8) var(--space-12); display: flex; flex-direction: column; align-items: center; }
+    .fh-sec.title::after { content: ""; position: absolute; top: -30%; right: -10%; width: 420px; height: 420px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); }
+    .fh-sec.title span { text-transform: uppercase; color: var(--green-300); font-weight: 600; letter-spacing: 1.5px; font-size: 0.875rem; }
+    .fh-sec.title h1 { color: var(--white); font-size: clamp(2.2rem, 4.4vw, 3.4rem); margin: 1rem 0 2rem; }
+    .fh-sec.title h1 i { color: var(--green-300); }
+    .fh-sec.title p { color: var(--bg-green-darker); max-width: 560px; font-size: 1.125rem; }
+    .fh-sec.cta { background: linear-gradient(180deg, var(--dark-green) 0%, var(--forest-mid) 100%); padding: var(--space-16) var(--space-8); text-align: center; box-shadow: inset 0 -10px 20px rgba(0, 0, 0, 0.2); }
+    .fh-sec.cta .tag { color: var(--white); opacity: 0.6; letter-spacing: 4px; font-size: 0.8rem; display: block; margin-bottom: var(--space-6); }
+    .fh-sec.cta h2 { color: var(--white); font-size: clamp(2.2rem, 4.4vw, 3.4rem); margin-bottom: var(--space-6); }
+    .fh-sec.cta h2 span { font-style: italic; color: var(--green-300); }
+    .fh-sec.cta p { color: #e0e0e0; font-weight: 300; font-size: 1.1rem; margin-bottom: var(--space-10); }
+
+    /* ---------- Responsivo do kit ---------- */
+    @media (max-width: 1024px) {
+      .kit { grid-template-columns: 1fr; }
+      .kit-side { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--gray-200); padding: var(--space-6) 16px; }
+      .kit-side nav ol { flex-direction: row; flex-wrap: wrap; }
+      .kit-side .kit-version { margin-bottom: var(--space-4); }
+      .fh-footer { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .kit-hero, .kit-section { padding-left: 16px; padding-right: 16px; }
+      .kit-hero { padding-top: var(--space-16); }
+      .kit-section { padding-top: var(--space-12); padding-bottom: var(--space-12); }
+      .stage { padding: var(--space-4); }
+      .type-row { grid-template-columns: 1fr; gap: var(--space-2); }
+      .grid-2 { grid-template-columns: 1fr; }
+      .reveal-demo, .fh-sec.hero { grid-template-columns: 1fr; }
+      .fh-sec.hero { padding: var(--space-8) var(--space-4); }
+      .fh-nav { flex-wrap: wrap; height: auto; padding: var(--space-4); justify-content: center; }
+      .fh-nav ul { flex-wrap: wrap; justify-content: center; }
+      .fh-footer { grid-template-columns: 1fr; }
+      .space-row { grid-template-columns: 70px 70px minmax(0, 1fr); }
+      .font-card .big { font-size: 3.5rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="kit">
+
+  <!-- ================================================================ -->
+  <aside class="kit-side" aria-label="Índice do Design Kit">
+    <img src="../../../public/assets/images/fitoherb-logo.png" alt="Fitoherb Nordeste" width="160" height="34" onerror="this.style.display='none'">
+    <span class="kit-version">Design Kit · v1.0 · 03/11/2026</span>
+    <nav>
+      <ol>
+        <li><a href="#principios">Princípios</a></li>
+        <li><a href="#cores">Paleta de cores</a></li>
+        <li><a href="#tipografia">Tipografia</a></li>
+        <li><a href="#hierarquia">Hierarquia de texto</a></li>
+        <li><a href="#espacamento">Espaçamento e grid</a></li>
+        <li><a href="#forma">Raios e sombras</a></li>
+        <li><a href="#movimento">Animações</a></li>
+        <li><a href="#camadas">Camadas (z-index)</a></li>
+        <li><a href="#componentes">Componentes base</a></li>
+        <li><a href="#feedback">Feedback e estados</a></li>
+        <li><a href="#navegacao">Navegação e estrutura</a></li>
+        <li><a href="#secoes">Padrões de seção</a></li>
+        <li><a href="#tokens">Tokens (CSS)</a></li>
+        <li><a href="#auditoria">Divergências</a></li>
+      </ol>
+    </nav>
+  </aside>
+
+  <main class="kit-main">
+
+    <!-- ================================================================ -->
+    <header class="kit-hero">
+      <span class="eyebrow">Fitoherb Nordeste · Frontend v2</span>
+      <h1>Design Kit <i>da casa</i></h1>
+      <p>Referência visual extraída do site em produção. Tudo aqui reflete o que já está implementado em <code>src/colors.scss</code>, <code>src/styles.scss</code>, <code>src/app/shared/*</code> e nas views. É a fonte de consulta para novos Design Plans e para a migração dos valores avulsos para tokens.</p>
+      <div class="meta">
+        <div><strong>10</strong><span>Tons de verde</span></div>
+        <div><strong>2</strong><span>Famílias tipográficas</span></div>
+        <div><strong>4</strong><span>Curvas de easing</span></div>
+        <div><strong>20+</strong><span>Componentes</span></div>
+      </div>
+    </header>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="principios">
+      <header>
+        <span class="eyebrow">01 · Fundamentos</span>
+        <h2>Natural, editorial, <span>sem pressa</span></h2>
+        <p>A identidade combina o verde-floresta da marca com tipografia serifada de revista e superfícies claras com muito respiro. Os princípios abaixo resumem as decisões que se repetem no código.</p>
+      </header>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Princípio</th><th>Como aparece no site</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Verde como âncora</strong></td><td>Um único primário (<code>#38582f</code>) para ações, estados ativos, foco e scrollbar. Tons claros da escala viram fundos; tons escuros viram gradientes de seção.</td></tr>
+            <tr><td><strong>Serifa com itálico de destaque</strong></td><td>Títulos em Playfair Display. A palavra-chave do título vai em <em>itálico peso 400</em> na cor primária (<code>&lt;i&gt;</code> ou <code>&lt;span&gt;</code>) — assinatura da marca em Home, Galeria e Sobre.</td></tr>
+            <tr><td><strong>Elevação por movimento</strong></td><td>Hover sobe o elemento (<code>translateY(-3px)</code> em botões, <code>-10px</code> em cards) e amplia a sombra, em vez de só trocar a cor.</td></tr>
+            <tr><td><strong>Entrada coreografada</strong></td><td>Seções entram com <code>IntersectionObserver</code> + classe <code>.is-visible</code>, deslocamento lateral e delays escalonados de 0,3s.</td></tr>
+            <tr><td><strong>Raio por hierarquia</strong></td><td>Controles em 12px, painéis em 16px, cards em 24px, modais em 28px, pílulas em 50px. Quanto maior a superfície, maior o raio.</td></tr>
+            <tr><td><strong>Tags escuras</strong></td><td>Toda tag, badge, contador ou status usa fundo escuro com texto branco. O hero não tem tag: o contexto acima do título é um eyebrow em texto.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="cores">
+      <header>
+        <span class="eyebrow">02 · Cor</span>
+        <h2>Paleta de <span>cores</span></h2>
+        <p>Cada amostra mostra o contraste calculado contra branco. O selo <strong>AA</strong> indica ≥ 4.5:1 (texto normal); <strong>AA+</strong> indica ≥ 3:1 (somente texto grande ≥ 24px ou ícones); vermelho indica uso proibido como cor de texto sobre branco.</p>
+      </header>
+
+      <h3 class="kit-sub">Escala verde · <code>$green-50 … $green-900</code></h3>
+      <div class="scale-strip" id="green-strip" aria-hidden="true"></div>
+      <div class="grid-auto" data-swatches="green"></div>
+
+      <h3 class="kit-sub">Semânticas da marca</h3>
+      <div class="grid-auto" data-swatches="brand"></div>
+
+      <h3 class="kit-sub">Fundos de seção</h3>
+      <div class="grid-auto" data-swatches="bg"></div>
+
+      <h3 class="kit-sub">Neutros e texto</h3>
+      <div class="grid-auto" data-swatches="neutral"></div>
+
+      <h3 class="kit-sub">Feedback</h3>
+      <div class="grid-auto" data-swatches="feedback"></div>
+
+      <h3 class="kit-sub">Fundos de tag · texto sempre branco</h3>
+      <div class="grid-auto" data-swatches="tag"></div>
+      <div class="stage" style="margin-top:var(--space-4)">
+        <span class="fh-status success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Trânsito livre</span>
+        <span class="fh-status warning"><i class="fa-solid fa-lock" aria-hidden="true"></i> Ordem travada</span>
+        <span class="fh-status danger"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Trânsito intenso</span>
+        <span class="fh-status info"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Rota otimizada</span>
+        <span class="fh-badge-category">Chás</span>
+        <p class="caption">Substitui o trio claro fundo / texto / borda de <code>seller-routes.component.scss</code>: o tom escuro de cada status vira o fundo, o texto passa a ser branco e a borda deixa de existir. Sempre com ícone — a cor nunca carrega a mensagem sozinha.</p>
+      </div>
+
+      <h3 class="kit-sub">Gradientes oficiais</h3>
+      <div class="grid-auto">
+        <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(180deg,#243620,#3e5a39);color:#fff">Title section</div><div class="swatch-body"><code>180deg · forest-mid → forest-light</code><span>Cabeçalho de Galeria, Sobre, Contato</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(180deg,#0f140f,#243620);color:#fff">CTA escuro</div><div class="swatch-body"><code>180deg · dark-green → forest-mid</code><span>Seção de contato da Home</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#1a2d14,#2e4f24);color:#fff">Chat header</div><div class="swatch-body"><code>135deg · green-900 → green-700</code><span>Widget de chat, pins de mapa</span></div></div>
+        <div class="swatch"><div class="swatch-chip" style="background-color:#f4f9f1;background-image:radial-gradient(at 0% 100%,#d0e6c1 0,transparent 50%),radial-gradient(at 100% 0%,#e3f0d8 0,transparent 50%);color:#1a2d14">Hero orgânico</div><div class="swatch-body"><code>bg-green-base + 2 radiais</code><span>Hero da Home</span></div></div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="tipografia">
+      <header>
+        <span class="eyebrow">03 · Tipografia</span>
+        <h2>Duas vozes, <span>um tom</span></h2>
+        <p>Font pairing fixo: Playfair Display para títulos (h1–h6, números de destaque) e Outfit para todo o resto (corpo, UI, formulários). Ambas carregadas via Google Fonts em <code>src/index.html</code>.</p>
+      </header>
+      <div class="grid-2">
+        <div class="font-card">
+          <div class="big" style="font-family:var(--font-display)">Aa <i style="font-weight:400;color:var(--green-600)">Aa</i></div>
+          <h3 style="font-size:1.5rem;margin-bottom:.5rem">Playfair Display</h3>
+          <p>Display e títulos · <code>'Playfair Display', serif</code></p>
+          <div class="weights" style="font-family:var(--font-display)">
+            <span style="font-weight:400">Regular</span><span style="font-weight:500">Medium</span><span style="font-weight:600">Semibold</span><span style="font-weight:700">Bold</span><span style="font-style:italic">Itálico</span>
+          </div>
+        </div>
+        <div class="font-card">
+          <div class="big" style="font-family:var(--font-body);font-weight:600">Aa <span style="font-weight:300;color:var(--green-600)">Aa</span></div>
+          <h3 style="font-size:1.5rem;margin-bottom:.5rem">Outfit</h3>
+          <p>Corpo, interface e formulários · <code>'Outfit', -apple-system, …, sans-serif</code></p>
+          <div class="weights">
+            <span style="font-weight:300">Light</span><span style="font-weight:400">Regular</span><span style="font-weight:500">Medium</span><span style="font-weight:600">Semibold</span><span style="font-weight:700">Bold</span>
+          </div>
+        </div>
+      </div>
+      <div class="kit-note">
+        <strong>Uso dos pesos (Outfit):</strong> 300 em parágrafos sobre fundo escuro · 400 corpo · 500 links de navegação, chips e tabs · 600 labels, botões e cabeçalhos de tabela · 700 estado ativo, tags e eyebrows · 800 badges de card.
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="hierarquia">
+      <header>
+        <span class="eyebrow">04 · Hierarquia</span>
+        <h2>Escala <span>tipográfica</span></h2>
+        <p>Tamanhos efetivamente usados no código, do maior para o menor. Valores entre parênteses são as reduções responsivas aplicadas no próprio componente.</p>
+      </header>
+      <div class="stage col" style="gap:0">
+        <div class="type-row"><div class="meta"><strong>Display</strong><code>4.5rem / 1.1</code><span>(3.5 ≤1200 · 2.5 ≤768)</span><span>Hero da Home</span></div><div class="sample" style="font-family:var(--font-display);font-size:clamp(2.5rem,5.5vw,4.5rem);line-height:1.1;font-weight:700">Saúde que vem <i style="color:var(--green-600);font-weight:400">da natureza</i></div></div>
+        <div class="type-row"><div class="meta"><strong>H1 de página</strong><code>4rem</code><span>(2.8 ≤768)</span><span>Title-section, CTA escuro</span></div><div class="sample" style="font-family:var(--font-display);font-size:clamp(2.4rem,5vw,4rem);line-height:1.1;font-weight:700">Nossos <i style="color:var(--green-600);font-weight:400">produtos</i></div></div>
+        <div class="type-row"><div class="meta"><strong>H2 de seção</strong><code>3.5rem</code><span>(2.2 ≤768)</span><span>Blocos da Home</span></div><div class="sample" style="font-family:var(--font-display);font-size:clamp(2.2rem,4.4vw,3.5rem);line-height:1.15;font-weight:700">Linhas de <span style="color:var(--green-600);font-style:italic;font-weight:400">produto</span></div></div>
+        <div class="type-row"><div class="meta"><strong>H3</strong><code>2rem</code><span>Modal, stat, H1 do admin (1.5 ≤768)</span></div><div class="sample" style="font-family:var(--font-display);font-size:2rem;font-weight:700">Mensagem enviada</div></div>
+        <div class="type-row"><div class="meta"><strong>H4</strong><code>1.4rem</code><span>Tile de categoria</span></div><div class="sample" style="font-family:var(--font-display);font-size:1.4rem;font-weight:700">Chás e infusões</div></div>
+        <div class="type-row"><div class="meta"><strong>H5</strong><code>1.25rem</code><span>Card de produto, rodapé</span></div><div class="sample" style="font-family:var(--font-display);font-size:1.25rem;font-weight:700">Chá Verde com Hibisco</div></div>
+        <div class="type-row"><div class="meta"><strong>Lead</strong><code>1.1–1.15rem / 1.6</code><span>Subtítulo de hero e seção</span></div><div class="sample" style="font-size:1.1rem;color:var(--text-muted);line-height:1.6;max-width:60ch">Distribuímos fitoterápicos, chás e suplementos para farmácias e lojas de produtos naturais em todo o Nordeste.</div></div>
+        <div class="type-row"><div class="meta"><strong>Body</strong><code>1rem / 1.5</code><span>Texto corrido, inputs, botões</span></div><div class="sample" style="font-size:1rem;color:var(--text-body)">Atendemos de segunda a sexta, das 8h às 18h, com entrega programada por rota comercial.</div></div>
+        <div class="type-row"><div class="meta"><strong>Small</strong><code>0.9rem · 600</code><span>Labels de formulário, th</span></div><div class="sample" style="font-size:.9rem;font-weight:600;color:var(--text-label)">E-mail corporativo <span style="color:var(--error-ui)">*</span></div></div>
+        <div class="type-row"><div class="meta"><strong>Caption</strong><code>0.85rem</code><span>Descrição de card, stat label</span></div><div class="sample" style="font-size:.85rem;color:var(--text-subtle);line-height:1.5">Blend de folhas selecionadas, sem adição de açúcar.</div></div>
+        <div class="type-row"><div class="meta"><strong>Eyebrow</strong><code>0.875rem · 600 · +1.5px</code><span>Acima de títulos</span></div><div class="sample"><span class="eyebrow">Catálogo completo</span></div></div>
+        <div class="type-row"><div class="meta"><strong>Micro</strong><code>0.7rem · 700 · +1px</code><span>Categoria do card, contadores</span></div><div class="sample" style="font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green-500)">Suplementos</div></div>
+        <div class="type-row"><div class="meta"><strong>Error</strong><code>0.75rem · 500</code><span>Mensagem de validação</span></div><div class="sample"><span class="fh-error" style="animation:none"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> E-mail inválido</span></div></div>
+      </div>
+      <div class="kit-note"><strong>Regra do destaque:</strong> no máximo uma expressão em itálico por título, sempre no fim ou isolada em linha própria (<code>span { display:block }</code>). Sobre fundo escuro, o itálico usa <code>green-300</code>/<code>lighten($primary, 15%)</code>.</div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="espacamento">
+      <header>
+        <span class="eyebrow">05 · Espaço</span>
+        <h2>Espaçamento e <span>grid</span></h2>
+        <p>O código trabalha em <code>rem</code> com passos de 0,25rem (4px). A escala abaixo cobre todos os valores recorrentes; seções usam padding percentual horizontal para dar respiro editorial.</p>
+      </header>
+      <div class="stage col" id="space-scale" style="gap:0"></div>
+
+      <h3 class="kit-sub">Padding de seção</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Contexto</th><th>Desktop</th><th>≤ 1024px</th><th>≤ 768px</th></tr></thead>
+          <tbody>
+            <tr><td>Seção de conteúdo (Home)</td><td><code>6rem 15%</code></td><td><code>4rem 5%</code></td><td><code>4rem 1.5rem</code></td></tr>
+            <tr><td>Title-section</td><td><code>6rem 2rem 3.6rem</code></td><td>—</td><td><code>8rem 1rem 4rem</code></td></tr>
+            <tr><td>CTA escuro</td><td><code>8rem 2rem</code></td><td>—</td><td><code>4rem 1.5rem</code></td></tr>
+            <tr><td>Container da galeria</td><td><code>4rem 10%</code> · max 1800px</td><td>—</td><td><code>3rem 5%</code></td></tr>
+            <tr><td>Área admin</td><td><code>2rem 4rem</code></td><td>—</td><td><code>1.5rem</code> (≤480: <code>1rem .75rem</code>)</td></tr>
+            <tr><td>Card / modal</td><td><code>2rem</code> / <code>2.5rem</code></td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="kit-sub">Grids e breakpoints</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Token</th><th>Valor</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td><code>bp-xl</code></td><td>1200px</td><td>Redução do display da Home</td></tr>
+            <tr><td><code>bp-lg</code></td><td>1024px</td><td>Padding de seção cai para 5%; bento vai a 3 colunas</td></tr>
+            <tr><td><code>bp-md</code></td><td>992px</td><td>Hero vira 1 coluna centralizada; rodapé 2 colunas</td></tr>
+            <tr><td><code>bp-sm</code></td><td><strong>768px</strong></td><td>Breakpoint principal (52 ocorrências): menu hambúrguer, rodapé 1 coluna, tipografia mobile</td></tr>
+            <tr><td><code>bp-xs</code></td><td>500px / 480px</td><td>CTAs empilham em 100%, stats em coluna</td></tr>
+            <tr><td>Grid de produtos</td><td><code>repeat(auto-fill, minmax(300px, 1fr))</code> · gap 2rem</td><td>Galeria</td></tr>
+            <tr><td>Bento de categorias</td><td>flex-wrap · base 25% · itens 6n+1 e 6n+4 a 50%</td><td>Home</td></tr>
+            <tr><td>Hero</td><td><code>1.2fr 1fr</code> · gap 4rem</td><td>Home</td></tr>
+            <tr><td>Rodapé</td><td><code>repeat(4, 1fr)</code> · gap 2rem</td><td>Global</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="forma">
+      <header>
+        <span class="eyebrow">06 · Forma</span>
+        <h2>Raios e <span>sombras</span></h2>
+        <p>O raio cresce com o tamanho da superfície. As sombras são longas e de baixa opacidade; em ações primárias, a sombra é tingida de verde.</p>
+      </header>
+      <h3 class="kit-sub">Raios</h3>
+      <div class="stage">
+        <div class="radius-box" style="border-radius:4px">4px<code>xs</code><span>Tooltips, barras</span></div>
+        <div class="radius-box" style="border-radius:8px">8px<code>sm</code><span>Toast, thumb</span></div>
+        <div class="radius-box" style="border-radius:12px">12px<code>md</code><span>Botão, input</span></div>
+        <div class="radius-box" style="border-radius:16px">16px<code>lg</code><span>Toolbar, chat</span></div>
+        <div class="radius-box" style="border-radius:24px">24px<code>xl</code><span>Cards, imagens</span></div>
+        <div class="radius-box" style="border-radius:28px">28px<code>2xl</code><span>Modal</span></div>
+        <div class="radius-box" style="border-radius:50px">50px<code>pill</code><span>Tags, chips</span></div>
+        <div class="radius-box" style="border-radius:50%;width:96px">50%<code>full</code><span>FAB</span></div>
+      </div>
+      <h3 class="kit-sub">Elevação</h3>
+      <div class="stage green">
+        <div class="shadow-box" style="box-shadow:var(--shadow-card)">card<code>0 10 30 · 2%</code></div>
+        <div class="shadow-box" style="box-shadow:var(--shadow-xs)">xs<code>0 4 10 · 5%</code></div>
+        <div class="shadow-box" style="box-shadow:var(--shadow-sm)">sm<code>0 4 12 · 10%</code></div>
+        <div class="shadow-box" style="box-shadow:var(--shadow-lg)">lg · hover<code>0 20 40 · 8%</code></div>
+        <div class="shadow-box" style="box-shadow:var(--shadow-md)">md<code>0 10 30 · 15%</code></div>
+        <div class="shadow-box" style="box-shadow:var(--shadow-xl)">xl · modal<code>0 25 60 · 20%</code></div>
+        <div class="shadow-box" style="box-shadow:var(--shadow-primary)">primária<code>verde · 20%</code></div>
+        <div class="shadow-box" style="box-shadow:var(--ring-focus);border:1px solid var(--green-600)">foco<code>ring 4px · 10%</code></div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="movimento">
+      <header>
+        <span class="eyebrow">07 · Movimento</span>
+        <h2>Animações e <span>transições</span></h2>
+        <p>Quatro curvas cobrem todo o site. Interações respondem rápido (200–500ms); entradas de seção são lentas e longas (1–1,5s) para dar a sensação editorial. Clique em ▶ para reproduzir.</p>
+      </header>
+
+      <h3 class="kit-sub">Curvas de easing</h3>
+      <div class="grid-2" id="ease-demos"></div>
+
+      <h3 class="kit-sub">Durações</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Token</th><th>Valor</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td><code>--dur-fast</code></td><td>200ms</td><td>Hover de opção, tab, ícone, link de nav (0.25s)</td></tr>
+            <tr><td><code>--dur-base</code></td><td>300ms</td><td>Botões, inputs, toast, overlay, sidebar mobile</td></tr>
+            <tr><td><code>--dur-slow</code></td><td>400–500ms</td><td>Cards de produto e categoria, bounce do modal</td></tr>
+            <tr><td><code>--dur-reveal</code></td><td>1000–1500ms</td><td>Scroll reveal (Home 1.2s lateral / 1.5s vertical; Sobre 1s)</td></tr>
+            <tr><td>Stagger</td><td>+0.3s por item (0.2 → 0.5 → 0.8 → 1.1 → 1.4s)</td><td><code>.item-1 … .item-5</code></td></tr>
+            <tr><td>Contadores</td><td>800ms (Home) · 1200ms (Sobre) · 60fps</td><td>Stats animados via Signal</td></tr>
+            <tr><td>Toast</td><td>entra 0.3s · sai 0.3s após 3.7s · total 4s</td><td><code>app-toast</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="kit-sub">Keyframes</h3>
+      <div class="grid-auto" id="keyframe-demos" style="grid-template-columns:repeat(auto-fill,minmax(230px,1fr))"></div>
+
+      <h3 class="kit-sub">Scroll reveal coreografado</h3>
+      <div class="motion-card">
+        <header>
+          <div><h4>reveal-left + reveal-right + stagger</h4><span class="motion-meta">1.2s · cubic-bezier(0.22, 1, 0.36, 1) · IntersectionObserver threshold 0.1, dispara uma vez</span></div>
+          <button class="btn-play" data-replay="reveal" aria-label="Reproduzir scroll reveal"><i class="fa-solid fa-play" aria-hidden="true"></i></button>
+        </header>
+        <div class="reveal-demo is-visible" id="reveal-demo">
+          <div class="lines">
+            <div class="line title r left item-1"></div>
+            <div class="line r left item-2" style="width:95%"></div>
+            <div class="line r left item-2" style="width:70%"></div>
+            <div class="line r left item-3" style="width:40%;height:40px;background:var(--green-600);border-radius:12px"></div>
+          </div>
+          <div class="block r right"></div>
+        </div>
+      </div>
+
+      <h3 class="kit-sub">Micro-interações padrão</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Elemento</th><th>Hover</th><th>Transição</th></tr></thead>
+          <tbody>
+            <tr><td>Botão</td><td><code>translateY(-3px)</code> + sombra maior + <code>brightness(1.1)</code></td><td>0.3s ease-interact</td></tr>
+            <tr><td>Card de produto</td><td><code>translateY(-10px)</code> + imagem <code>scale(1.1)</code></td><td>0.5s ease-interact</td></tr>
+            <tr><td>Tile de categoria</td><td>sobe 10px, título sobe 45px, botão aparece</td><td>0.4s ease-interact</td></tr>
+            <tr><td>Item de nav</td><td>fundo <code>#e8f2e6</code> + <code>scale(1.05)</code>; seta do dropdown gira 180°</td><td>0.25s ease-in-out</td></tr>
+            <tr><td>Chip de filtro</td><td><code>translateY(-2px)</code> + borda verde 40%</td><td>0.3s ease-interact</td></tr>
+            <tr><td>FAB do chat</td><td><code>scale(1.06)</code>; active <code>scale(0.95)</code></td><td>0.25s ease-snap</td></tr>
+            <tr><td>Ícone de ajuda</td><td><code>scale(1.1)</code> + fundo verde claro</td><td>200ms ease</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kit-note warn"><strong>Acessibilidade:</strong> o site ainda não respeita <code>prefers-reduced-motion</code>. Este kit já aplica a regra; novas implementações devem incluí-la.</div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="camadas">
+      <header>
+        <span class="eyebrow">08 · Profundidade</span>
+        <h2>Camadas <span>(z-index)</span></h2>
+        <p>Escala consolidada a partir dos valores existentes. Novos componentes devem escolher uma camada desta tabela em vez de inventar números.</p>
+      </header>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Token</th><th>Valor</th><th>Elementos atuais</th></tr></thead>
+          <tbody>
+            <tr><td><code>--z-raised</code></td><td>1 – 10</td><td>Conteúdo sobre imagem, toolbar da galeria</td></tr>
+            <tr><td><code>--z-dropdown</code></td><td>60 – 100</td><td>Painel de fornecedores, lista do <code>app-select</code></td></tr>
+            <tr><td><code>--z-backdrop</code></td><td>998</td><td>Backdrop do menu mobile</td></tr>
+            <tr><td><code>--z-sidebar</code></td><td>999</td><td>Menu lateral mobile</td></tr>
+            <tr><td><code>--z-nav</code></td><td>1000</td><td>Navbar fixa, botão voltar ao topo</td></tr>
+            <tr><td><code>--z-nav-menu</code></td><td>1001</td><td>Dropdown da navbar</td></tr>
+            <tr><td><code>--z-chat</code></td><td>1050 – 1200</td><td>Chat widget, elementos flutuantes do admin</td></tr>
+            <tr><td><code>--z-overlay</code></td><td>2000 – 9999</td><td>Modais, toast, overlays de rota</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="componentes">
+      <header>
+        <span class="eyebrow">09 · Componentes</span>
+        <h2>Componentes <span>base</span></h2>
+        <p>Réplicas visuais dos componentes compartilhados (<code>src/app/shared</code>) e dos padrões recorrentes das views. Os nomes Angular estão indicados em cada bloco.</p>
+      </header>
+
+      <h3 class="kit-sub"><code>&lt;app-button&gt;</code> · variantes</h3>
+      <div class="stage">
+        <button class="fh-btn primary">Ver produtos <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        <button class="fh-btn outline">Falar com vendedor</button>
+        <div style="background:var(--forest-mid);padding:12px;border-radius:16px"><button class="fh-btn white">Entrar em contato</button></div>
+        <button class="fh-btn danger"><i class="fa-solid fa-trash" aria-hidden="true"></i> Excluir</button>
+        <p class="caption"><code>variant="primary | outline | white"</code>. A variante destrutiva é obtida sobrescrevendo <code>.primary</code> com <code>$error</code> no modal de confirmação.</p>
+      </div>
+      <h3 class="kit-sub"><code>&lt;app-button&gt;</code> · tamanhos e estados</h3>
+      <div class="stage">
+        <div class="stage-item"><small>small</small><button class="fh-btn primary small">Filtrar</button></div>
+        <div class="stage-item"><small>medium</small><button class="fh-btn primary">Enviar</button></div>
+        <div class="stage-item"><small>large</small><button class="fh-btn primary large">Conhecer a linha</button></div>
+        <div class="stage-item"><small>loading</small><button class="fh-btn primary is-loading" aria-busy="true"><i class="fa-solid fa-circle-notch" aria-hidden="true"></i> Enviando</button></div>
+        <div class="stage-item"><small>disabled</small><button class="fh-btn primary" disabled>Enviar</button></div>
+        <div class="stage-item" style="width:100%;max-width:360px"><small>fullWidth</small><button class="fh-btn primary full">Acessar painel</button></div>
+      </div>
+
+      <h3 class="kit-sub">Formulário · <code>&lt;app-input&gt;</code> <code>&lt;app-select&gt;</code> <code>&lt;app-textarea&gt;</code></h3>
+      <div class="stage">
+        <div class="fh-field"><label for="k-name">Nome completo <span>*</span></label><div class="wrap"><input id="k-name" class="fh-control" placeholder="Como devemos te chamar?"></div></div>
+        <div class="fh-field"><label for="k-mail">E-mail <span>*</span></label><div class="wrap has-icon"><i class="fa-solid fa-envelope prefix" aria-hidden="true"></i><input id="k-mail" class="fh-control is-focus" value="compras@farmaciaverde.com.br"></div></div>
+        <div class="fh-field"><label for="k-phone">Telefone</label><div class="wrap has-icon"><i class="fa-solid fa-phone prefix" aria-hidden="true"></i><input id="k-phone" class="fh-control invalid" value="(81) 9999"></div><span class="fh-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Telefone incompleto</span></div>
+        <div class="fh-field"><label for="k-pass">Senha</label><div class="wrap is-password"><input id="k-pass" type="password" class="fh-control" value="exemplo"><button class="toggle" type="button" aria-label="Mostrar senha"><i class="fa-solid fa-eye" aria-hidden="true"></i></button></div></div>
+        <div class="fh-field fh-select"><label>Assunto <span>*</span></label><div class="wrap"><div class="fh-control selected placeholder" tabindex="0" role="combobox" aria-expanded="false">Selecione o assunto</div></div></div>
+        <div class="fh-field fh-select"><label>Assunto (aberto, searchable)</label><div class="wrap"><div class="fh-control selected is-focus" tabindex="0" role="combobox" aria-expanded="true">Quero revender</div></div>
+          <div class="fh-dropdown" role="listbox"><div class="search"><input placeholder="Buscar..." aria-label="Buscar opção"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></div><div class="opt" role="option">Dúvida sobre produto</div><div class="opt selected" role="option" aria-selected="true">Quero revender</div><div class="opt" role="option">Trabalhe conosco</div></div></div>
+        <div class="fh-field" style="max-width:740px"><label for="k-msg">Mensagem <span>*</span></label><textarea id="k-msg" class="fh-control" rows="4" placeholder="Conte o que sua loja precisa..."></textarea></div>
+        <p class="caption">Estados: default · focus (borda primária + ring 4px) · invalid (borda <code>#e74c3c</code>, fundo <code>#fff9f9</code>, mensagem com <code>slideIn 0.2s</code>) · disabled (opacity 0.6).</p>
+      </div>
+
+      <h3 class="kit-sub">Tags, badges e contadores</h3>
+      <div class="stage">
+        <div class="stage-item"><small>Badge de card</small><div style="display:flex;gap:8px"><span class="fh-badge new">Novo</span><span class="fh-badge highlight">Destaque</span></div></div>
+        <div class="stage-item"><small>Categoria · estoque (tabela)</small><div style="display:flex;gap:8px"><span class="fh-badge-category">Chás</span><span class="fh-badge-category">42 un.</span></div></div>
+        <div class="stage-item"><small>Contador</small><span class="fh-count">128</span></div>
+        <div class="stage-item"><small>Status</small><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="fh-status success"><i class="fa-solid fa-check" aria-hidden="true"></i> Ativo</span><span class="fh-status warning"><i class="fa-solid fa-lock" aria-hidden="true"></i> Travada</span><span class="fh-status danger"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Crítica</span><span class="fh-status info"><i class="fa-solid fa-route" aria-hidden="true"></i> Trecho</span></div></div>
+        <p class="caption"><strong>Padrão único:</strong> toda tag tem fundo escuro e texto branco (<code>--tag-fg</code>), contraste ≥ 7:1. A referência que já existe no site é <code>.badge-stock</code> (<code>$green-800</code> + branco). Não existe tag em pílula clara nem tag decorativa no hero.</p>
+      </div>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Token</th><th>Fundo</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td><code>--tag-brand</code></td><td><code>$green-800 #243d1c</code></td><td>Categoria, estoque, duração, contador, prioridade regular</td></tr>
+            <tr><td><code>--tag-primary</code></td><td><code>$green-600 #38582f</code></td><td>Destaque, contador dentro de botão de filtro</td></tr>
+            <tr><td><code>--tag-new</code></td><td><code>$green-700 #2e4f24</code></td><td>Produto novo</td></tr>
+            <tr><td><code>--tag-success</code></td><td><code>#065f46</code></td><td>Ativo, horário ok, trânsito livre, trecho em foco</td></tr>
+            <tr><td><code>--tag-warning</code></td><td><code>#92400e</code></td><td>Ordem travada, prioridade alta, trânsito moderado</td></tr>
+            <tr><td><code>--tag-danger</code></td><td><code>#991b1b</code></td><td>Conflito de horário, prioridade crítica, trânsito intenso</td></tr>
+            <tr><td><code>--tag-info</code></td><td><code>#1e40af</code></td><td>Informação de rota</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="kit-sub">Filtros · tabs, chips e toolbar (galeria)</h3>
+      <div class="stage col">
+        <div class="fh-tabs" role="tablist">
+          <button class="fh-tab active" role="tab" aria-selected="true">Todos <span class="fh-count">128</span></button>
+          <button class="fh-tab" role="tab">Chás <span class="fh-count">34</span></button>
+          <button class="fh-tab" role="tab">Suplementos <span class="fh-count">51</span></button>
+          <button class="fh-tab" role="tab">Cápsulas <span class="fh-count">22</span></button>
+          <button class="fh-tab" role="tab">Óleos <span class="fh-count">21</span></button>
+        </div>
+        <div class="fh-chips">
+          <button class="fh-chip active">Fitoherb <span class="fh-count">40</span></button>
+          <button class="fh-chip">Vitalab <span class="fh-count">18</span></button>
+          <button class="fh-chip">Natural Life <span class="fh-count">12</span></button>
+          <button class="fh-chip">Ervas do Sertão <span class="fh-count">9</span></button>
+        </div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <button class="fh-tool-btn active"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Fornecedores <span class="pill">1</span></button>
+          <button class="fh-tool-btn ghost"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Limpar filtros</button>
+          <button class="fh-icon-btn" aria-label="Ver tutorial"><i class="fa-solid fa-circle-question" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <h3 class="kit-sub">Cards</h3>
+      <div class="stage green">
+        <div class="stage-item"><small>Card de produto · <code>app-item-card-gallery</code></small>
+          <article class="fh-product-card" tabindex="0">
+            <div class="img"><span class="fh-badge new">Novo</span><div class="ph"><i class="fa-solid fa-leaf" aria-hidden="true"></i></div></div>
+            <div class="content">
+              <span class="cat">Chás</span>
+              <h3>Chá Verde com Hibisco</h3>
+              <p class="flav"><strong>Sabores:</strong> limão, gengibre, frutas vermelhas</p>
+              <p class="desc">Blend de folhas selecionadas, sem adição de açúcar. Embalagem com 20 sachês individuais.</p>
+            </div>
+          </article>
+        </div>
+        <div class="stage-item"><small>Tile de categoria · bento da Home (passe o mouse)</small>
+          <div class="fh-category" tabindex="0"><h3>Chás e infusões</h3><button class="fh-btn white small">Ver categoria</button></div>
+        </div>
+        <div class="stage-item"><small>Stats</small>
+          <div class="fh-stats"><div class="fh-stat"><strong>+800</strong><span>Clientes</span></div><div class="fh-stat"><strong>15</strong><span>Anos</span></div><div class="fh-stat"><strong>9</strong><span>Estados</span></div></div>
+        </div>
+      </div>
+
+      <h3 class="kit-sub">Tabela · <code>app-dynamic-table</code></h3>
+      <div class="fh-table-wrap">
+        <table class="fh-table">
+          <thead><tr><th>Imagem</th><th>Produto</th><th>Categoria</th><th>Fornecedor</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody>
+            <tr><td><div class="thumb"></div></td><td>Chá Verde com Hibisco</td><td><span class="fh-badge-category">Chás</span></td><td>Fitoherb</td><td><span class="fh-status success"><i class="fa-solid fa-check" aria-hidden="true"></i> Ativo</span></td><td><div class="row-actions"><button aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button><button class="del" aria-label="Excluir"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></div></td></tr>
+            <tr><td><div class="thumb"></div></td><td>Ômega 3 · 120 cápsulas</td><td><span class="fh-badge-category">Suplementos</span></td><td>Vitalab</td><td><span class="fh-status warning"><i class="fa-solid fa-clock" aria-hidden="true"></i> Revisão</span></td><td><div class="row-actions"><button aria-label="Editar"><i class="fa-solid fa-pen" aria-hidden="true"></i></button><button class="del" aria-label="Excluir"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="feedback">
+      <header>
+        <span class="eyebrow">10 · Feedback</span>
+        <h2>Feedback e <span>estados</span></h2>
+        <p>Retorno ao usuário sempre combina ícone + texto. Skeleton e Empty State são obrigatórios pelas regras do projeto; os modelos abaixo seguem os tokens da casa.</p>
+      </header>
+
+      <h3 class="kit-sub">Toast · <code>&lt;app-toast&gt;</code></h3>
+      <div class="stage">
+        <div class="fh-toast" role="status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><p>Produto salvo com sucesso.</p></div>
+        <p class="caption">Fixo no topo central · <code>slideInDown 0.3s</code> → visível 3.7s → <code>fadeOut 0.3s</code>.</p>
+      </div>
+
+      <h3 class="kit-sub">Modais · <code>&lt;app-modal-response&gt;</code> e <code>modal-confirm</code></h3>
+      <div class="fh-modal-scrim">
+        <div class="fh-modal" role="dialog" aria-label="Sucesso">
+          <div class="icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></div>
+          <h3>Mensagem enviada</h3>
+          <p>Nossa equipe comercial responde em até 1 dia útil.</p>
+          <span class="code">Status 201</span>
+          <button class="confirm">Entendi</button>
+        </div>
+        <div class="fh-modal error" role="dialog" aria-label="Erro">
+          <div class="icon"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i></div>
+          <h3>Algo deu errado</h3>
+          <p>Não conseguimos enviar agora. Tente de novo em alguns minutos.</p>
+          <span class="code">Status 500</span>
+          <button class="confirm">Tentar novamente</button>
+        </div>
+        <div class="fh-modal confirm-delete" role="dialog" aria-label="Confirmar exclusão">
+          <div class="icon"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></div>
+          <p>Excluir o fornecedor <strong style="display:block;color:var(--gray-900)">Vitalab</strong></p>
+          <div class="cascade">Também serão removidos 18 produtos vinculados.</div>
+          <div class="actions"><button class="fh-btn outline small">Cancelar</button><button class="fh-btn danger small">Excluir</button></div>
+        </div>
+      </div>
+      <p class="caption" style="font-size:var(--text-xs);color:var(--text-subtle);margin-top:var(--space-3)">Overlay <code>rgba(0,0,0,.4)</code> + <code>blur(5–8px)</code> · card com <code>bounceIn 0.5s ease-bounce</code> · borda superior de 10px na cor do status.</p>
+
+      <h3 class="kit-sub">Skeleton e Empty state</h3>
+      <div class="stage">
+        <div class="fh-product-card" aria-hidden="true" style="cursor:default">
+          <div class="img fh-skeleton" style="border-radius:0"></div>
+          <div class="content">
+            <div class="fh-skeleton" style="height:10px;width:30%"></div>
+            <div class="fh-skeleton" style="height:22px;width:80%"></div>
+            <div class="fh-skeleton" style="height:12px;width:100%"></div>
+            <div class="fh-skeleton" style="height:12px;width:65%"></div>
+          </div>
+        </div>
+        <div class="fh-empty">
+          <div class="ico"><i class="fa-solid fa-seedling" aria-hidden="true"></i></div>
+          <h4>Nenhum produto nesta combinação</h4>
+          <p>Tente remover um fornecedor do filtro ou buscar por outro nome.</p>
+          <button class="fh-btn outline small"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Limpar filtros</button>
+        </div>
+        <p class="caption">O skeleton reproduz a geometria exata do card (evita CLS). O empty state é alinhado à esquerda, explica o motivo e oferece a ação de saída.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="navegacao">
+      <header>
+        <span class="eyebrow">11 · Estrutura</span>
+        <h2>Navegação e <span>estrutura</span></h2>
+        <p>Elementos globais presentes em todas as páginas públicas. A navbar é fixa com 100px de altura; <code>.main-content</code> compensa com <code>padding-top: 100px</code>.</p>
+      </header>
+      <h3 class="kit-sub"><code>&lt;app-nav&gt;</code></h3>
+      <div class="stage green">
+        <div class="fh-nav">
+          <img src="../../../public/assets/images/fitoherb-logo.png" alt="Fitoherb" width="140" height="40" onerror="this.outerHTML='<strong style=&quot;font-family:var(--font-display);font-size:1.4rem;color:var(--green-700)&quot;>Fitoherb</strong>'">
+          <ul>
+            <li><a href="#navegacao" class="active">Início</a></li>
+            <li><a href="#navegacao">Produtos <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></a></li>
+            <li><a href="#navegacao">Sobre</a></li>
+            <li><a href="#navegacao">Fornecedores</a></li>
+            <li><a href="#navegacao">Contato</a></li>
+          </ul>
+          <button class="fh-admin-btn"><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Admin</button>
+        </div>
+        <p class="caption">Glass leve (<code>rgba(255,255,255,.85)</code> + blur 12px) só na navbar e menus suspensos. Mobile (≤768px): hambúrguer à esquerda, sidebar de 280px deslizando em 0.3s com backdrop 50%.</p>
+      </div>
+
+      <h3 class="kit-sub"><code>&lt;app-footer&gt;</code></h3>
+      <footer class="fh-footer">
+        <section><h3>Fitoherb</h3><p>Distribuição de produtos naturais no Nordeste.</p><div class="social"><a href="#navegacao" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a><a href="#navegacao" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a></div></section>
+        <section><h3>Navegação</h3><a href="#navegacao">Produtos</a><a href="#navegacao">Sobre</a><a href="#navegacao">Contato</a></section>
+        <section><h3>Contato</h3><a href="#navegacao"><i class="fa-solid fa-phone" aria-hidden="true"></i> (81) 3000-0000</a><a href="#navegacao"><i class="fa-solid fa-envelope" aria-hidden="true"></i> contato@exemplo.com</a></section>
+        <section><h3>Horário</h3><p>Seg a sex · 8h às 18h</p></section>
+        <div class="copy">© 2026 Fitoherb Nordeste. Todos os direitos reservados.</div>
+      </footer>
+
+      <h3 class="kit-sub">Flutuantes · chat e voltar ao topo</h3>
+      <div class="stage">
+        <div class="stage-item"><small>FAB do chat</small><button class="fh-fab" aria-label="Abrir assistente"><i class="fa-solid fa-comments" aria-hidden="true"></i></button></div>
+        <div class="stage-item"><small>Voltar ao topo</small><button class="fh-top-btn" aria-label="Voltar ao topo"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></button></div>
+        <div class="stage-item"><small>Painel do chat · <code>slideUp 0.25s</code></small>
+          <div class="fh-chat">
+            <header><span><i class="fa-solid fa-leaf" aria-hidden="true"></i> Assistente Fitoherb</span><button aria-label="Fechar chat"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></header>
+            <div class="body">
+              <div class="msg bot">Olá! Posso ajudar a encontrar um produto ou um representante da sua região.</div>
+              <div class="msg user">Vocês atendem Caruaru?</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="secoes">
+      <header>
+        <span class="eyebrow">12 · Composição</span>
+        <h2>Padrões de <span>seção</span></h2>
+        <p>Três composições de página se repetem. Use-as como ponto de partida em vez de criar novos heros.</p>
+      </header>
+      <h3 class="kit-sub">Hero assimétrico · Home</h3>
+      <div class="fh-sec hero">
+        <div>
+          <span class="eyebrow">Distribuidora oficial</span>
+          <h1>Saúde que vem <span><i>da natureza</i></span></h1>
+          <p>Fitoterápicos, chás e suplementos com entrega por rota para farmácias e lojas naturais.</p>
+          <div class="cta"><button class="fh-btn primary">Ver produtos <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button><button class="fh-btn outline">Seja revendedor</button></div>
+          <div class="fh-stats"><div class="fh-stat"><strong>+800</strong><span>Clientes</span></div><div class="fh-stat"><strong>15</strong><span>Anos</span></div></div>
+        </div>
+        <div class="visual" role="img" aria-label="Área da imagem principal"></div>
+      </div>
+      <p class="caption" style="font-size:var(--text-xs);color:var(--text-subtle);margin:var(--space-3) 0 var(--space-8)">Grid <code>1.2fr 1fr</code>, eyebrow em texto (sem pílula), título, dois CTAs (primário + outline), stats abaixo. Centraliza apenas ≤992px. O hero <strong>não leva tag em pílula</strong>.</p>
+
+      <h3 class="kit-sub">Title section · páginas internas</h3>
+      <div class="fh-sec title">
+        <span>Catálogo</span>
+        <h1>Nossos <i>produtos</i></h1>
+        <p>Mais de 120 itens de fornecedores parceiros, organizados por categoria.</p>
+      </div>
+
+      <h3 class="kit-sub">CTA escuro · fechamento de página</h3>
+      <div class="fh-sec cta">
+        <span class="tag">SEJA NOSSO PARCEIRO</span>
+        <h2>Vamos abastecer <span>sua loja?</span></h2>
+        <p>Um representante da sua região entra em contato.</p>
+        <button class="fh-btn white">Entrar em contato <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="tokens">
+      <header>
+        <span class="eyebrow">13 · Implementação</span>
+        <h2>Tokens em <span>CSS</span></h2>
+        <p>Proposta de <code>:root</code> com os tokens deste kit, pronta para ser adotada em <code>src/styles.scss</code> quando a migração for planejada. Os nomes SCSS existentes continuam válidos.</p>
+      </header>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:var(--space-2)"><button class="btn-copy" id="copy-tokens"><i class="fa-regular fa-copy" aria-hidden="true"></i> Copiar tokens</button></div>
+      <pre id="tokens-pre" style="background:var(--green-900);color:var(--green-100);padding:var(--space-6);border-radius:var(--radius-lg);overflow:auto;max-height:420px;font-size:.8rem;line-height:1.6;margin:0"></pre>
+      <h3 class="kit-sub">Mapeamento SCSS → CSS</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>SCSS atual</th><th>Token CSS</th></tr></thead>
+          <tbody>
+            <tr><td><code>$primary-color</code> / <code>$green-600</code></td><td><code>var(--color-primary)</code></td></tr>
+            <tr><td><code>$green-700</code> (hover)</td><td><code>var(--color-primary-hover)</code></td></tr>
+            <tr><td><code>lighten($primary-color, 15%)</code></td><td><code>var(--color-primary-accent)</code></td></tr>
+            <tr><td><code>#e74c3c</code> (hardcoded)</td><td><code>var(--error-ui)</code> → convergir para <code>var(--error)</code></td></tr>
+            <tr><td><code>#1a1a1a</code> · <code>#333</code> · <code>#444</code> · <code>#666</code> · <code>#757575</code></td><td><code>--text-strong</code> · <code>--text-body</code> · <code>--text-label</code> · <code>--text-muted</code> · <code>--text-subtle</code></td></tr>
+            <tr><td><code>#e0e0e0</code> (borda de campo)</td><td><code>var(--border-field)</code></td></tr>
+            <tr><td><code>border-radius: 12px</code></td><td><code>var(--radius-md)</code></td></tr>
+            <tr><td>Tag clara (<code>$green-50</code> + <code>$green-700</code>, <code>#fef3c7</code> + <code>#92400e</code> …)</td><td><code>background: var(--tag-*)</code> + <code>color: var(--tag-fg)</code>, sem borda</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <section class="kit-section" id="auditoria">
+      <header>
+        <span class="eyebrow">14 · Auditoria</span>
+        <h2>Divergências <span>encontradas</span></h2>
+        <p>Onde o código atual difere do padrão deste kit, agrupado por tema e com arquivo e linha. Serve de backlog para tarefas futuras; nada foi alterado no site.</p>
+      </header>
+
+      <div class="grid-auto" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr));margin-bottom:var(--space-8)">
+        <div class="font-card" style="padding:var(--space-6)"><strong style="font-family:var(--font-display);font-size:2rem">14</strong><p>Classes de tag fora do padrão escuro</p></div>
+        <div class="font-card" style="padding:var(--space-6)"><strong style="font-family:var(--font-display);font-size:2rem">9</strong><p>Declarações de fonte não carregada</p></div>
+        <div class="font-card" style="padding:var(--space-6)"><strong style="font-family:var(--font-display);font-size:2rem">4</strong><p>Grupos de cor com contraste baixo</p></div>
+        <div class="font-card" style="padding:var(--space-6)"><strong style="font-family:var(--font-display);font-size:2rem">0</strong><p>Regras de movimento reduzido</p></div>
+      </div>
+
+      <h3 class="kit-sub">A · Tags</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Prioridade</th><th>Como está</th><th>Onde</th><th>Padrão do kit</th></tr></thead>
+          <tbody>
+            <tr><td><span class="fh-status danger">Alta</span></td><td>Estilo de tag em pílula clara no hero (<code>.content-left .tag</code>, fundo verde 10% e texto verde). Não é usado no HTML: é código morto.</td><td><code>home.component.scss:99</code></td><td>Remover. O hero não tem tag.</td></tr>
+            <tr><td><span class="fh-status danger">Alta</span></td><td>Status de rota com fundo claro, texto escuro e borda: horário ok, trecho em foco, ordem travada, trânsito livre / moderado / intenso.</td><td><code>seller-routes.component.scss:1730</code>, <code>:1743</code>, <code>:1756</code>, <code>:1778–1803</code></td><td><code>--tag-success</code> / <code>--tag-warning</code> / <code>--tag-danger</code> + texto branco, sem borda.</td></tr>
+            <tr><td><span class="fh-status danger">Alta</span></td><td>Conflito de horário em rosa (<code>#ffe4e6</code> / <code>#9f1239</code> / <code>#f43f5e</code>), fora da paleta.</td><td><code>seller-routes.component.scss:1716</code></td><td><code>--tag-danger</code>.</td></tr>
+            <tr><td><span class="fh-status warning">Média</span></td><td>Pílulas de prioridade claras (regular <code>$green-50</code>, alta <code>#fef3c7</code>, crítica <code>#fee2e2</code>).</td><td><code>seller-routes.component.scss:1018–1043</code></td><td><code>--tag-brand</code> / <code>--tag-warning</code> / <code>--tag-danger</code>.</td></tr>
+            <tr><td><span class="fh-status warning">Média</span></td><td>Sequência fixa e indicador de trava em amarelo claro.</td><td><code>seller-routes.component.scss:1001</code>, <code>:1212</code></td><td><code>--tag-warning</code>.</td></tr>
+            <tr><td><span class="fh-status warning">Média</span></td><td>Duração da visita e contador de paradas em <code>$green-50</code> com texto <code>$green-700</code>.</td><td><code>seller-routes.component.scss:899</code>, <code>:1765</code></td><td><code>--tag-brand</code>.</td></tr>
+            <tr><td><span class="fh-status warning">Média</span></td><td>Categoria na tabela do admin em <code>$green-50</code> com texto <code>$green-700</code>. Na mesma tabela, <code>.badge-stock</code> já segue o padrão.</td><td><code>dynamic-table.component.scss:74</code> (referência: <code>:84</code>)</td><td><code>--tag-brand</code>, igual a <code>.badge-stock</code>.</td></tr>
+            <tr><td><span class="fh-status warning">Média</span></td><td>Contadores de tabs e chips da galeria em cinza claro (<code>#e9ecef</code>) ou branco.</td><td><code>gallery.component.scss:190</code>, <code>:208</code>, <code>:259</code>, <code>:282</code></td><td><code>--tag-brand</code>; dentro de item ativo, <code>$green-900</code>.</td></tr>
+            <tr><td><span class="fh-status info">Baixa</span></td><td>Badge "novo" em <code>#2d5a27</code>, fora da escala verde.</td><td><code>item-card-gallery.component.scss:46</code></td><td><code>--tag-new</code> (<code>$green-700</code>).</td></tr>
+            <tr><td><span class="fh-status info">Baixa</span></td><td>Tag "Ordem travada" usa o emoji 🔒 no lugar de ícone.</td><td><code>seller-routes.component.html:480</code></td><td>Ícone <code>fa-lock</code> com <code>aria-hidden</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kit-note">Os rótulos em texto <code>.tag</code> de Sobre ("NOSSA TRAJETÓRIA") e do CTA da Home ("SEJA NOSSO PARCEIRO") são <strong>eyebrows</strong>, não tags: texto sem fundo. Ficam como estão.</div>
+
+      <h3 class="kit-sub">B · Tipografia</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Prioridade</th><th>Como está</th><th>Onde</th><th>Padrão do kit</th></tr></thead>
+          <tbody>
+            <tr><td><span class="fh-status danger">Alta</span></td><td>Campos e filtros declaram <code>font-family: "DM Sans"</code>. Essa fonte não é carregada, então o navegador usa a fonte do sistema e os formulários saem com outra tipografia.</td><td><code>input.component.scss:76</code> · <code>select.component.scss:50</code>, <code>:100</code> · <code>textarea.component.scss:27</code> · <code>about.component.scss:90</code>, <code>:107</code> · <code>table-filter.component.scss:52</code>, <code>:83</code>, <code>:117</code></td><td><code>var(--font-body)</code> (Outfit).</td></tr>
+            <tr><td><span class="fh-status warning">Média</span></td><td>A seta do <code>app-select</code> usa <code>"Font Awesome 5 Free"</code>, mas a página carrega o Font Awesome 6.4.</td><td><code>select.component.scss:33</code></td><td><code>"Font Awesome 6 Free"</code>; conferir se a seta aparece.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="kit-sub">C · Cor e contraste</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Prioridade</th><th>Como está</th><th>Onde</th><th>Padrão do kit</th></tr></thead>
+          <tbody>
+            <tr><td><span class="fh-status danger">Alta</span></td><td>Texto pequeno em <code>$gray-500 #8a8a7a</code> (3.5:1), <code>#888</code> (3.5:1), <code>#aaa</code> (2.3:1) e <code>#82b074</code> (2.5:1) sobre branco. O mínimo é 4.5:1.</td><td>Subtítulo do admin, legenda dos stats, ícone de prefixo, categoria do card de produto</td><td><code>--text-subtle #757575</code> para texto; <code>$green-500</code> para categoria.</td></tr>
+            <tr><td><span class="fh-status warning">Média</span></td><td>Dois vermelhos de erro: <code>$error #c0392b</code> e <code>#e74c3c</code>, este repetido 15 vezes como valor fixo.</td><td>input, select, textarea, modal-response, modal-entity</td><td>Um único token de erro.</td></tr>
+            <tr><td><span class="fh-status info">Baixa</span></td><td>O fundo do body (<code>#f5f5f5</code>) é diferente de <code>$gray-100 #f5f5f0</code>.</td><td><code>styles.scss</code></td><td>Definir um só valor para <code>--bg-body</code>.</td></tr>
+            <tr><td><span class="fh-status info">Baixa</span></td><td>Cores de texto e borda escritas direto (<code>#333</code>, <code>#444</code>, <code>#666</code>, <code>#e0e0e0</code> …) em vez de tokens.</td><td>Todas as views</td><td>Tokens <code>--text-*</code> e <code>--border-field</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="kit-sub">D · Movimento e forma</h3>
+      <div class="table-scroll">
+        <table class="spec">
+          <thead><tr><th>Prioridade</th><th>Como está</th><th>Onde</th><th>Padrão do kit</th></tr></thead>
+          <tbody>
+            <tr><td><span class="fh-status warning">Média</span></td><td>Nenhum arquivo SCSS trata <code>prefers-reduced-motion</code>. As entradas de seção duram de 1 a 1,5s e deslocam até 80px.</td><td>Home, Sobre, Contato, Fornecedores</td><td>Com movimento reduzido: sem deslocamento e duração mínima.</td></tr>
+            <tr><td><span class="fh-status info">Baixa</span></td><td>Raios fora da escala (6, 10, 14, 15, 20 e 30px).</td><td>Várias views</td><td>Usar <code>sm</code> / <code>md</code> / <code>lg</code> / <code>xl</code> / <code>pill</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ---------- Dados de cor (espelho de src/colors.scss + recorrentes) ----------
+  const SWATCHES = {
+    green: [
+      ['green-900', '#1a2d14', 'Fundos escuros, texto de alto contraste'],
+      ['green-800', '#243d1c', 'Gradientes escuros'],
+      ['green-700', '#2e4f24', 'Hover do primário'],
+      ['green-600', '#38582f', 'Primária — ações, foco, ativo'],
+      ['green-500', '#4a7040', 'Toast, estados intermediários'],
+      ['green-400', '#5d8a52', 'Bordas e ícones secundários'],
+      ['green-300', '#82b074', 'Decorativo, destaque em fundo escuro'],
+      ['green-200', '#b5d4a8', 'Fundos de seção claros'],
+      ['green-100', '#ddefd6', 'Fundos muito claros'],
+      ['green-50',  '#f0f8eb', 'Superfície quase branca, badge'],
+    ],
+    brand: [
+      ['primary-color', '#38582f', 'Alias da marca'],
+      ['dark-green', '#0f140f', 'Início do CTA escuro'],
+      ['forest-mid', '#243620', 'Gradiente de title-section'],
+      ['forest-light', '#3e5a39', 'Fim do gradiente, hover sutil'],
+      ['primary-accent', '#588a4a', 'lighten(primary,15%) em títulos escuros'],
+    ],
+    bg: [
+      ['bg-green-base', '#f4f9f1', 'Fundo do hero, hover claro'],
+      ['bg-green-glow', '#e3f0d8', 'Brilho radial'],
+      ['bg-green-darker', '#d0e6c1', 'Radial / texto sobre gradiente'],
+      ['bg-nav-hover', '#e8f2e6', 'Hover de item de nav'],
+      ['bg-body', '#f5f5f5', 'Fundo global (body)'],
+      ['cream', '#faf8f3', 'Superfície quente'],
+    ],
+    neutral: [
+      ['text-strong', '#1a1a1a', 'Títulos e texto principal'],
+      ['text-body', '#333333', 'Links de nav, opções'],
+      ['text-label', '#444444', 'Labels de formulário'],
+      ['text-muted', '#666666', 'Parágrafos de apoio'],
+      ['text-subtle', '#757575', 'Placeholder, descrição'],
+      ['gray-900', '#1a1a12', 'Texto de tabela/cabeçalho'],
+      ['gray-700', '#4a4a3a', 'Células de tabela'],
+      ['gray-500', '#8a8a7a', 'Apenas ícones / texto grande'],
+      ['gray-300', '#d0d0c8', 'Divisores'],
+      ['gray-200', '#e8e8e0', 'Bordas sutis'],
+      ['border-field', '#e0e0e0', 'Borda de input'],
+      ['gray-100', '#f5f5f0', 'Cabeçalho de tabela'],
+    ],
+    tag: [
+      ['tag-brand', '#243d1c', 'Categoria, estoque, contador'],
+      ['tag-primary', '#38582f', 'Destaque'],
+      ['tag-new', '#2e4f24', 'Produto novo'],
+      ['tag-success', '#065f46', 'Ativo, horário ok, livre'],
+      ['tag-warning', '#92400e', 'Travada, prioridade alta'],
+      ['tag-danger', '#991b1b', 'Conflito, crítica, intenso'],
+      ['tag-info', '#1e40af', 'Informação de rota'],
+    ],
+    feedback: [
+      ['error', '#c0392b', 'Erro (token SCSS)'],
+      ['error-ui', '#e74c3c', 'Erro usado nos campos'],
+      ['success', '#27ae60', 'Sucesso'],
+      ['warning', '#e67e22', 'Alerta'],
+    ],
+  };
+
+  function luminance(hex) {
+    const n = hex.replace('#', '');
+    const rgb = [0, 2, 4].map(i => parseInt(n.substr(i, 2), 16) / 255)
+      .map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+  }
+  function contrast(a, b) {
+    const [l1, l2] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (l1 + 0.05) / (l2 + 0.05);
+  }
+  function rating(ratio) {
+    if (ratio >= 4.5) return ['AA', ''];
+    if (ratio >= 3) return ['AA+', ''];
+    return ['—', 'fail'];
+  }
+
+  document.querySelectorAll('[data-swatches]').forEach(grid => {
+    SWATCHES[grid.dataset.swatches].forEach(([name, hex, use]) => {
+      const vsWhite = contrast(hex, '#ffffff');
+      const onChip = contrast(hex, '#ffffff') > contrast(hex, '#1a1a1a') ? '#ffffff' : '#1a1a1a';
+      const [label, cls] = rating(vsWhite);
+      const el = document.createElement('div');
+      el.className = 'swatch';
+      el.innerHTML =
+        `<div class="swatch-chip" style="background:${hex};color:${onChip}">` +
+          `<span>Aa</span><span class="aa ${cls}" title="Contraste contra branco">${label} ${vsWhite.toFixed(2)}</span>` +
+        `</div>` +
+        `<div class="swatch-body"><strong>${name}</strong><code>${hex}</code><span>${use}</span>` +
+        `<button class="btn-copy" data-copy="${hex}" style="align-self:flex-start;margin-top:4px">Copiar</button></div>`;
+      grid.appendChild(el);
+    });
+  });
+
+  const strip = document.getElementById('green-strip');
+  SWATCHES.green.slice().reverse().forEach(([name, hex]) => {
+    const d = document.createElement('div');
+    d.style.background = hex;
+    d.style.color = contrast(hex, '#fff') > 3 ? '#fff' : '#1a2d14';
+    d.textContent = name.replace('green-', '');
+    strip.appendChild(d);
+  });
+
+  // ---------- Escala de espaçamento ----------
+  const SPACES = [['space-1', 0.25], ['space-2', 0.5], ['space-3', 0.75], ['space-4', 1], ['space-5', 1.25], ['space-6', 1.5],
+                  ['space-8', 2], ['space-10', 2.5], ['space-12', 3], ['space-16', 4], ['space-24', 6], ['space-32', 8]];
+  const spaceWrap = document.getElementById('space-scale');
+  SPACES.forEach(([name, rem]) => {
+    const row = document.createElement('div');
+    row.className = 'space-row';
+    row.innerHTML = `<code>--${name}</code><span>${rem}rem · ${rem * 16}px</span><div class="bar" style="width:${rem * 16}px;max-width:100%"></div>`;
+    spaceWrap.appendChild(row);
+  });
+
+  // ---------- Demos de easing ----------
+  const EASES = [
+    ['--ease-reveal', 'cubic-bezier(0.22, 1, 0.36, 1)', 'easeOutQuint · scroll reveal (1–1.5s)', 1200],
+    ['--ease-interact', 'cubic-bezier(0.165, 0.84, 0.44, 1)', 'easeOutQuart · botões, cards, chips', 500],
+    ['--ease-snap', 'cubic-bezier(0.16, 1, 0.3, 1)', 'easeOutExpo · FAB e chat', 250],
+    ['--ease-bounce', 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', 'backOut · bounce do modal de resposta', 500],
+  ];
+  const easeWrap = document.getElementById('ease-demos');
+  EASES.forEach(([token, curve, use, ms], i) => {
+    const card = document.createElement('div');
+    card.className = 'motion-card';
+    card.innerHTML =
+      `<header><div><h4><code>${token}</code></h4><span class="motion-meta">${curve}<br>${use}</span></div>` +
+      `<button class="btn-play" data-ease="${i}" aria-label="Reproduzir ${token}"><i class="fa-solid fa-play" aria-hidden="true"></i></button></header>` +
+      `<div class="ease-track" id="ease-${i}"><div class="ball" style="transition:left ${ms}ms ${curve}"></div></div>`;
+    easeWrap.appendChild(card);
+  });
+  easeWrap.addEventListener('click', e => {
+    const btn = e.target.closest('[data-ease]');
+    if (!btn) return;
+    document.getElementById('ease-' + btn.dataset.ease).classList.toggle('run');
+  });
+
+  // ---------- Demos de keyframes ----------
+  const KEYFRAMES = [
+    ['fade-in', 'play-fade-in', '0.3s ease-out', 'Botão voltar ao topo'],
+    ['slideIn', 'play-slide-in', '0.2s ease-out', 'Mensagem de erro de campo'],
+    ['slideInDown', 'play-slide-in-down', '0.3s ease-out', 'Entrada do toast'],
+    ['fadeOut', 'play-fade-out', '0.3s ease-in', 'Saída do toast'],
+    ['bounceIn', 'play-bounce-in', '0.5s ease-bounce', 'Card do modal de resposta'],
+    ['slideUp', 'play-slide-up', '0.25s ease-out', 'Painel do chat'],
+  ];
+  const kfWrap = document.getElementById('keyframe-demos');
+  KEYFRAMES.forEach(([name, cls, timing, use], i) => {
+    const card = document.createElement('div');
+    card.className = 'motion-card';
+    card.innerHTML =
+      `<header><div><h4>@keyframes ${name}</h4><span class="motion-meta">${timing}<br>${use}</span></div>` +
+      `<button class="btn-play" data-kf="${i}" aria-label="Reproduzir ${name}"><i class="fa-solid fa-play" aria-hidden="true"></i></button></header>` +
+      `<div class="motion-track"><div class="motion-dot" id="kf-${i}" data-cls="${cls}"></div></div>`;
+    kfWrap.appendChild(card);
+  });
+  kfWrap.addEventListener('click', e => {
+    const btn = e.target.closest('[data-kf]');
+    if (!btn) return;
+    const dot = document.getElementById('kf-' + btn.dataset.kf);
+    dot.classList.remove(dot.dataset.cls);
+    void dot.offsetWidth; // reinicia a animação
+    dot.classList.add(dot.dataset.cls);
+  });
+
+  // ---------- Replay do scroll reveal ----------
+  const revealDemo = document.getElementById('reveal-demo');
+  document.querySelector('[data-replay="reveal"]').addEventListener('click', () => {
+    revealDemo.classList.remove('is-visible');
+    setTimeout(() => revealDemo.classList.add('is-visible'), 450);
+  });
+
+  // ---------- Tokens CSS (gerados do próprio :root deste arquivo) ----------
+  const rootRule = [...document.styleSheets[document.styleSheets.length - 1].cssRules]
+    .find(r => r.selectorText === ':root');
+  const tokensText = rootRule ? rootRule.cssText.replace(/; /g, ';\n  ').replace('{ ', '{\n  ').replace(' }', '\n}') : '';
+  document.getElementById('tokens-pre').textContent = tokensText;
+
+  // ---------- Copiar ----------
+  function copy(text, btn) {
+    const done = () => { const old = btn.textContent; btn.textContent = 'Copiado'; setTimeout(() => (btn.textContent = old), 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(() => {});
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-copy]');
+    if (b) copy(b.dataset.copy, b);
+  });
+  document.getElementById('copy-tokens').addEventListener('click', e => copy(tokensText, e.currentTarget));
+
+  // ---------- Índice ativo ----------
+  const links = [...document.querySelectorAll('.kit-side nav a')];
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      links.forEach(a => a.classList.toggle('is-current', a.getAttribute('href') === '#' + en.target.id));
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  document.querySelectorAll('.kit-section').forEach(s => io.observe(s));
+</script>
+</body>
+</html>
