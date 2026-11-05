@@ -22,6 +22,41 @@ export interface DeliveryStopDto extends LocationPointDto {
   demand?: number;
   service_duration_minutes?: number | null;
   target_arrival_time?: string | null;
+  is_suggestion?: boolean;
+  suggestion_category?: 'FARMACIA' | 'PRODUTOS_NATURAIS' | null;
+  detour_distance_km?: number | null;
+  detour_time_minutes?: number | null;
+}
+
+export interface CityInsightDto {
+  city: string;
+  state: string;
+  ibge_code?: string;
+  population: number;
+  city_tier: 'METROPOLIS' | 'REGIONAL_HUB' | 'MEDIUM_CITY' | 'SMALL_TOWN';
+  city_tier_label: string;
+  demographic_density_hab_km2?: number;
+  gdp_per_capita_brl?: number;
+  regional_hub_name?: string;
+  commercial_potential_summary?: string;
+  confirmed_stops_count: number;
+  suggested_leads_count: number;
+  estimated_dwell_minutes: number;
+}
+
+export interface SuggestedStopDto {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  address?: AddressDto;
+  suggestion_category: 'FARMACIA' | 'PRODUTOS_NATURAIS';
+  category_label?: string;
+  detour_distance_km?: number;
+  detour_time_minutes?: number;
+  nearest_stop_id?: string;
+  nearest_stop_name?: string;
+  is_suggestion: boolean;
 }
 
 export interface OptimizeRouteRequest {
@@ -30,6 +65,9 @@ export interface OptimizeRouteRequest {
   return_to_depot?: boolean;
   departure_time?: string;
   default_service_minutes?: number;
+  discover_suggestions?: boolean;
+  max_suggestions?: number;
+  excluded_locations?: LocationPointDto[];
 }
 
 export interface OrderedStopDto {
@@ -52,6 +90,10 @@ export interface OrderedStopDto {
   target_arrival_time?: string | null;
   has_time_conflict?: boolean;
   time_conflict_message?: string | null;
+  is_suggestion?: boolean;
+  suggestion_category?: 'FARMACIA' | 'PRODUTOS_NATURAIS' | null;
+  detour_distance_km?: number | null;
+  detour_time_minutes?: number | null;
 }
 
 export interface OptimizeRouteResponse {
@@ -68,4 +110,6 @@ export interface OptimizeRouteResponse {
   peak_hours_encountered?: number;
   has_any_time_conflict?: boolean;
   time_conflict_count?: number;
+  city_insights?: CityInsightDto[];
+  suggested_stops?: SuggestedStopDto[];
 }
