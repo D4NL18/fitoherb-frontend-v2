@@ -1,9 +1,10 @@
 <button
+  type="button"
   class="product-card"
-  [class.has-flavours]="product().flavours && product().flavours.length > 0"
+  [class.has-flavours]="(product().flavours && product().flavours.length > 0) || (product().presentation && product().presentation!.length > 0)"
   (click)="onCardClick()"
-  >
-  <div class="image-container">
+>
+  <div class="image-container" [class.placeholder-bg]="isPlaceholderImage()">
     @if (isNew()) {
       <span class="badge new">Novo</span>
     } @else if (product().supplier.isHighlighted) {
@@ -16,6 +17,7 @@
         [alt]="product().name"
         draggable="false"
         (error)="onImageError()"
+        [class.placeholder-image]="isPlaceholderImage()"
         [class.fallback-image]="hasImageError()"
       />
     }
@@ -28,6 +30,10 @@
     @if (product().flavours && product().flavours.length > 0) {
       <p class="flavours-text">
         <strong>Sabores:</strong> {{ product().flavours.join(", ") }}.
+      </p>
+    } @else if (product().presentation && product().presentation!.length > 0) {
+      <p class="flavours-text">
+        <strong>Apresentação:</strong> {{ product().presentation!.join(", ") }}.
       </p>
     }
   </div>

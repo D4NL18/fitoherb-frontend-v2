@@ -31,6 +31,34 @@
     margin-top: 5px;
   }
 
+  .reason-field {
+    margin-top: var(--space-4);
+    text-align: left;
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-body);
+      margin-bottom: var(--space-1);
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: 0 var(--space-3);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-field);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+
+      &:focus-visible {
+        outline: 2px solid var(--green-700);
+        outline-offset: 2px;
+      }
+    }
+  }
+
   .cascade-warning {
     margin-top: 1.5rem;
     padding: 1rem;
@@ -62,14 +90,40 @@
 
 .modal-footer {
   display: flex;
+  flex-direction: row-reverse;
   gap: 1rem;
   margin-top: 2rem;
   justify-content: center;
 
-  .btn-danger {
-    :host ::ng-deep .custom-btn.primary {
-      background-color: styles.$error;
-      border-color: styles.$error;
+  .btn-confirm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 1.4rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--error);
+    background-color: var(--error);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter var(--dur-fast) var(--ease-interact), transform var(--dur-fast) var(--ease-interact);
+
+    &:hover:not(:disabled) {
+      filter: brightness(0.92);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--green-700);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 }

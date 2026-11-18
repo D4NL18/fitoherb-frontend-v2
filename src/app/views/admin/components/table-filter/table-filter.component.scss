@@ -25,15 +25,13 @@
 }
 
 .dropdown-list {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
   width: 250px;
   background: #fff;
   border-radius: 12px;
   border: 1px solid #e0e0e0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+  z-index: 2000;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -49,7 +47,7 @@
       padding: 0.6rem 2rem 0.6rem 0.8rem;
       border-radius: 8px;
       border: 1px solid #e0e0e0;
-      font-family: "DM Sans", sans-serif;
+      font-family: var(--font-body);
       font-size: 0.9rem;
 
       &:focus {
@@ -80,7 +78,7 @@
       align-items: center;
       gap: 0.8rem;
       transition: background 0.2s;
-      font-family: "DM Sans", sans-serif;
+      font-family: var(--font-body);
       font-size: 0.9rem;
       color: #444;
 
@@ -114,7 +112,7 @@
     button {
       padding: 0.5rem 1rem;
       border-radius: 6px;
-      font-family: "DM Sans", sans-serif;
+      font-family: var(--font-body);
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;

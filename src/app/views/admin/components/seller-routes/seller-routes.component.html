@@ -158,7 +158,8 @@
           <div class="map-legend">
             <span class="legend-chip chip--depot"><span class="dot dot--depot"></span> Ponto de Partida</span>
             <span class="legend-chip chip--stop"><span class="dot dot--stop"></span> Parada Livre (IA)</span>
-            <span class="legend-chip chip--fixed"><span class="dot dot--fixed"></span> Ordem Fixada 🔒</span>
+            <span class="legend-chip chip--fixed"><span class="dot dot--fixed"></span> Ordem Fixada <i class="fa-solid fa-lock" aria-hidden="true"></i></span>
+            <span class="legend-chip chip--suggestion"><span class="dot dot--suggestion"></span> Sugestão de Lead</span>
           </div>
         </div>
 
@@ -185,6 +186,9 @@
             (click)="activeSidebarTab.set('stops')"
           >
             <i class="fa-solid fa-list-check"></i> Paradas ({{ stops().length }})
+            <span *ngIf="hasPendingBatchChanges()" class="tab-staging-dot" title="Alterações pendentes de recálculo">
+              {{ pendingBatchChangesCount() }}
+            </span>
           </button>
           <button 
             type="button" 
@@ -239,6 +243,62 @@
             <span class="badge-count">{{ stops().length }} {{ stops().length === 1 ? 'local' : 'locais' }}</span>
           </div>
 
+          <!-- Toggle Proativo de Sugestões de Farmácias e Lojas Naturais (P-108) -->
+          <div class="discover-leads-toggle-bar">
+            <label class="discover-toggle-label">
+              <input
+                type="checkbox"
+                [ngModel]="discoverSuggestionsEnabled()"
+                (ngModelChange)="discoverSuggestionsEnabled.set($event)"
+              />
+              <span><i class="fa-solid fa-seedling"></i> Sugerir novas farmácias e lojas naturais no trajeto</span>
+            </label>
+          </div>
+
+          <!-- Barra de Filtro Rápido de Sugestões (P-108 / P-109) -->
+          <div *ngIf="suggestionsCount > 0" class="suggestions-toolbar">
+            <div class="suggestions-filter-pills">
+              <button
+                type="button"
+                class="filter-pill-btn"
+                [class.active]="listFilterMode() === 'ALL'"
+                (click)="listFilterMode.set('ALL')"
+              >
+                Todos ({{ stops().length }})
+              </button>
+              <button
+                type="button"
+                class="filter-pill-btn"
+                [class.active]="listFilterMode() === 'CONFIRMED'"
+                (click)="listFilterMode.set('CONFIRMED')"
+              >
+                Confirmados ({{ confirmedStopsCount }})
+              </button>
+              <button
+                type="button"
+                class="filter-pill-btn filter-pill-btn--suggestion"
+                [class.active]="listFilterMode() === 'SUGGESTIONS'"
+                (click)="listFilterMode.set('SUGGESTIONS')"
+              >
+                Sugestões IA ({{ suggestionsCount }})
+              </button>
+            </div>
+            <button
+              type="button"
+              class="btn-clear-suggestions"
+              (click)="removeAllSuggestions()"
+              title="Descartar todas as sugestões em lote sem recalcular agora"
+            >
+              <i class="fa-regular fa-trash-can"></i> Descartar todas as sugestões
+            </button>
+          </div>
+
+          <!-- Empty State quando todas as sugestões foram descartadas no manejo -->
+          <div *ngIf="hasPendingBatchChanges() && suggestionsCount === 0 && stops().length > 0" class="staging-empty-suggestions-note">
+            <i class="fa-solid fa-broom"></i>
+            <span>Você descartou as sugestões extras. Clique em <strong>"Concluir Manejo e Recalcular Rota"</strong> abaixo para confirmar seu roteiro enxuto, ou em <strong>"Desfazer"</strong> para restaurá-las.</span>
+          </div>
+
           <!-- Empty State -->
           <div *ngIf="stops().length === 0" class="empty-stops-box">
             <i class="fa-solid fa-map-pin empty-icon"></i>
@@ -246,10 +306,33 @@
             <p class="empty-desc">Clique no mapa para adicionar clientes ou use a barra de busca acima para incluir locais na rota.</p>
           </div>
 
-          <!-- Lista de Paradas Refatorada com Card Elegante -->
+          <!-- Lista de Paradas Refatorada com Card Elegante + Suporte a Sugestão P-108 -->
           <div *ngIf="stops().length > 0" class="stops-list-scroll">
-            <div *ngFor="let stop of stops(); let i = index" class="stop-item-card" [class.stop-item--fixed]="stop.fixed_order">
-              
+            <div
+              *ngFor="let stop of filteredStopsList; let i = index"
+              class="stop-item-card"
+              [class.stop-item--fixed]="stop.fixed_order"
+              [class.stop-item-card--suggestion]="stop.is_suggestion"
+              [class.suggestion--pharma]="stop.is_suggestion && stop.suggestion_category === 'FARMACIA'"
+              [class.suggestion--natural]="stop.is_suggestion && stop.suggestion_category !== 'FARMACIA'"
+            >
+              <!-- Banner Superior de Sugestão (P-108) -->
+              <div *ngIf="stop.is_suggestion" class="suggestion-card-banner">
+                <span
+                  class="badge-suggestion"
+                  [class.badge-suggestion--pharma]="stop.suggestion_category === 'FARMACIA'"
+                  [class.badge-suggestion--natural]="stop.suggestion_category !== 'FARMACIA'"
+                >
+                  <i class="fa-solid" [class.fa-mortar-pestle]="stop.suggestion_category === 'FARMACIA'" [class.fa-seedling]="stop.suggestion_category !== 'FARMACIA'"></i>
+                  {{ stop.suggestion_category === 'FARMACIA' ? 'SUGESTÃO · FARMÁCIA' : 'SUGESTÃO · LOJA NATURAL' }}
+                </span>
+                <span *ngIf="stop.detour_distance_km !== undefined && stop.detour_distance_km !== null" class="detour-chip">
+                  <i class="fa-solid fa-route"></i>
+                  +{{ stop.detour_distance_km.toFixed(1) }} km
+                  <ng-container *ngIf="stop.detour_time_minutes">({{ '+' + stop.detour_time_minutes.toFixed(0) + ' min' }})</ng-container>
+                </span>
+              </div>
+
               <!-- Cabeçalho do Card: Identificador, Título, Prioridade e Excluir -->
               <div class="stop-item__header">
                 <div class="stop-item__identity">
@@ -258,6 +341,7 @@
                   </span>
                   <span class="stop-item__title" [title]="stop.name">{{ stop.name }}</span>
                   <span 
+                    *ngIf="!stop.is_suggestion"
                     class="priority-pill" 
                     [class.priority--regular]="stop.priority === 'REGULAR'" 
                     [class.priority--high]="stop.priority === 'HIGH'" 
@@ -269,23 +353,51 @@
                   </span>
                 </div>
                 <div class="stop-item__actions">
-                  <button type="button" class="stop-item__edit-btn" (click)="editStop(i)" title="Editar parada">
+                  <button type="button" class="stop-item__edit-btn" (click)="editStop(stops().indexOf(stop))" title="Editar parada">
                     <i class="fa-regular fa-pen-to-square"></i>
                   </button>
-                  <button type="button" class="stop-item__del-btn" (click)="removeStop(i)" title="Remover parada">
+                  <button type="button" class="stop-item__del-btn" (click)="removeStopFromTimeline(stop.id, $event)" title="Remover da lista (Manejo em Lote)">
                     <i class="fa-regular fa-trash-can"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- Endereço legível (sem vírgulas órfãs) -->
+              <!-- Endereço legível (sem vírgulas órfãs e sem coordenadas P-105) -->
               <div class="stop-item__address">
                 <i class="fa-solid fa-location-dot"></i>
                 <span>{{ getFormattedAddress(stop) }}</span>
               </div>
 
+              <!-- Ações Rápidas Exclusivas para Sugestão (P-108 / P-109) -->
+              <div *ngIf="stop.is_suggestion" class="suggestion-card__actions">
+                <button
+                  type="button"
+                  class="btn-suggestion-keep"
+                  [disabled]="isRecalculating()"
+                  (click)="confirmSuggestionInRoute(stop.id, $event)"
+                >
+                  <i class="fa-solid fa-check"></i> Manter na Rota
+                </button>
+                <button
+                  type="button"
+                  class="btn-suggestion-fav"
+                  [disabled]="isRecalculating()"
+                  (click)="saveSuggestionAsFavorite(stop, $event)"
+                >
+                  <i class="fa-regular fa-star"></i> Favoritar
+                </button>
+                <button
+                  type="button"
+                  class="btn-suggestion-remove"
+                  [disabled]="isRecalculating()"
+                  (click)="removeStopFromTimeline(stop.id, $event)"
+                >
+                  <i class="fa-regular fa-trash-can"></i> Remover
+                </button>
+              </div>
+
               <!-- Duração do Atendimento Nesta Parada -->
-              <div class="stop-item__duration-row">
+              <div *ngIf="!stop.is_suggestion" class="stop-item__duration-row">
                 <i class="fa-solid fa-stopwatch"></i>
                 <span *ngIf="stop.service_duration_minutes" class="duration-val">{{ stop.service_duration_minutes }} min atendimento</span>
                 <span *ngIf="!stop.service_duration_minutes" class="duration-auto">Média dos outros pontos</span>
@@ -298,7 +410,7 @@
               </div>
 
               <!-- Controle de Ordem no Trajeto -->
-              <div class="stop-item__controls">
+              <div *ngIf="!stop.is_suggestion" class="stop-item__controls">
                 <div class="control-label-group">
                   <i class="fa-solid fa-arrow-down-1-9"></i>
                   <span class="control-label">Ordem na rota:</span>
@@ -315,7 +427,7 @@
                     🔒 Fixar como Parada #{{ opt }}
                   </option>
                 </select>
-                <span *ngIf="stop.fixed_order" class="lock-indicator">🔒 Ordem Travada</span>
+                <span *ngIf="stop.fixed_order" class="lock-indicator"><i class="fa-solid fa-lock" aria-hidden="true"></i> Ordem Travada</span>
               </div>
             </div>
           </div>
@@ -363,6 +475,149 @@
             </div>
           </div>
 
+          <!-- SEÇÃO 1 (P-107): PAINEL DE INTELIGÊNCIA DEMOGRÁFICA E COMERCIAL POR CIDADE -->
+          <section *ngIf="cityInsights.length > 0" class="city-insights-panel" aria-label="Inteligência das Cidades na Rota">
+            <button
+              type="button"
+              class="city-insights-panel__header"
+              [attr.aria-expanded]="isCityInsightsExpanded()"
+              (click)="toggleCityInsights()"
+            >
+              <div class="city-insights-header-main">
+                <span class="city-insights-title">
+                  <i class="fa-solid fa-city"></i>
+                  Panorama Municipal: {{ cityInsights.length }} {{ cityInsights.length === 1 ? 'cidade no roteiro' : 'cidades no roteiro' }}
+                </span>
+                <span class="city-insights-subtitle">
+                  Dados demográficos IBGE e foco comercial Fitoherb
+                </span>
+              </div>
+              <div class="city-insights-header-meta">
+                <span class="city-count-pill">
+                  {{ cityInsights.length }} {{ cityInsights.length === 1 ? 'município' : 'municípios' }}
+                </span>
+                <i class="fa-solid fa-chevron-down chevron-icon" [class.rotated]="isCityInsightsExpanded()"></i>
+              </div>
+            </button>
+
+            <div *ngIf="isCityInsightsExpanded()" class="city-insights-list">
+              <article *ngFor="let city of cityInsights" class="city-insight-card">
+                <!-- Linha 1: Identidade Municipal e Porte Urbano -->
+                <div class="city-insight-card__top">
+                  <div class="city-identity">
+                    <i class="fa-solid fa-city"></i>
+                    <strong class="city-name">{{ city.city }} - {{ city.state }}</strong>
+                    <span *ngIf="city.ibge_code" class="city-ibge-code">IBGE: {{ city.ibge_code }}</span>
+                  </div>
+                  <span
+                    class="city-tier-badge"
+                    [class.tier--metropolis]="city.city_tier === 'METROPOLIS'"
+                    [class.tier--hub]="city.city_tier === 'REGIONAL_HUB'"
+                    [class.tier--medium]="city.city_tier === 'MEDIUM_CITY'"
+                    [class.tier--small]="city.city_tier === 'SMALL_TOWN'"
+                  >
+                    <i
+                      class="fa-solid"
+                      [class.fa-building-columns]="city.city_tier === 'METROPOLIS'"
+                      [class.fa-network-wired]="city.city_tier === 'REGIONAL_HUB'"
+                      [class.fa-building]="city.city_tier === 'MEDIUM_CITY'"
+                      [class.fa-tree-city]="city.city_tier === 'SMALL_TOWN'"
+                    ></i>
+                    {{ city.city_tier_label }}
+                  </span>
+                </div>
+
+                <!-- Linha 2: Região / Polo Econômico -->
+                <div *ngIf="city.regional_hub_name" class="city-region-row">
+                  <i class="fa-solid fa-map-pin"></i>
+                  <span>{{ city.regional_hub_name }}</span>
+                </div>
+
+                <!-- Linha 3: Strip Assimétrico de Indicadores Demográficos e Econômicos -->
+                <div class="city-metrics-strip">
+                  <div class="metric-cell">
+                    <span class="metric-label">População (IBGE)</span>
+                    <strong class="metric-value">{{ city.population | number:'1.0-0' }} hab</strong>
+                  </div>
+                  <div class="metric-cell">
+                    <span class="metric-label">Densidade</span>
+                    <strong class="metric-value">
+                      {{ city.demographic_density_hab_km2 ? ((city.demographic_density_hab_km2 | number:'1.0-0') + ' hab/km²') : '—' }}
+                    </strong>
+                  </div>
+                  <div class="metric-cell metric-cell--gdp">
+                    <span class="metric-label">PIB per Capita</span>
+                    <strong class="metric-value">
+                      {{ city.gdp_per_capita_brl ? ('R$ ' + (city.gdp_per_capita_brl | number:'1.0-0') + '/ano') : '—' }}
+                    </strong>
+                  </div>
+                </div>
+
+                <!-- Linha 4: Contadores Operacionais da Rota na Cidade -->
+                <div class="city-route-counters">
+                  <span class="counter-chip counter--confirmed">
+                    <i class="fa-solid fa-circle-check"></i> {{ city.confirmed_stops_count }} parada(s) confirmada(s)
+                  </span>
+                  <span *ngIf="city.suggested_leads_count > 0" class="counter-chip counter--suggested">
+                    <i class="fa-solid fa-lightbulb"></i> +{{ city.suggested_leads_count }} oportunidade(s) no caminho
+                  </span>
+                  <span class="counter-chip counter--dwell">
+                    <i class="fa-regular fa-clock"></i> ~{{ city.estimated_dwell_minutes }} min na cidade
+                  </span>
+                </div>
+
+                <!-- Linha 5: Foco Comercial Recomendado Fitoherb -->
+                <div *ngIf="city.commercial_potential_summary" class="city-commercial-focus">
+                  <i class="fa-solid fa-leaf"></i>
+                  <span>{{ city.commercial_potential_summary }}</span>
+                </div>
+              </article>
+
+              <!-- Nota quando nenhuma sugestão inédita foi encontrada no corredor -->
+              <div *ngIf="suggestionsCount === 0 && !hasPendingBatchChanges()" class="city-no-suggestions-footnote">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Todas as farmácias e lojas naturais mapeadas neste corredor já constam na sua carteira ou lista atual.</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- SEÇÃO 2 (P-108): BARRA DE FILTRO RÁPIDO NA ABA ROTEIRO DA IA -->
+          <div *ngIf="suggestionsCount > 0" class="suggestions-toolbar">
+            <div class="suggestions-filter-pills">
+              <button
+                type="button"
+                class="filter-pill-btn"
+                [class.active]="listFilterMode() === 'ALL'"
+                (click)="listFilterMode.set('ALL')"
+              >
+                Todos ({{ stops().length }})
+              </button>
+              <button
+                type="button"
+                class="filter-pill-btn"
+                [class.active]="listFilterMode() === 'CONFIRMED'"
+                (click)="listFilterMode.set('CONFIRMED')"
+              >
+                Confirmados ({{ confirmedStopsCount }})
+              </button>
+              <button
+                type="button"
+                class="filter-pill-btn filter-pill-btn--suggestion"
+                [class.active]="listFilterMode() === 'SUGGESTIONS'"
+                (click)="listFilterMode.set('SUGGESTIONS')"
+              >
+                Sugestões IA ({{ suggestionsCount }})
+              </button>
+            </div>
+            <button
+              type="button"
+              class="btn-clear-suggestions"
+              (click)="removeAllSuggestions()"
+            >
+              <i class="fa-regular fa-trash-can"></i> Limpar sugestões
+            </button>
+          </div>
+
           <!-- Alerta de Conflito de Horário Agendado no Itinerário da IA (Regra P-207) -->
           <div *ngIf="optimizationResult()?.has_any_time_conflict" class="time-conflict-banner animate-fade-in">
             <div class="time-conflict-banner__header">
@@ -400,10 +655,13 @@
           <!-- Lista Sequencial de Visitas (Reordenável via Drag & Drop) -->
           <div class="timeline-container">
             <div 
-              *ngFor="let s of optimizationResult()?.ordered_stops; let idx = index" 
+              *ngFor="let s of filteredOrderedStops; let idx = index" 
               class="timeline-step"
               [class.timeline-step--active]="s.step > 0 && selectedLegIndex() === (s.step - 1)"
               [class.timeline-step--conflict]="s.has_time_conflict"
+              [class.timeline-step--suggestion]="s.is_suggestion"
+              [class.timeline-step--suggestion-pharma]="s.is_suggestion && s.suggestion_category === 'FARMACIA'"
+              [class.timeline-step--suggestion-natural]="s.is_suggestion && s.suggestion_category !== 'FARMACIA'"
               [class.timeline-step--draggable]="s.action === 'VISIT'"
               [class.timeline-step--dragging]="draggedStopIndex() === idx"
               [class.timeline-step--drag-over]="dragOverIndex() === idx"
@@ -440,6 +698,22 @@
                 <i class="fa-solid" [class.fa-building]="s.action === 'DEPARTURE' || s.action === 'RETURN'" [class.fa-location-dot]="s.action === 'VISIT'"></i>
               </div>
               <div class="timeline-content">
+                <!-- Badge de Oportunidade Descoberta na Timeline (P-108) -->
+                <div *ngIf="s.action === 'VISIT' && s.is_suggestion" class="suggestion-card-banner">
+                  <span
+                    class="badge-suggestion"
+                    [class.badge-suggestion--pharma]="s.suggestion_category === 'FARMACIA'"
+                    [class.badge-suggestion--natural]="s.suggestion_category !== 'FARMACIA'"
+                  >
+                    <i class="fa-solid" [class.fa-mortar-pestle]="s.suggestion_category === 'FARMACIA'" [class.fa-seedling]="s.suggestion_category !== 'FARMACIA'"></i>
+                    {{ s.suggestion_category === 'FARMACIA' ? 'SUGESTÃO · FARMÁCIA' : 'SUGESTÃO · LOJA NATURAL' }}
+                  </span>
+                  <span *ngIf="s.detour_distance_km !== undefined && s.detour_distance_km !== null" class="detour-chip">
+                    <i class="fa-solid fa-route"></i>
+                    +{{ s.detour_distance_km.toFixed(1) }} km
+                    <ng-container *ngIf="s.detour_time_minutes">({{ '+' + s.detour_time_minutes.toFixed(0) + ' min' }})</ng-container>
+                  </span>
+                </div>
                 <div class="timeline-content__top">
                   <div class="step-title-wrap">
                     <span class="step-num">{{ s.action === 'DEPARTURE' ? 'Partida' : (s.action === 'RETURN' ? 'Retorno à Base' : 'Parada #' + s.step) }}</span>
@@ -477,13 +751,43 @@
                   <span *ngIf="s.step > 0 && selectedLegIndex() === (s.step - 1)" class="tag-focused-leg">
                     <i class="fa-solid fa-eye"></i> Trecho em Destaque
                   </span>
-                  <span *ngIf="s.is_fixed && s.action === 'VISIT'" class="tag-fixed">🔒 Ordem Travada</span>
+                  <span *ngIf="s.is_fixed && s.action === 'VISIT'" class="tag-fixed"><i class="fa-solid fa-lock" aria-hidden="true"></i> Ordem Travada</span>
                   <span *ngIf="s.service_duration_minutes && s.action === 'VISIT'" class="tag-duration">
                     <i class="fa-solid fa-stopwatch"></i> {{ s.service_duration_minutes }} min atendimento
                   </span>
                   <span *ngIf="s.traffic_condition && s.traffic_condition !== 'LIVRE'" class="tag-traffic" [ngClass]="getTrafficBadgeClass(s.traffic_condition)">
                     <i class="fa-solid fa-car-side"></i> {{ getTrafficLabel(s.traffic_condition) }}
                   </span>
+                </div>
+
+                <!-- Barra de Ações de Manejo em Lote na Timeline (P-108 / P-109) -->
+                <div *ngIf="s.action === 'VISIT'" class="suggestion-card__actions timeline-visit-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+                  <button
+                    *ngIf="s.is_suggestion"
+                    type="button"
+                    class="btn-suggestion-keep"
+                    [disabled]="isRecalculating()"
+                    (click)="confirmSuggestionInRoute(s.id, $event)"
+                  >
+                    <i class="fa-solid fa-check"></i> Manter na Rota
+                  </button>
+                  <button
+                    *ngIf="s.is_suggestion"
+                    type="button"
+                    class="btn-suggestion-fav"
+                    [disabled]="isRecalculating()"
+                    (click)="saveSuggestionAsFavorite(s, $event)"
+                  >
+                    <i class="fa-regular fa-star"></i> Favoritar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-suggestion-remove"
+                    [disabled]="isRecalculating()"
+                    (click)="removeStopFromTimeline(s.id, $event)"
+                  >
+                    <i class="fa-regular fa-trash-can"></i> Remover
+                  </button>
                 </div>
               </div>
             </div>
@@ -510,6 +814,41 @@
             </button>
           </div>
         </div>
+
+        <!-- SEÇÃO 3 (P-109): BARRA STICKY DE MANEJO EM LOTE COM RECÁLCULO DIFERIDO ÚNICO -->
+        <aside *ngIf="hasPendingBatchChanges()" class="batch-staging-bar animate-slide-up" aria-live="polite">
+          <div class="batch-staging-bar__info">
+            <div class="staging-headline">
+              <span class="staging-count-badge">{{ pendingBatchChangesCount() }}</span>
+              <strong>
+                {{ pendingBatchChangesCount() }}
+                {{ pendingBatchChangesCount() === 1 ? 'alteração pendente' : 'alterações pendentes' }} na lista
+              </strong>
+            </div>
+            <p class="staging-subtext">
+              Remova ou mantenha quantos locais desejar. O recálculo viário será feito uma única vez ao concluir.
+            </p>
+          </div>
+          <div class="batch-staging-bar__actions">
+            <button
+              type="button"
+              class="btn-commit-batch"
+              [disabled]="isRecalculating()"
+              (click)="commitBatchChangesAndRecalculate()"
+            >
+              <i class="fa-solid" [class.fa-rotate]="!isRecalculating()" [class.fa-spinner]="isRecalculating()" [class.fa-spin]="isRecalculating()"></i>
+              {{ isRecalculating() ? 'Recalculando rota consolidada...' : 'Concluir Manejo e Recalcular Rota' }}
+            </button>
+            <button
+              type="button"
+              class="btn-undo-batch"
+              [disabled]="isRecalculating()"
+              (click)="undoBatchChanges()"
+            >
+              <i class="fa-solid fa-rotate-left"></i> Desfazer ({{ pendingBatchChangesCount() }})
+            </button>
+          </div>
+        </aside>
 
       </div>
     </div>
