@@ -1,4 +1,5 @@
 <button
+  [attr.type]="type()"
   [class]="'custom-btn ' + variant() + ' ' + size()"
   [class.full-width]="fullWidth()"
   [class.is-loading]="loading()"

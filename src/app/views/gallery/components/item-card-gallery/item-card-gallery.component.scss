@@ -30,11 +30,22 @@
 
     flex-shrink: 0;
 
+    &.placeholder-bg {
+      background-color: var(--bg-green-base);
+    }
+
     img {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
       transition: transform 0.5s ease;
+
+      &.placeholder-image {
+        opacity: 0.92;
+        max-height: 140px;
+        filter: none;
+        object-fit: contain;
+      }
 
       &.fallback-image {
         opacity: 0.55;
@@ -67,7 +78,7 @@
     flex-grow: 1;
 
     .category-label {
-      color: #82b074;
+      color: var(--green-500);
       font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;

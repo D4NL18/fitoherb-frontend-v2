@@ -3,7 +3,12 @@
 </div>
 
 @if (isOpen()) {
-  <div class="dropdown-list" (click)="$event.stopPropagation()">
+  <div
+    class="dropdown-list"
+    [style.top.px]="dropdownPosition().top"
+    [style.left.px]="dropdownPosition().left"
+    (click)="$event.stopPropagation()"
+  >
     <div class="search-box">
       <input 
         type="text" 

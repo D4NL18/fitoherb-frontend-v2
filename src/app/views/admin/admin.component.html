@@ -1,90 +1,202 @@
-<app-admin-nav [activeTab]="pageTitle()" [userRole]="currentUserRole()" (tabChange)="onTabChange($event)">
+<app-admin-nav
+  [activeTab]="pageTitle()"
+  [userRole]="currentUserRole()"
+  (tabChange)="onTabChange($event)"
+>
 </app-admin-nav>
 
 <section class="admin-page-main">
   <header>
     <div class="header-title-row">
-      <h1>{{ pageTitle() === 'Alterar Senha' ? 'Segurança' : (pageTitle() === 'Rotas' ? 'Roteirização Comercial' : 'Gerenciar ' + pageTitle()) }}</h1>
+      <h1>
+        {{
+          pageTitle() === 'Alterar Senha'
+            ? 'Segurança'
+            : pageTitle() === 'Rotas'
+              ? 'Roteirização Comercial'
+              : 'Gerenciar ' + pageTitle()
+        }}
+      </h1>
       @if (pageTitle() === 'Rotas') {
-        <button 
-          type="button" 
-          class="btn-routes-info" 
-          (click)="isRoutesTutorialOpen.set(true)" 
+        <button
+          type="button"
+          class="btn-routes-info"
+          (click)="isRoutesTutorialOpen.set(true)"
           title="Instruções de como utilizar a Roteirização Comercial"
           aria-label="Como utilizar a Roteirização Comercial"
         >
-          <i class="fa-solid fa-circle-info"></i>
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
         </button>
       }
     </div>
-    <p>{{ pageTitle() === 'Alterar Senha' ? 'Atualize suas credenciais de acesso' : (pageTitle() === 'Rotas' ? 'Planejamento e otimização inteligente de visitas a clientes' : 'Adicione, edite ou remova ' + (pageTitle() | lowercase)) }}</p>
+    <p>
+      {{
+        pageTitle() === 'Alterar Senha'
+          ? 'Atualize suas credenciais de acesso'
+          : pageTitle() === 'Rotas'
+            ? 'Planejamento e otimização inteligente de visitas a clientes'
+            : 'Adicione, edite ou remova ' + (pageTitle() | lowercase)
+      }}
+    </p>
   </header>
 
   @if (pageTitle() === 'Alterar Senha') {
-  <div class="password-container">
-    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="password-card">
+    <div class="password-container">
+      <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="password-card">
+        <app-input
+          label="Senha Atual"
+          id="currentPassword"
+          type="password"
+          formControlName="currentPassword"
+          placeholder="Digite sua senha atual"
+        ></app-input>
 
-      <app-input label="Senha Atual" id="currentPassword" type="password" formControlName="currentPassword"
-        placeholder="Digite sua senha atual"></app-input>
+        <app-input
+          label="Nova Senha"
+          id="newPassword"
+          type="password"
+          formControlName="newPassword"
+          placeholder="Mínimo 8 caracteres, letras, números e símbolos"
+        ></app-input>
 
-      <app-input label="Nova Senha" id="newPassword" type="password" formControlName="newPassword"
-        placeholder="Mínimo 8 caracteres, letras, números e símbolos"></app-input>
+        <app-input
+          label="Confirme a Nova Senha"
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          placeholder="Repita a nova senha"
+        ></app-input>
 
-      <app-input label="Confirme a Nova Senha" id="confirmPassword" type="password" formControlName="confirmPassword"
-        placeholder="Repita a nova senha"></app-input>
-
-      @if (passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched) {
-      <small class="error-msg">As senhas não coincidem.</small>
-      }
-
-      <div class="form-actions">
-        <app-button label="Salvar Nova Senha" variant="primary" type="submit"
-          [disabled]="passwordForm.invalid"></app-button>
-      </div>
-    </form>
-  </div>
-  }
-  @else if (pageTitle() === 'Rotas') {
-    <app-seller-routes></app-seller-routes>
-  }
-  @else {
-  <div class="table-container">
-    <div class="table-header-container">
-      <div class="filters-box">
-        <app-input [formControl]="search" placeholder="Pesquisar..." id="search"
-          icon="fa-solid fa-magnifying-glass"></app-input>
-
-        <app-select id="order" class="select" [formControl]="orderBy" [options]="orderOptions()"></app-select>
-
-        @if (pageTitle() === 'Produtos') {
-          <app-button label="Limpar Filtros" variant="outline" size="small" (btnClick)="clearFilters()"></app-button>
+        @if (passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched) {
+          <small class="error-msg">As senhas não coincidem.</small>
         }
+
+        <div class="form-actions">
+          <app-button
+            label="Salvar Nova Senha"
+            variant="primary"
+            type="submit"
+            [disabled]="passwordForm.invalid"
+          ></app-button>
+        </div>
+      </form>
+    </div>
+  } @else if (pageTitle() === 'Rotas') {
+    <app-seller-routes></app-seller-routes>
+  } @else {
+    @if (pageTitle() === 'Produtos' && canAccessCuration()) {
+      <app-quick-curation-panel
+        [items]="curationPendingItems()"
+        [isLoading]="isCurationLoading()"
+        [error]="curationError()"
+        [busySlug]="curationBusySlug()"
+        (selectItem)="onSelectCurationItem($event)"
+        (ignoreItem)="onIgnoreCurationItem($event)"
+        (retry)="loadCurationPending()"
+      ></app-quick-curation-panel>
+    }
+
+    <div class="table-container">
+      <div class="table-header-container">
+        <div class="filters-box">
+          <app-input
+            [formControl]="search"
+            [placeholder]="
+              pageTitle() === 'Produtos'
+                ? 'Buscar por nome, sabor ou código...'
+                : 'Pesquisar...'
+            "
+            id="search"
+            icon="fa-solid fa-magnifying-glass"
+          ></app-input>
+
+          <app-select
+            id="order"
+            class="select"
+            [formControl]="orderBy"
+            [options]="orderOptions()"
+          ></app-select>
+
+          @if (pageTitle() === 'Produtos') {
+            <app-button
+              label="Limpar Filtros"
+              variant="outline"
+              size="small"
+              type="button"
+              (btnClick)="clearFilters()"
+            ></app-button>
+          }
+        </div>
+
+        <app-button
+          [label]="'Adicionar ' + (pageTitle() | lowercase)"
+          [icon]="disableUserActions() ? 'fa-solid fa-lock' : 'fa-solid fa-plus'"
+          type="button"
+          (btnClick)="openAddModal()"
+          [disabled]="disableUserActions()"
+          [title]="disableUserActions() ? 'Acesso restrito (Apenas Admin)' : 'Adicionar'"
+        ></app-button>
       </div>
 
-      <app-button [label]="'Adicionar ' + (pageTitle() | lowercase)" [icon]="disableUserActions() ? 'fa-solid fa-lock' : 'fa-solid fa-plus'"
-        (btnClick)="openAddModal()" [disabled]="disableUserActions()" [title]="disableUserActions() ? 'Acesso restrito (Apenas Admin)' : 'Adicionar'"></app-button>
+      <app-dynamic-table
+        [columns]="columns()"
+        [data]="tableData()"
+        [currentPage]="currentPage()"
+        [totalElements]="totalElements()"
+        [pageSize]="10"
+        (pageChange)="onPageChange($event)"
+        (edit)="onEdit($event)"
+        (delete)="onDelete($event)"
+        [activeFilters]="activeFilters()"
+        (filterApply)="onFilterApply($event)"
+        [disableActions]="disableUserActions()"
+      ></app-dynamic-table>
     </div>
-
-    <app-dynamic-table [columns]="columns()" [data]="tableData()" [currentPage]="currentPage()"
-      [totalElements]="totalElements()" [pageSize]="10" (pageChange)="onPageChange($event)" (edit)="onEdit($event)"
-      (delete)="onDelete($event)" [activeFilters]="activeFilters()" (filterApply)="onFilterApply($event)" [disableActions]="disableUserActions()"></app-dynamic-table>
-  </div>
   }
 </section>
 
 @if (isEntityModalOpen() && pageTitle() !== 'Alterar Senha' && pageTitle() !== 'Rotas') {
-<app-modal-entity [type]="$any(pageTitle())" [mode]="modalMode()" [data]="selectedItem()"
-  [isLoading]="isSaving()" (close)="isEntityModalOpen.set(false)" (save)="handleSave($event)"></app-modal-entity>
+  <app-modal-entity
+    [type]="$any(pageTitle())"
+    [mode]="modalMode()"
+    [data]="selectedItem()"
+    [focusImageUpload]="focusImageUpload()"
+    [isLoading]="isSaving()"
+    (close)="isEntityModalOpen.set(false)"
+    (save)="handleSave($event)"
+  ></app-modal-entity>
 }
 
 @if (isConfirmModalOpen()) {
-<app-modal-confirm [itemName]="selectedItem()?.name" [cascadeItems]="cascadeItems()" [isLoading]="isSaving()" (close)="isConfirmModalOpen.set(false)"
-  (confirm)="confirmDelete()"></app-modal-confirm>
+  <app-modal-confirm
+    [itemName]="selectedItem()?.name"
+    [title]="
+      confirmMode() === 'ignore-curation'
+        ? 'Ocultar produto do catálogo público?'
+        : 'Você tem certeza?'
+    "
+    [message]="
+      confirmMode() === 'ignore-curation'
+        ? 'Este item não será exibido na vitrine nem ressincronizado automaticamente:'
+        : null
+    "
+    [confirmLabel]="
+      confirmMode() === 'ignore-curation' ? 'Confirmar e Ocultar' : 'Sim, excluir'
+    "
+    [showReasonInput]="confirmMode() === 'ignore-curation'"
+    [cascadeItems]="cascadeItems()"
+    [isLoading]="isSaving()"
+    (close)="isConfirmModalOpen.set(false)"
+    (confirm)="confirmDelete($event)"
+  ></app-modal-confirm>
 }
 
 @if (isResponseModalOpen()) {
-<app-modal-response [status]="responseStatus()" [message]="responseMessage()"
-  (close)="isResponseModalOpen.set(false)"></app-modal-response>
+  <app-modal-response
+    [status]="responseStatus()"
+    [message]="responseMessage()"
+    (close)="isResponseModalOpen.set(false)"
+  ></app-modal-response>
 }
 
 @if (isToastOpen()) {

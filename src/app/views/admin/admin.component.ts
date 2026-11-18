@@ -1,7 +1,23 @@
-import { Component, computed, inject, signal, effect, OnInit, OnDestroy, untracked } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { AdminNavComponent, AdminTab } from './components/admin-nav/admin-nav.component';
@@ -10,6 +26,7 @@ import { InputComponent } from '../../shared/input/input.component';
 import { SelectComponent } from '../../shared/select/select.component';
 import { ButtonComponent } from '../../shared/button/button.component';
 import { DynamicTableComponent } from './components/dynamic-table/dynamic-table.component';
+import { QuickCurationPanelComponent } from './components/quick-curation-panel/quick-curation-panel.component';
 
 import { ModalEntityComponent } from './components/modal-entity/modal-entity.component';
 import { ModalConfirmComponent } from './components/modal-confirm/modal-confirm.component';
@@ -17,6 +34,7 @@ import { ModalResponseComponent } from '../../shared/modal-response/modal-respon
 import { ToastComponent } from '../../shared/toast/toast.component';
 
 import { ProductsService } from '../../services/products/products.service';
+import { ErpProductsService } from '../../services/erp-products/erp-products.service';
 import { SuppliersService } from '../../services/suppliers/suppliers.service';
 import { ProductCategoriesService } from '../../services/product-categories/product-categories.service';
 import { UsersService } from '../../services/users/users.service';
@@ -27,6 +45,8 @@ import { TokenService } from '../../services/token/token.service';
 import { environment } from '../../../environments/environment';
 import { BannersService } from '../../services/banners/banners.service';
 import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal/routes-tutorial-modal.component';
+import { CurationPendingItem } from '../../types/erp/erp.interface';
+import { ErpMappingStatus } from '../../types/products/ProductSku.interface';
 
 @Component({
   selector: 'app-admin',
@@ -40,6 +60,7 @@ import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal
     SelectComponent,
     ButtonComponent,
     DynamicTableComponent,
+    QuickCurationPanelComponent,
     ModalEntityComponent,
     ModalConfirmComponent,
     ModalResponseComponent,
@@ -47,10 +68,11 @@ import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal
     RoutesTutorialModalComponent
   ],
   templateUrl: './admin.component.html',
-  styleUrl: './admin.component.scss',
+  styleUrl: './admin.component.scss'
 })
 export class AdminComponent implements OnInit, OnDestroy {
   private readonly productsService = inject(ProductsService);
+  private readonly erpProductsService = inject(ErpProductsService);
   private readonly suppliersService = inject(SuppliersService);
   private readonly categoryService = inject(ProductCategoriesService);
   private readonly usersService = inject(UsersService);
@@ -65,11 +87,27 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   isEntityModalOpen = signal(false);
   isConfirmModalOpen = signal(false);
+  confirmMode = signal<'delete' | 'ignore-curation'>('delete');
   cascadeItems = signal<any[] | undefined>(undefined);
   modalMode = signal<'create' | 'edit'>('create');
   selectedItem = signal<any>(null);
+  focusImageUpload = signal<boolean>(false);
   currentUserRole = signal<'ADMIN' | 'USER' | 'SELLER' | null>(null);
-  
+
+  curationPendingItems = signal<CurationPendingItem[]>([]);
+  isCurationLoading = signal<boolean>(false);
+  curationError = signal<string | null>(null);
+  curationBusySlug = signal<string | null>(null);
+
+  selectedErpStatuses = signal<ErpMappingStatus[]>([]);
+
+  readonly erpStatusPills: { value: ErpMappingStatus | null; label: string; icon: string }[] = [
+    { value: null, label: 'Todos', icon: 'fa-solid fa-layer-group' },
+    { value: 'UNMAPPED', label: 'Sem Código', icon: 'fa-solid fa-circle-exclamation' },
+    { value: 'COMPLETE', label: 'Completo', icon: 'fa-solid fa-circle-check' },
+    { value: 'INACTIVE_ALERT', label: 'Alerta Inativo ERP', icon: 'fa-solid fa-triangle-exclamation' }
+  ];
+
   isSaving = signal(false);
 
   isResponseModalOpen = signal(false);
@@ -84,6 +122,11 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   currentPage = signal<number>(0);
   activeFilters = signal<Record<string, string[]>>({});
+
+  canAccessCuration = computed(() => {
+    const role = this.currentUserRole();
+    return role === 'ADMIN' || role === 'USER';
+  });
 
   orderOptions = computed(() => {
     const title = this.pageTitle();
@@ -117,29 +160,43 @@ export class AdminComponent implements OnInit, OnDestroy {
     return data?.totalElements || 0;
   });
 
-  passwordForm: FormGroup = this.fb.group({
-    currentPassword: ['', Validators.required],
-    newPassword: ['', [
-      Validators.required,
-      Validators.minLength(8),
-      Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
-    ]],
-    confirmPassword: ['', Validators.required]
-  }, { validators: this.passwordsMatchValidator });
+  passwordForm: FormGroup = this.fb.group(
+    {
+      currentPassword: ['', Validators.required],
+      newPassword: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+        ]
+      ],
+      confirmPassword: ['', Validators.required]
+    },
+    { validators: this.passwordsMatchValidator }
+  );
 
   constructor() {
-    effect(() => {
-      const title = this.pageTitle();
-      untracked(() => {
-        this.orderBy.setValue('Nome (A-Z)', { emitEvent: false });
-        this.currentPage.set(0);
-        this.activeFilters.set({});
-        this.loadData();
-      });
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        const title = this.pageTitle();
+        untracked(() => {
+          this.orderBy.setValue('Nome (A-Z)', { emitEvent: false });
+          this.currentPage.set(0);
+          this.activeFilters.set({});
+          this.selectedErpStatuses.set([]);
+          this.loadData();
+        });
+      },
+      { allowSignalWrites: true }
+    );
 
     effect(() => {
-      const anyModal = this.isEntityModalOpen() || this.isConfirmModalOpen() || this.isResponseModalOpen() || this.isRoutesTutorialOpen();
+      const anyModal =
+        this.isEntityModalOpen() ||
+        this.isConfirmModalOpen() ||
+        this.isResponseModalOpen() ||
+        this.isRoutesTutorialOpen();
       if (typeof document !== 'undefined') {
         if (anyModal) {
           document.body.classList.add('modal-open-lock');
@@ -150,13 +207,13 @@ export class AdminComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     if (typeof document !== 'undefined') {
       document.body.classList.remove('modal-open-lock');
     }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     const cachedRole = this.tokenService.getUserRole();
     if (cachedRole) {
       this.currentUserRole.set(cachedRole);
@@ -166,6 +223,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         this.categoryService.getAll();
         this.suppliersService.getAll();
         this.bannersService.getActive();
+        this.loadCurationPending();
       }
     }
 
@@ -180,6 +238,7 @@ export class AdminComponent implements OnInit, OnDestroy {
             this.categoryService.getAll();
             this.suppliersService.getAll();
             this.bannersService.getActive();
+            this.loadCurationPending();
           }
         },
         error: (err) => console.error('Failed to load user role', err)
@@ -188,6 +247,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.categoryService.getAll();
       this.suppliersService.getAll();
       this.bannersService.getActive();
+      this.loadCurationPending();
     }
 
     this.search.valueChanges
@@ -203,7 +263,48 @@ export class AdminComponent implements OnInit, OnDestroy {
     });
   }
 
-  onTabChange(tab: AdminTab) {
+  loadCurationPending(): void {
+    const role = this.currentUserRole();
+    if (role === 'SELLER') {
+      return;
+    }
+
+    this.isCurationLoading.set(true);
+    this.curationError.set(null);
+
+    this.erpProductsService.getCurationPending().subscribe({
+      next: (res) => {
+        this.curationPendingItems.set(res?.data || []);
+        this.isCurationLoading.set(false);
+      },
+      error: (err) => {
+        this.isCurationLoading.set(false);
+        this.curationError.set(
+          err?.error?.message || 'Falha ao carregar fila de curadoria.'
+        );
+      }
+    });
+  }
+
+  onSelectCurationItem(item: CurationPendingItem): void {
+    this.modalMode.set('edit');
+    this.focusImageUpload.set(true);
+    this.selectedItem.set({
+      ...item,
+      category: { name: item.categoryName, slug: item.categorySlug },
+      supplier: { name: item.supplierName, slug: item.supplierSlug }
+    });
+    this.isEntityModalOpen.set(true);
+  }
+
+  onIgnoreCurationItem(item: CurationPendingItem): void {
+    this.selectedItem.set(item);
+    this.confirmMode.set('ignore-curation');
+    this.cascadeItems.set(undefined);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  onTabChange(tab: AdminTab): void {
     if (this.currentUserRole() === 'SELLER' && tab !== 'Rotas' && tab !== 'Alterar Senha') {
       return;
     }
@@ -213,12 +314,19 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.pageTitle.set(tab);
   }
 
-  loadData() {
-    if (this.currentUserRole() === 'SELLER' && this.pageTitle() !== 'Rotas' && this.pageTitle() !== 'Alterar Senha') {
+  loadData(): void {
+    if (
+      this.currentUserRole() === 'SELLER' &&
+      this.pageTitle() !== 'Rotas' &&
+      this.pageTitle() !== 'Alterar Senha'
+    ) {
       this.pageTitle.set('Rotas');
       return;
     }
-    if (this.currentUserRole() === 'USER' && (this.pageTitle() === 'Usuários' || this.pageTitle() === 'Rotas')) {
+    if (
+      this.currentUserRole() === 'USER' &&
+      (this.pageTitle() === 'Usuários' || this.pageTitle() === 'Rotas')
+    ) {
       this.pageTitle.set('Produtos');
       return;
     }
@@ -253,29 +361,66 @@ export class AdminComponent implements OnInit, OnDestroy {
       'Produtos': () => {
         const categories = this.activeFilters()['categoryName'] || [];
         const suppliers = this.activeFilters()['supplierName'] || [];
-        this.productsService.getPaginated(term, this.currentPage(), sortField, dir, categories, suppliers);
+        const curationStatuses = (this.activeFilters()['curationStatus'] || []) as any[];
+        this.productsService.getPaginated(
+          term,
+          this.currentPage(),
+          sortField,
+          dir,
+          categories,
+          suppliers,
+          [],
+          true,
+          curationStatuses
+        );
       },
-      'Fornecedores': () => this.suppliersService.getPaginated(term, this.currentPage(), sortField, dir),
-      'Categorias de Produtos': () => this.categoryService.getPaginated(term, this.currentPage(), sortField, dir),
-      'Usuários': () => this.usersService.getPaginated(term, this.currentPage(), sortField, dir),
-      'Banners': () => this.bannersService.getPaginated(term, this.currentPage(), sortField, dir)
+      'Fornecedores': () =>
+        this.suppliersService.getPaginated(term, this.currentPage(), sortField, dir),
+      'Categorias de Produtos': () =>
+        this.categoryService.getPaginated(term, this.currentPage(), sortField, dir),
+      'Usuários': () =>
+        this.usersService.getPaginated(term, this.currentPage(), sortField, dir),
+      'Banners': () =>
+        this.bannersService.getPaginated(term, this.currentPage(), sortField, dir)
     };
 
     actions[this.pageTitle()]?.();
   }
 
-  onPageChange(page: number) {
+  onPageChange(page: number): void {
     this.currentPage.set(page);
     this.loadData();
   }
 
-  onFilterApply(event: {key: string, values: string[]}) {
-    this.activeFilters.update(filters => ({
+  onFilterApply(event: { key: string; values: string[] }): void {
+    this.activeFilters.update((filters) => ({
       ...filters,
       [event.key]: event.values
     }));
     this.currentPage.set(0);
     this.loadData();
+  }
+
+  onErpStatusFilterChange(statuses: ErpMappingStatus[]): void {
+    this.selectedErpStatuses.set(statuses);
+    this.currentPage.set(0);
+    this.loadData();
+  }
+
+  onErpStatusPillClick(status: ErpMappingStatus | null): void {
+    if (status === null) {
+      this.onErpStatusFilterChange([]);
+    } else {
+      this.onErpStatusFilterChange([status]);
+    }
+  }
+
+  isErpPillActive(status: ErpMappingStatus | null): boolean {
+    const current = this.selectedErpStatuses();
+    if (status === null) {
+      return current.length === 0;
+    }
+    return current.includes(status);
   }
 
   searchValue = toSignal(this.search.valueChanges, { initialValue: this.search.value });
@@ -285,14 +430,16 @@ export class AdminComponent implements OnInit, OnDestroy {
     const hasSearch = !!this.searchValue();
     const hasOrder = this.orderValueSignal() !== 'Nome (A-Z)';
     const filters = this.activeFilters();
-    const hasTableFilters = Object.values(filters).some(arr => arr && arr.length > 0);
-    return hasSearch || hasOrder || hasTableFilters;
+    const hasTableFilters = Object.values(filters).some((arr) => arr && arr.length > 0);
+    const hasErpFilter = this.selectedErpStatuses().length > 0;
+    return hasSearch || hasOrder || hasTableFilters || hasErpFilter;
   });
 
-  clearFilters() {
+  clearFilters(): void {
     this.search.setValue('', { emitEvent: false });
     this.orderBy.setValue('Nome (A-Z)', { emitEvent: false });
     this.activeFilters.set({});
+    this.selectedErpStatuses.set([]);
     this.currentPage.set(0);
     this.loadData();
   }
@@ -313,20 +460,35 @@ export class AdminComponent implements OnInit, OnDestroy {
       ],
       'Produtos': [
         { label: 'Imagem', key: 'imageUrl', type: 'image' },
+        { label: 'Código', key: 'erpSummary', type: 'erp-code' },
         { label: 'Nome', key: 'name', type: 'text' },
-        { 
-          label: 'Categoria', 
-          key: 'categoryName', 
+        {
+          label: 'Categoria',
+          key: 'categoryName',
           type: 'badge',
           filterable: true,
-          filterOptions: this.categoryService.productCategories().map(c => ({ label: c.name, value: c.slug }))
+          filterOptions: this.categoryService
+            .productCategories()
+            .map((c) => ({ label: c.name, value: c.slug }))
         },
-        { 
-          label: 'Fornecedor', 
-          key: 'supplierName', 
+        {
+          label: 'Fornecedor',
+          key: 'supplierName',
           type: 'text',
           filterable: true,
-          filterOptions: this.suppliersService.suppliers().map(s => ({ label: s.name, value: s.slug }))
+          filterOptions: this.suppliersService
+            .suppliers()
+            .map((s) => ({ label: s.name, value: s.slug }))
+        },
+        {
+          label: 'Status',
+          key: 'curationStatus',
+          type: 'erp-status',
+          filterable: true,
+          filterOptions: [
+            { label: 'Completo', value: 'COMPLETE' },
+            { label: 'Incompleto', value: 'PENDING_IMAGE' }
+          ]
         },
         { label: 'Ações', key: '', type: 'actions' }
       ],
@@ -368,12 +530,11 @@ export class AdminComponent implements OnInit, OnDestroy {
     const baseUrl = environment.imagesBaseUrl;
 
     return data.content.map((item: any) => {
-      let formattedImageUrl = item.imageUrl || item.imagePath;
+      let formattedImageUrl = item.imageUrl || item.imagePath || null;
 
       if (formattedImageUrl) {
-        // Normaliza barras invertidas (Windows) para barras normais
         formattedImageUrl = formattedImageUrl.replace(/\\/g, '/');
-        
+
         if (!formattedImageUrl.startsWith('http')) {
           formattedImageUrl = `${baseUrl}${formattedImageUrl.startsWith('/') ? '' : '/'}${formattedImageUrl}`;
         }
@@ -382,26 +543,29 @@ export class AdminComponent implements OnInit, OnDestroy {
       return {
         ...item,
         imageUrl: formattedImageUrl,
-        categoryName: item.category?.name,
-        supplierName: item.supplier?.name
+        categoryName: item.category?.name ?? item.categoryName,
+        supplierName: item.supplier?.name ?? item.supplierName
       };
     });
   });
 
-  openAddModal() {
+  openAddModal(): void {
     this.modalMode.set('create');
+    this.focusImageUpload.set(false);
     this.selectedItem.set(null);
     this.isEntityModalOpen.set(true);
   }
 
-  onEdit(item: any) {
+  onEdit(item: any): void {
     this.modalMode.set('edit');
+    this.focusImageUpload.set(false);
     this.selectedItem.set(item);
     this.isEntityModalOpen.set(true);
   }
 
-  onDelete(item: any) {
+  onDelete(item: any): void {
     this.selectedItem.set(item);
+    this.confirmMode.set('delete');
     this.cascadeItems.set(undefined);
     this.isConfirmModalOpen.set(true);
 
@@ -413,7 +577,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  showFeedback(status: number, message: string) {
+  showFeedback(status: number, message: string): void {
     if (status >= 200 && status < 300) {
       this.toastMessage.set(message);
       this.isToastOpen.set(true);
@@ -427,30 +591,24 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  handleSave(payload: { form: any; image?: File }) {
+  handleSave(payload: { form: any; image?: File }): void {
     const type = this.pageTitle();
     const isEdit = this.modalMode() === 'edit';
-    const id = this.selectedItem()?.id || this.selectedItem()?.slug || this.selectedItem()?.email;
+    const id =
+      type === 'Produtos'
+        ? this.selectedItem()?.slug || this.selectedItem()?.id
+        : this.selectedItem()?.id || this.selectedItem()?.slug || this.selectedItem()?.email;
 
     let request$;
 
     switch (type) {
-      case 'Produtos':
+      case 'Produtos': {
         const prodData = { ...payload.form };
-        if (typeof prodData.flavours === 'string' && prodData.flavours.trim() !== '') {
-          prodData.flavours = prodData.flavours.split(',').map((s: string) => s.trim());
-        } else if (!prodData.flavours) {
-          prodData.flavours = [];
-        }
-        if (typeof prodData.presentation === 'string' && prodData.presentation.trim() !== '') {
-          prodData.presentation = prodData.presentation.split(',').map((s: string) => s.trim());
-        } else if (!prodData.presentation) {
-          prodData.presentation = [];
-        }
         request$ = isEdit
           ? this.productsService.update(id, prodData, payload.image || null)
-          : this.productsService.create(prodData, payload.image!);
+          : this.productsService.create(prodData, payload.image || null);
         break;
+      }
 
       case 'Fornecedores':
         request$ = isEdit
@@ -482,6 +640,14 @@ export class AdminComponent implements OnInit, OnDestroy {
       next: () => {
         this.isSaving.set(false);
         this.isEntityModalOpen.set(false);
+        this.focusImageUpload.set(false);
+
+        if (type === 'Produtos' && isEdit && id && payload.image) {
+          this.curationPendingItems.update((items) =>
+            items.filter((item) => item.slug !== id)
+          );
+        }
+
         this.loadData();
 
         if (type === 'Usuários') {
@@ -502,28 +668,58 @@ export class AdminComponent implements OnInit, OnDestroy {
         const status = err.status;
         if (status === 0) {
           this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
-        } else if (status === 409 && type === 'Produtos') {
-          this.showFeedback(409, 'Já existe um produto com este nome para este fornecedor.');
         } else {
-          const msgErro = err.error?.message || 'Ocorreu um erro interno. Verifique os dados.';
+          const msgErro =
+            err.error?.message || 'Ocorreu um erro interno. Verifique os dados.';
           this.showFeedback(status || 500, msgErro);
         }
-      },
+      }
     });
   }
 
-  confirmDelete() {
-    const id = this.selectedItem()?.id || this.selectedItem()?.slug || this.selectedItem()?.email;
+  confirmDelete(reason?: string): void {
+    if (this.confirmMode() === 'ignore-curation') {
+      const slug = this.selectedItem()?.slug;
+      if (!slug) return;
+      this.curationBusySlug.set(slug);
+      this.isSaving.set(true);
+
+      this.erpProductsService.ignorePending(slug, reason).subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.curationBusySlug.set(null);
+          this.isConfirmModalOpen.set(false);
+          this.curationPendingItems.update((items) =>
+            items.filter((item) => item.slug !== slug)
+          );
+          this.loadData();
+          this.showFeedback(200, 'Produto ocultado do catálogo público.');
+        },
+        error: (err) => {
+          this.isSaving.set(false);
+          this.curationBusySlug.set(null);
+          this.isConfirmModalOpen.set(false);
+          const msgErro =
+            err?.error?.message || 'Erro ao ocultar produto da curadoria.';
+          this.showFeedback(err?.status || 500, msgErro);
+        }
+      });
+      return;
+    }
+
+    const id =
+      this.selectedItem()?.id || this.selectedItem()?.slug || this.selectedItem()?.email;
     let delete$;
 
     switch (this.pageTitle()) {
       case 'Produtos':
         delete$ = this.productsService.delete(id);
         break;
-      case 'Fornecedores':
+      case 'Fornecedores': {
         const shouldCascade = !!(this.cascadeItems() && this.cascadeItems()!.length > 0);
         delete$ = this.suppliersService.delete(id, shouldCascade);
         break;
+      }
       case 'Categorias de Produtos':
         delete$ = this.categoryService.delete(id);
         break;
@@ -550,10 +746,12 @@ export class AdminComponent implements OnInit, OnDestroy {
         if (status === 0) {
           this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
         } else {
-          const msgErro = err.error?.message || 'Erro ao tentar excluir. O registro pode estar vinculado a outras tabelas.';
+          const msgErro =
+            err.error?.message ||
+            'Erro ao tentar excluir. O registro pode estar vinculado a outras tabelas.';
           this.showFeedback(status || 500, msgErro);
         }
-      },
+      }
     });
   }
 
@@ -563,7 +761,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     return password === confirm ? null : { mismatch: true };
   }
 
-  changePassword() {
+  changePassword(): void {
     if (this.passwordForm.invalid) {
       this.passwordForm.markAllAsTouched();
       return;
@@ -590,7 +788,8 @@ export class AdminComponent implements OnInit, OnDestroy {
         if (status === 0) {
           this.showFeedback(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
         } else {
-          const msgErro = err.error?.message || 'Erro ao atualizar a senha. Verifique seus dados.';
+          const msgErro =
+            err.error?.message || 'Erro ao atualizar a senha. Verifique seus dados.';
           this.showFeedback(status || 500, msgErro);
         }
       }

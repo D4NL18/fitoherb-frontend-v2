@@ -1,6 +1,7 @@
 # Design System — Fitoherb Frontend v2
 
 > **Data de criação:** 23/09/2026  
+> **Design Kit visual (HTML):** [`DESIGN_KIT.html`](./DESIGN_KIT.html) — paleta com contraste, escala tipográfica, espaçamento, movimento, camadas, componentes e divergências.  
 > **Arquivos fonte:** [`src/colors.scss`](file:///c:/Users/PC/Documents/GitHub/fitoherb-frontend-v2/src/colors.scss) · [`src/styles.scss`](file:///c:/Users/PC/Documents/GitHub/fitoherb-frontend-v2/src/styles.scss)
 
 ---

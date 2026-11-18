@@ -12,6 +12,7 @@ export class ButtonComponent {
   label = input.required<string>();
   variant = input<'primary' | 'outline' | 'white'>('primary');
   size = input<'small' | 'medium' | 'large'>('medium');
+  type = input<'button' | 'submit' | 'reset'>('button');
   icon = input<string | null>(null);
   fullWidth = input<boolean>(false);
   disabled = input<boolean>(false);

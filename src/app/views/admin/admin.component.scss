@@ -14,7 +14,7 @@
   padding: 2rem 4rem;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow-x: clip;
 
   @media (max-width: 768px) {
     padding: 1.5rem;
@@ -61,7 +61,7 @@
         cursor: pointer;
         color: styles.$green-600;
         font-size: 1.35rem;
-        transition: all 200ms ease;
+        transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
         padding: 0;
         margin-top: 2px;
 
@@ -80,7 +80,7 @@
 
     p {
       font-size: 1rem;
-      color: styles.$gray-500;
+      color: var(--text-subtle);
       margin: 0;
       line-height: 1.45;
 
@@ -99,7 +99,6 @@
       margin-bottom: 1rem;
     }
 
-
     .table-header-container {
       display: flex;
       width: 100%;
@@ -114,12 +113,60 @@
 
       .filters-box {
         display: flex;
-        gap: 2rem;
+        gap: 1.25rem;
         flex: 1;
+        align-items: center;
 
         @media (max-width: 768px) {
           flex-direction: column;
+          align-items: stretch;
           gap: 1rem;
+        }
+      }
+    }
+
+    .erp-status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+
+      .erp-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 38px;
+        padding: 0 var(--space-4);
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--gray-300);
+        background-color: var(--white);
+        color: var(--text-body);
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background-color var(--dur-fast) var(--ease-interact),
+          border-color var(--dur-fast) var(--ease-interact),
+          color var(--dur-fast) var(--ease-interact);
+
+        @media (hover: hover) {
+          &:hover:not(.is-active) {
+            background-color: var(--bg-green-base);
+            border-color: var(--green-500);
+          }
+        }
+
+        &.is-active {
+          background-color: var(--tag-brand);
+          border-color: var(--tag-brand);
+          color: var(--white);
+        }
+
+        &:focus-visible {
+          outline: 2px solid var(--green-700);
+          outline-offset: 2px;
         }
       }
     }
@@ -136,7 +183,7 @@
   }
 
   .password-card {
-    background: white;
+    background: var(--white);
     padding: 2.5rem;
     border-radius: 15px;
     border: 1px solid styles.$gray-200;
