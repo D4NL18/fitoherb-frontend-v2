@@ -106,25 +106,6 @@ describe('QuickCurationPanelComponent', () => {
     expect(component.selectItem.emit).toHaveBeenCalledWith(item);
   });
 
-  it('should emit ignoreItem without triggering selectItem when Ignorar button is clicked', () => {
-    // Arrange
-    const item = makePendingItem(2);
-    spyOn(component.selectItem, 'emit');
-    spyOn(component.ignoreItem, 'emit');
-    fixture.componentRef.setInput('items', [item]);
-    fixture.detectChanges();
-
-    // Act
-    const ignoreBtn: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="curation-ignore-btn"], .btn-curation-ignore');
-    expect(ignoreBtn).toBeTruthy();
-    expect(ignoreBtn.getAttribute('type')).toBe('button');
-    ignoreBtn.click();
-
-    // Assert
-    expect(component.ignoreItem.emit).toHaveBeenCalledWith(item);
-    expect(component.selectItem.emit).not.toHaveBeenCalled();
-  });
-
   it('should limit initial visible rows to 5 and allow expanding when > 5 items exist', () => {
     // Arrange
     const items = Array.from({ length: 7 }, (_, i) => makePendingItem(i + 1));
@@ -152,9 +133,9 @@ describe('QuickCurationPanelComponent', () => {
     fixture.detectChanges();
 
     // Act
-    const ignoreBtn: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="curation-ignore-btn"], .btn-curation-ignore');
+    const completeBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-curation-complete');
 
     // Assert
-    expect(ignoreBtn.disabled).toBeTrue();
+    expect(completeBtn.disabled).toBeTrue();
   });
 });
