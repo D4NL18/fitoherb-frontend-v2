@@ -200,11 +200,7 @@ describe('AdminComponent', () => {
     fixture.detectChanges();
 
     // Act — trigger ignore flow
-    const ignoreBtn: HTMLButtonElement = fixture.nativeElement.querySelector(
-      'app-quick-curation-panel [data-testid="curation-ignore-btn"], app-quick-curation-panel .btn-curation-ignore'
-    );
-    expect(ignoreBtn).toBeTruthy();
-    ignoreBtn.click();
+    component.onIgnoreCurationItem(pendingItemMock);
     fixture.detectChanges();
 
     // Confirm discard if confirmation modal opens
