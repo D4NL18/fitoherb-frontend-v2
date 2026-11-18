@@ -109,18 +109,6 @@
                 <i class="fa-solid fa-camera" aria-hidden="true"></i>
                 Completar Foto
               </button>
-
-              <button
-                type="button"
-                class="btn-curation-ignore"
-                data-testid="curation-ignore-btn"
-                [disabled]="busySlug() === item.slug"
-                [attr.aria-disabled]="busySlug() === item.slug"
-                (click)="onIgnore(item)"
-              >
-                <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
-                Ignorar / Não exibir no site
-              </button>
             </div>
           </li>
         }
