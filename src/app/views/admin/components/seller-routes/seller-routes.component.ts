@@ -23,7 +23,8 @@ import {
   LocationPointDto, 
   DeliveryStopDto, 
   OptimizeRouteResponse, 
-  OrderedStopDto 
+  OrderedStopDto,
+  CityInsightDto
 } from '../../../../types/routing/routing.interface';
 import { ScheduledRoutesService } from '../../../../services/scheduled-routes/scheduled-routes.service';
 import { RouteCalendarComponent } from '../route-calendar/route-calendar.component';
@@ -103,6 +104,49 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Resultados da Otimização da IA
   readonly optimizationResult = signal<OptimizeRouteResponse | null>(null);
+
+  // [P-107, P-108, P-109] Inteligência de Cidades, Sugestões Proativas e Manejo em Lote (Staging)
+  readonly discoverSuggestionsEnabled = signal<boolean>(true);
+  readonly hasPendingBatchChanges = signal<boolean>(false);
+  readonly pendingBatchChangesCount = signal<number>(0);
+  readonly isCityInsightsExpanded = signal<boolean>(true);
+  readonly dismissedSuggestions = signal<LocationPointDto[]>([]);
+  readonly listFilterMode = signal<'ALL' | 'CONFIRMED' | 'SUGGESTIONS'>('ALL');
+  private preStagingSnapshot: { stops: DeliveryStopDto[]; optResult: OptimizeRouteResponse | null } | null = null;
+
+  get cityInsights(): CityInsightDto[] {
+    return this.optimizationResult()?.city_insights || [];
+  }
+
+  get suggestionsCount(): number {
+    return this.stops().filter(s => s.is_suggestion === true).length;
+  }
+
+  get confirmedStopsCount(): number {
+    return this.stops().filter(s => !s.is_suggestion).length;
+  }
+
+  get filteredStopsList(): DeliveryStopDto[] {
+    const mode = this.listFilterMode();
+    const all = this.stops();
+    if (mode === 'CONFIRMED') return all.filter(s => !s.is_suggestion);
+    if (mode === 'SUGGESTIONS') return all.filter(s => s.is_suggestion === true);
+    return all;
+  }
+
+  get filteredOrderedStops(): OrderedStopDto[] {
+    const ordered = this.optimizationResult()?.ordered_stops || [];
+    const mode = this.listFilterMode();
+    if (mode === 'ALL') return ordered;
+    return ordered.filter(s => {
+      if (s.action !== 'VISIT') return true;
+      return mode === 'SUGGESTIONS' ? s.is_suggestion === true : !s.is_suggestion;
+    });
+  }
+
+  toggleCityInsights(): void {
+    this.isCityInsightsExpanded.update(v => !v);
+  }
 
   // Trecho Ativo / Filtrado para Destaque no Mapa
   readonly selectedLegIndex = signal<number | null>(null);
@@ -318,13 +362,18 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private initMapTimeoutId?: ReturnType<typeof setTimeout>;
+
   ngAfterViewInit() {
-    setTimeout(() => {
+    this.initMapTimeoutId = setTimeout(() => {
       this.initMap();
     }, 200);
   }
 
   ngOnDestroy() {
+    if (this.initMapTimeoutId) {
+      clearTimeout(this.initMapTimeoutId);
+    }
     if (typeof document !== 'undefined') {
       document.body.classList.remove('modal-open-lock');
     }
@@ -341,8 +390,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   loadSavedLocations() {
     this.savedLocationsService.getAll().subscribe({
       next: (locations) => {
-        this.savedLocations.set(locations);
-        const base = locations.find(l => l.type === 'BASE');
+        const safeLocations = Array.isArray(locations) ? locations : [];
+        this.savedLocations.set(safeLocations);
+        const base = safeLocations.find(l => l.type === 'BASE');
         if (base) {
           this.isUsingCustomBase.set(true);
           this.depot.set({
@@ -373,7 +423,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   // Inicialização do Leaflet
   private initMap() {
     const startPoint = this.depot();
-    if (!L) return;
+    if (!L || typeof document === 'undefined' || !document.getElementById('sellerRouteMap')) return;
 
     this.map = L.map('sellerRouteMap', {
       center: [startPoint.lat, startPoint.lon],
@@ -1060,11 +1110,266 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Remove parada da lista
+  // Salva snapshot antes da 1ª alteração em lote (Regra P-109)
+  private enterBatchStagingIfNeeded(): void {
+    if (!this.hasPendingBatchChanges()) {
+      const currentOpt = this.optimizationResult();
+      this.preStagingSnapshot = {
+        stops: this.stops().map(s => ({ ...s, address: s.address ? { ...s.address } : undefined })),
+        optResult: currentOpt
+          ? {
+              ...currentOpt,
+              ordered_stops: currentOpt.ordered_stops.map(os => ({
+                ...os,
+                address: os.address ? { ...os.address } : undefined
+              })),
+              city_insights: currentOpt.city_insights
+                ? currentOpt.city_insights.map(ci => ({ ...ci }))
+                : undefined
+            }
+          : null
+      };
+    }
+  }
+
+  // Reindexa numeração visual dos passos após alteração local sem chamar o backend
+  private reindexLocalOrderedStops(ordered: OrderedStopDto[]): OrderedStopDto[] {
+    let stepNum = 1;
+    return ordered.map(st => {
+      if (st.action === 'VISIT') {
+        return { ...st, step: stepNum++ };
+      }
+      if (st.action === 'RETURN') {
+        return { ...st, step: stepNum };
+      }
+      return st;
+    });
+  }
+
+  // Remove parada da lista (entra em modo de manejo em lote se já houver rota otimizada - P-109)
   removeStop(index: number) {
+    const target = this.stops()[index];
+    if (!target) return;
+
+    if (this.optimizationResult()) {
+      this.removeStopFromTimeline(target.id);
+      return;
+    }
+
     this.stops.update(list => list.filter((_, i) => i !== index));
     this.renderMarkers();
     this.optimizationResult.set(null);
+  }
+
+  // Remove parada ou sugestão na lista/timeline sem disparar recálculo imediato (Regra P-109)
+  removeStopFromTimeline(stopId: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    const stopToRemove = this.stops().find(s => s.id === stopId);
+    const orderedStopToRemove = this.optimizationResult()?.ordered_stops.find(
+      s => s.id === stopId && s.action === 'VISIT'
+    );
+    if (!stopToRemove && !orderedStopToRemove) return;
+
+    this.enterBatchStagingIfNeeded();
+
+    const isSug = stopToRemove?.is_suggestion || orderedStopToRemove?.is_suggestion;
+    if (isSug) {
+      const dismissedPoint: LocationPointDto = {
+        id: stopId,
+        name: stopToRemove?.name || orderedStopToRemove?.name || 'Sugestão descartada',
+        lat: stopToRemove?.lat ?? orderedStopToRemove?.lat ?? 0,
+        lon: stopToRemove?.lon ?? orderedStopToRemove?.lon ?? 0,
+        address: stopToRemove?.address || orderedStopToRemove?.address
+      };
+      this.dismissedSuggestions.update(list => [...list, dismissedPoint]);
+    }
+
+    this.stops.update(list => list.filter(s => s.id !== stopId));
+
+    const currentOpt = this.optimizationResult();
+    if (currentOpt) {
+      const updatedOrdered = this.reindexLocalOrderedStops(
+        currentOpt.ordered_stops.filter(s => !(s.action === 'VISIT' && s.id === stopId))
+      );
+      const visitCount = updatedOrdered.filter(s => s.action === 'VISIT').length;
+      this.optimizationResult.set({
+        ...currentOpt,
+        stops_count: visitCount,
+        ordered_stops: updatedOrdered
+      });
+    }
+
+    this.pendingBatchChangesCount.update(c => c + 1);
+    this.hasPendingBatchChanges.set(true);
+    this.renderMarkers();
+  }
+
+  // Confirma/mantém uma sugestão na rota como parada confirmada no lote atual (P-108 / P-109)
+  confirmSuggestionInRoute(stopId: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    this.enterBatchStagingIfNeeded();
+
+    this.stops.update(list =>
+      list.map(s => (s.id === stopId ? { ...s, is_suggestion: false } : s))
+    );
+
+    const currentOpt = this.optimizationResult();
+    if (currentOpt) {
+      this.optimizationResult.set({
+        ...currentOpt,
+        ordered_stops: currentOpt.ordered_stops.map(s =>
+          s.id === stopId && s.action === 'VISIT' ? { ...s, is_suggestion: false } : s
+        )
+      });
+    }
+
+    this.pendingBatchChangesCount.update(c => c + 1);
+    this.hasPendingBatchChanges.set(true);
+    this.renderMarkers();
+    this.showToast('Sugestão mantida na rota! Conclua o manejo para recalcular.');
+  }
+
+  // Remove todas as sugestões proativas de uma só vez em lote (P-109)
+  removeAllSuggestions(): void {
+    const suggestions = this.stops().filter(s => s.is_suggestion === true);
+    if (suggestions.length === 0) return;
+
+    this.enterBatchStagingIfNeeded();
+
+    const newDismissed: LocationPointDto[] = suggestions.map(s => ({
+      id: s.id,
+      name: s.name,
+      lat: s.lat,
+      lon: s.lon,
+      address: s.address
+    }));
+    this.dismissedSuggestions.update(list => [...list, ...newDismissed]);
+    this.stops.update(list => list.filter(s => !s.is_suggestion));
+
+    const currentOpt = this.optimizationResult();
+    if (currentOpt) {
+      const updatedOrdered = this.reindexLocalOrderedStops(
+        currentOpt.ordered_stops.filter(s => !(s.action === 'VISIT' && s.is_suggestion))
+      );
+      this.optimizationResult.set({
+        ...currentOpt,
+        stops_count: updatedOrdered.filter(s => s.action === 'VISIT').length,
+        ordered_stops: updatedOrdered
+      });
+    }
+
+    this.pendingBatchChangesCount.update(c => c + suggestions.length);
+    this.hasPendingBatchChanges.set(true);
+    if (this.listFilterMode() === 'SUGGESTIONS') {
+      this.listFilterMode.set('ALL');
+    }
+    this.renderMarkers();
+    this.showToast(`${suggestions.length} sugestão(ões) removida(s) em lote.`);
+  }
+
+  // Salva uma sugestão descoberta pela IA nos Favoritos do vendedor (P-108)
+  saveSuggestionAsFavorite(stop: OrderedStopDto | DeliveryStopDto, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    const lat = stop.lat ?? this.stops().find(s => s.id === stop.id)?.lat ?? 0;
+    const lon = stop.lon ?? this.stops().find(s => s.id === stop.id)?.lon ?? 0;
+    const addr = stop.address || this.stops().find(s => s.id === stop.id)?.address;
+
+    this.savedLocationsService.create({
+      title: stop.name,
+      type: 'FAVORITE',
+      latitude: lat,
+      longitude: lon,
+      street: addr?.street || '',
+      number: addr?.number || '',
+      neighborhood: addr?.neighborhood || '',
+      city: addr?.city || 'Salvador',
+      state: addr?.state || 'BA',
+      postalCode: addr?.postal_code || '',
+      fullAddress: addr?.full_address || stop.name
+    }).subscribe({
+      next: (saved) => {
+        this.savedLocations.update(list => [saved, ...list]);
+        if (stop.is_suggestion) {
+          this.confirmSuggestionInRoute(stop.id);
+        }
+        this.showToast(`"${stop.name}" salvo nos seus Favoritos!`);
+      },
+      error: () => this.showToast('Erro ao salvar sugestão nos favoritos.')
+    });
+  }
+
+  // Desfaz todas as alterações pendentes do manejo em lote restaurando o snapshot original (P-109)
+  undoBatchChanges(): void {
+    if (!this.preStagingSnapshot) return;
+    this.stops.set(this.preStagingSnapshot.stops);
+    this.optimizationResult.set(this.preStagingSnapshot.optResult);
+    this.hasPendingBatchChanges.set(false);
+    this.pendingBatchChangesCount.set(0);
+    this.preStagingSnapshot = null;
+    this.renderMarkers();
+    this.showToast('Alterações do manejo desfeitas.');
+  }
+
+  // Conclui o manejo em lote e executa UMA ÚNICA chamada de recálculo ao backend (Regra P-109)
+  commitBatchChangesAndRecalculate(): void {
+    const remainingStops = this.stops().map(s => ({
+      ...s,
+      is_suggestion: false
+    }));
+
+    if (remainingStops.length === 0) {
+      this.hasPendingBatchChanges.set(false);
+      this.pendingBatchChangesCount.set(0);
+      this.preStagingSnapshot = null;
+      this.optimizationResult.set(null);
+      this.clearRouteFromMap();
+      this.renderMarkers();
+      this.showToast('Lista esvaziada. Adicione paradas para calcular uma rota.');
+      return;
+    }
+
+    this.isRecalculating.set(true);
+    const depTime = this.departureTime()?.trim() ? this.departureTime().trim() : undefined;
+
+    const payload = {
+      depot: this.depot(),
+      stops: remainingStops,
+      return_to_depot: true,
+      departure_time: depTime,
+      discover_suggestions: false
+    };
+
+    this.routingService.recalculateRoute(payload).subscribe({
+      next: (res) => {
+        this.isRecalculating.set(false);
+        this.stops.set(remainingStops);
+        this.optimizationResult.set(res);
+        this.hasPendingBatchChanges.set(false);
+        this.pendingBatchChangesCount.set(0);
+        this.preStagingSnapshot = null;
+        this.drawRouteOnMap(res.geojson_geometry);
+        this.renderMarkers();
+        this.autoSaveRoute(res);
+        this.showToast('Manejo concluído e rota recalculada com sucesso!');
+      },
+      error: (err) => {
+        this.isRecalculating.set(false);
+        this.showToast('Erro ao recalcular a rota consolidada. Tente novamente.');
+        console.error(err);
+      }
+    });
   }
 
   // Alterna ou define trava de ordem fixa (Regra P-104)
@@ -1079,8 +1384,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showToast(order ? `Ordem fixada como #${order}` : 'Ordem liberada para a IA otimizar');
   }
 
-  // Executa a otimização com o Algoritmo Genético do fitoherb-ai
-  optimizeRoute() {
+  // Executa a otimização com o Algoritmo Genético do fitoherb-ai (P-107, P-108, P-109)
+  optimizeRoute(discoverNewSuggestions: boolean = this.discoverSuggestionsEnabled()) {
     if (this.stops().length === 0) {
       this.showToast('Adicione ao menos uma parada no mapa.');
       return;
@@ -1091,16 +1396,73 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const depTime = this.departureTime()?.trim() ? this.departureTime().trim() : undefined;
 
+    const excludedLocations: LocationPointDto[] = [
+      ...this.savedLocations().map(fav => ({
+        id: fav.id || `fav-${fav.title}`,
+        name: fav.title,
+        lat: fav.latitude,
+        lon: fav.longitude,
+        address: {
+          street: fav.street,
+          number: fav.number,
+          neighborhood: fav.neighborhood,
+          city: fav.city,
+          state: fav.state,
+          postal_code: fav.postalCode,
+          full_address: fav.fullAddress
+        }
+      })),
+      ...this.dismissedSuggestions()
+    ];
+
     const payload = {
       depot: this.depot(),
       stops: this.stops(),
       return_to_depot: true,
-      departure_time: depTime
+      departure_time: depTime,
+      discover_suggestions: discoverNewSuggestions,
+      excluded_locations: excludedLocations
     };
 
     this.routingService.optimizeRoute(payload).subscribe({
       next: (res) => {
         this.isOptimizing.set(false);
+
+        // Sincroniza stops locais com as visitas retornadas (incluindo sugestões proativas P-108)
+        const visitSteps = (res.ordered_stops || []).filter(s => s.action === 'VISIT');
+        if (visitSteps.length > 0) {
+          const currentStops = this.stops();
+          const syncedStops: DeliveryStopDto[] = visitSteps.map(vs => {
+            const existing = currentStops.find(cs => cs.id === vs.id);
+            return {
+              id: vs.id,
+              name: vs.name,
+              lat: vs.lat ?? existing?.lat ?? 0,
+              lon: vs.lon ?? existing?.lon ?? 0,
+              priority: (vs.priority || existing?.priority || 'REGULAR') as 'REGULAR' | 'HIGH' | 'CRITICAL',
+              fixed_order: vs.fixed_order ?? existing?.fixed_order ?? null,
+              demand: existing?.demand ?? 1,
+              service_duration_minutes: vs.service_duration_minutes ?? existing?.service_duration_minutes ?? null,
+              target_arrival_time: vs.target_arrival_time ?? existing?.target_arrival_time ?? null,
+              address: vs.address ?? existing?.address,
+              is_suggestion: vs.is_suggestion ?? existing?.is_suggestion ?? false,
+              suggestion_category: vs.suggestion_category ?? existing?.suggestion_category ?? null,
+              detour_distance_km: vs.detour_distance_km ?? existing?.detour_distance_km ?? null,
+              detour_time_minutes: vs.detour_time_minutes ?? existing?.detour_time_minutes ?? null
+            };
+          });
+          this.stops.set(syncedStops);
+        }
+
+        this.hasPendingBatchChanges.set(false);
+        this.pendingBatchChangesCount.set(0);
+        this.preStagingSnapshot = null;
+        if (res.city_insights && res.city_insights.length > 2) {
+          this.isCityInsightsExpanded.set(false);
+        } else {
+          this.isCityInsightsExpanded.set(true);
+        }
+
         this.optimizationResult.set(res);
         this.activeSidebarTab.set('results');
         this.drawRouteOnMap(res.geojson_geometry);
@@ -1354,6 +1716,16 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     return 'traffic--moderate';
   }
 
+  private escapeHtml(str?: string | null): string {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // Desenha os marcadores no Leaflet com destaque visual para o roteiro IA
   private renderMarkers() {
     if (!this.markersLayer || !L) return;
@@ -1371,7 +1743,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         <div class="custom-pin-wrapper pin--depot">
           <div class="pin-bubble">🏢</div>
           <div class="pin-arrow"></div>
-          <div class="pin-label-pill">Partida: ${base.name}</div>
+          <div class="pin-label-pill">Partida: ${this.escapeHtml(base.name)}</div>
         </div>
       `,
       iconSize: [40, 48],
@@ -1385,8 +1757,8 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
             <span class="popup-step">Ponto de Partida</span>
             <span class="popup-time"><i class="fa-regular fa-clock"></i> ${optRes?.departure_clock || this.departureTime()}</span>
           </div>
-          <div class="popup-card__title">${base.name}</div>
-          <div class="popup-card__addr">${base.address?.full_address || ''}</div>
+          <div class="popup-card__title">${this.escapeHtml(base.name)}</div>
+          <div class="popup-card__addr">${this.escapeHtml(base.address?.full_address)}</div>
           <div class="popup-card__footer">
             <span class="popup-badge popup-badge--regular">Base Oficial</span>
           </div>
@@ -1421,42 +1793,58 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (lat === undefined || lon === undefined) return;
 
       let pinClass = 'pin--optimized';
-      if (s.priority === 'CRITICAL') pinClass += ' pin--critical';
-      else if (s.priority === 'HIGH') pinClass += ' pin--high';
-      if (s.is_fixed) pinClass += ' pin--fixed';
+      if (s.is_suggestion) {
+        pinClass = s.suggestion_category === 'FARMACIA'
+          ? 'pin--suggestion-pharma'
+          : 'pin--suggestion-natural';
+      } else {
+        if (s.priority === 'CRITICAL') pinClass += ' pin--critical';
+        else if (s.priority === 'HIGH') pinClass += ' pin--high';
+        if (s.is_fixed) pinClass += ' pin--fixed';
+      }
 
-      const priorityLabel = this.getPriorityLabel(s.priority);
+      const priorityLabel = s.is_suggestion
+        ? (s.suggestion_category === 'FARMACIA' ? 'Sugestão · Farmácia' : 'Sugestão · Loja Natural')
+        : this.getPriorityLabel(s.priority);
       const priorityBadgeClass = this.getPriorityBadgeClass(s.priority);
       const timeDisplay = s.estimated_arrival_clock 
         ? `${s.estimated_arrival_clock} - ${s.estimated_departure_clock || ''}` 
         : `+${s.arrival_time_minutes.toFixed(0)} min`;
+      const detourBadge = s.is_suggestion && s.detour_distance_km !== undefined && s.detour_distance_km !== null
+        ? `<span class="pin-detour-tag">+${s.detour_distance_km.toFixed(1)}km</span>`
+        : '';
+      const suggestionIcon = s.is_suggestion
+        ? (s.suggestion_category === 'FARMACIA' ? '💊 ' : '🌿 ')
+        : (s.is_fixed ? '🔒 ' : '');
 
       const pinIcon = L.divIcon({
         className: 'custom-map-pin',
         html: `
           <div class="custom-pin-wrapper ${pinClass}">
+            ${detourBadge}
             <div class="pin-bubble">
-              ${s.is_fixed ? '🔒' : ''} #${s.step}
+              ${suggestionIcon}#${s.step}
             </div>
             <div class="pin-arrow"></div>
             <div class="pin-label-pill">#${s.step} ${s.name}</div>
           </div>
         `,
-        iconSize: [40, 48],
-        iconAnchor: [20, 48]
+        iconSize: [44, 52],
+        iconAnchor: [22, 52]
       });
 
       const stopMarker = L.marker([lat, lon], { icon: pinIcon })
         .bindPopup(`
           <div class="popup-card">
             <div class="popup-card__header">
-              <span class="popup-step">Parada #${s.step}</span>
+              <span class="popup-step">${s.is_suggestion ? 'Sugestão IA #' + s.step : 'Parada #' + s.step}</span>
               <span class="popup-time"><i class="fa-regular fa-clock"></i> ${timeDisplay}</span>
             </div>
-            <div class="popup-card__title">${s.name}</div>
-            <div class="popup-card__addr">${s.address?.full_address || ''}</div>
+            <div class="popup-card__title">${this.escapeHtml(s.name)}</div>
+            <div class="popup-card__addr">${this.escapeHtml(s.address?.full_address)}</div>
             <div class="popup-card__footer">
               <span class="popup-badge ${priorityBadgeClass}">${priorityLabel}</span>
+              ${s.is_suggestion && s.detour_distance_km ? `<span class="popup-duration">+${s.detour_distance_km.toFixed(1)} km</span>` : ''}
               ${s.service_duration_minutes ? `<span class="popup-duration">⏳ ${s.service_duration_minutes} min</span>` : ''}
               ${s.traffic_condition && s.traffic_condition !== 'LIVRE' ? `<span class="popup-traffic">🚗 ${this.getTrafficLabel(s.traffic_condition)}</span>` : ''}
               ${s.is_fixed ? '<span class="popup-fixed">🔒 Ordem Travada</span>' : '<span class="popup-ai">⚡ Otimizado IA</span>'}
@@ -1472,7 +1860,11 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   private renderPlanningMarkers() {
     this.stops().forEach((s, idx) => {
       let pinClass = '';
-      if (s.fixed_order) {
+      if (s.is_suggestion) {
+        pinClass = s.suggestion_category === 'FARMACIA'
+          ? 'pin--suggestion-pharma'
+          : 'pin--suggestion-natural';
+      } else if (s.fixed_order) {
         pinClass = 'pin--fixed';
       } else if (s.priority === 'CRITICAL') {
         pinClass = 'pin--critical';
@@ -1480,8 +1872,12 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         pinClass = 'pin--high';
       }
 
-      const pinBadge = s.fixed_order ? `🔒 #${s.fixed_order}` : `#${idx + 1}`;
-      const priorityLabel = this.getPriorityLabel(s.priority);
+      const pinBadge = s.is_suggestion
+        ? `${s.suggestion_category === 'FARMACIA' ? '💊' : '🌿'} #${idx + 1}`
+        : (s.fixed_order ? `🔒 #${s.fixed_order}` : `#${idx + 1}`);
+      const priorityLabel = s.is_suggestion
+        ? (s.suggestion_category === 'FARMACIA' ? 'Sugestão · Farmácia' : 'Sugestão · Loja Natural')
+        : this.getPriorityLabel(s.priority);
       const priorityBadgeClass = this.getPriorityBadgeClass(s.priority);
 
       const stopIcon = L.divIcon({
@@ -1490,7 +1886,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
           <div class="custom-pin-wrapper ${pinClass}">
             <div class="pin-bubble">${pinBadge}</div>
             <div class="pin-arrow"></div>
-            <div class="pin-label-pill">${s.name}</div>
+            <div class="pin-label-pill">${this.escapeHtml(s.name)}</div>
           </div>
         `,
         iconSize: [40, 48],
@@ -1501,11 +1897,11 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
         .bindPopup(`
           <div class="popup-card">
             <div class="popup-card__header">
-              <span class="popup-step">${s.fixed_order ? 'Ordem Fixada' : `Parada #${idx + 1}`}</span>
+              <span class="popup-step">${s.is_suggestion ? 'Sugestão na Rota' : (s.fixed_order ? 'Ordem Fixada' : `Parada #${idx + 1}`)}</span>
               ${s.service_duration_minutes ? `<span class="popup-time">⏳ ${s.service_duration_minutes} min</span>` : ''}
             </div>
-            <div class="popup-card__title">${s.name}</div>
-            <div class="popup-card__addr">${s.address?.full_address || ''}</div>
+            <div class="popup-card__title">${this.escapeHtml(s.name)}</div>
+            <div class="popup-card__addr">${this.escapeHtml(s.address?.full_address)}</div>
             <div class="popup-card__footer">
               <span class="popup-badge ${priorityBadgeClass}">${priorityLabel}</span>
               ${s.fixed_order ? `<span class="popup-fixed">🔒 Posição #${s.fixed_order}</span>` : '<span class="popup-badge popup-badge--regular">Ordem Livre</span>'}
@@ -1669,6 +2065,59 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (includeMap && mapImgBase64) {
         doc.addImage(mapImgBase64, 'PNG', 14, 56, 182, 75);
         y = 140;
+      }
+
+      // Quadro Resumo de Inteligência Municipal da Rota (P-107 / P-105 sem coordenadas)
+      if (res.city_insights && res.city_insights.length > 0) {
+        if (y > 235) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor('#1a2d14');
+        doc.text('Inteligência Demográfica e Comercial das Cidades da Rota (IBGE):', 14, y);
+        y += 5;
+
+        doc.setFillColor(46, 79, 36);
+        doc.rect(14, y, 182, 6.5, 'F');
+        doc.setTextColor('#FFFFFF');
+        doc.setFontSize(7.5);
+        doc.text('Município / UF', 16, y + 4.5);
+        doc.text('Porte Urbano', 58, y + 4.5);
+        doc.text('População (IBGE)', 98, y + 4.5);
+        doc.text('PIB per Capita', 132, y + 4.5);
+        doc.text('Visitas', 164, y + 4.5);
+        y += 6.5;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.2);
+        res.city_insights.forEach((ci, cIdx) => {
+          if (y > 275) {
+            doc.addPage();
+            y = 20;
+          }
+          if (cIdx % 2 === 0) {
+            doc.setFillColor(240, 248, 235);
+            doc.rect(14, y, 182, 6, 'F');
+          }
+          doc.setTextColor('#1a1a12');
+          doc.text(`${ci.city} - ${ci.state}`.substring(0, 24), 16, y + 4.2);
+          doc.text((ci.city_tier_label || ci.city_tier).substring(0, 22), 58, y + 4.2);
+          doc.text(`${(ci.population || 0).toLocaleString('pt-BR')} hab`, 98, y + 4.2);
+          doc.text(
+            ci.gdp_per_capita_brl ? `R$ ${ci.gdp_per_capita_brl.toLocaleString('pt-BR')}` : '—',
+            132,
+            y + 4.2
+          );
+          doc.text(
+            `${ci.confirmed_stops_count} conf. / +${ci.suggested_leads_count} sug.`,
+            164,
+            y + 4.2
+          );
+          y += 6;
+        });
+        y += 5;
       }
 
       // Tabela de Paradas

@@ -3,23 +3,24 @@
     
     <div class="modal-positioner" (click)="$event.stopPropagation()">
       @if (hasPrev()) {
-        <button class="nav-arrow left" (click)="prev.emit()" aria-label="Produto anterior">
-          <i class="fas fa-chevron-left"></i>
+        <button type="button" class="nav-arrow left" (click)="prev.emit()" aria-label="Produto anterior">
+          <i class="fas fa-chevron-left" aria-hidden="true"></i>
         </button>
       }
 
       <div class="modal-container">
 
-      <button class="close-btn" (click)="onClose()">
-        <i class="fas fa-times"></i>
+      <button type="button" class="close-btn" (click)="onClose()" aria-label="Fechar detalhes">
+        <i class="fas fa-times" aria-hidden="true"></i>
       </button>
 
       <div class="modal-content">
-        <div class="image-side">
+        <div class="image-side" [class.placeholder-bg]="isPlaceholderImage()">
           <img
             [src]="formattedImageUrl()"
             [alt]="product()?.name"
             (error)="onImageError()"
+            [class.placeholder-image]="isPlaceholderImage()"
             [class.fallback-image]="hasImageError()"
           />
         </div>
@@ -59,8 +60,8 @@
     </div> <!-- fim do modal-container -->
 
     @if (hasNext()) {
-      <button class="nav-arrow right" (click)="next.emit()" aria-label="Próximo produto">
-        <i class="fas fa-chevron-right"></i>
+      <button type="button" class="nav-arrow right" (click)="next.emit()" aria-label="Próximo produto">
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
       </button>
     }
     </div> <!-- fim do modal-positioner -->

@@ -1,0 +1,137 @@
+@if (shouldRender()) {
+  <section
+    class="quick-curation-panel"
+    data-testid="quick-curation-panel"
+    aria-label="Central de Curadoria Rápida de Imagens"
+  >
+    <header class="panel-header">
+      <div class="panel-title-group">
+        <h2>Curadoria Rápida de Produtos</h2>
+        <p class="panel-subtitle">
+          Produtos ativos sincronizados aguardando foto para a vitrine pública.
+        </p>
+      </div>
+
+      @if (!isLoading() && items().length > 0) {
+        <span class="pending-count-pill">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          {{ items().length }} {{ items().length === 1 ? 'pendente' : 'pendentes' }}
+        </span>
+      }
+    </header>
+
+    @if (isLoading()) {
+      <div class="curation-skeleton-list" aria-busy="true" aria-label="Carregando pendências">
+        @for (row of skeletonRows; track row) {
+          <div class="curation-skeleton-row">
+            <div class="skeleton-shimmer skeleton-thumb"></div>
+            <div class="skeleton-body">
+              <div class="skeleton-shimmer skeleton-badge"></div>
+              <div class="skeleton-shimmer skeleton-title"></div>
+              <div class="skeleton-shimmer skeleton-meta"></div>
+            </div>
+            <div class="skeleton-actions">
+              <div class="skeleton-shimmer skeleton-btn"></div>
+              <div class="skeleton-shimmer skeleton-btn"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (error()) {
+      <div class="curation-error-banner" role="alert">
+        <div class="error-content">
+          <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+          <span>{{ error() }}</span>
+        </div>
+        <button
+          type="button"
+          class="btn-curation-retry"
+          data-testid="curation-retry-btn"
+          (click)="retry.emit()"
+        >
+          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+          Tentar Novamente
+        </button>
+      </div>
+    } @else {
+      <ul class="curation-list">
+        @for (item of visibleItems(); track item.slug) {
+          <li
+            class="curation-item"
+            [class.is-busy]="busySlug() === item.slug"
+          >
+            <button
+              type="button"
+              class="curation-item__trigger"
+              [disabled]="busySlug() === item.slug"
+              [attr.aria-disabled]="busySlug() === item.slug"
+              (click)="onSelect(item)"
+            >
+              <img
+                src="assets/images/fitoherb-leaf-icon.png"
+                [alt]="item.name"
+                class="curation-thumb"
+              />
+
+              <div class="curation-info">
+                <div class="curation-top-row">
+                  <span class="erp-id-badge">
+                    Código {{ getPrimaryErpCode(item) }}
+                  </span>
+                  <span class="status-tag tag-no-photo">
+                    <i class="fa-solid fa-image" aria-hidden="true"></i>
+                    Sem foto
+                  </span>
+                  @if (item.fallbackCategoryWarning || item.fallbackSupplierWarning) {
+                    <span class="status-tag tag-fallback">
+                      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                      Conferir vínculo
+                    </span>
+                  }
+                </div>
+
+                <strong class="curation-name">{{ item.name }}</strong>
+
+                <span class="curation-meta">
+                  {{ item.supplierName }} · {{ item.categoryName }}
+                </span>
+              </div>
+            </button>
+
+            <div class="curation-item__actions">
+              <button
+                type="button"
+                class="btn-curation-complete"
+                [disabled]="busySlug() === item.slug"
+                [attr.aria-disabled]="busySlug() === item.slug"
+                (click)="onSelect(item)"
+              >
+                <i class="fa-solid fa-camera" aria-hidden="true"></i>
+                Completar Foto
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+
+      @if (hasMoreThanLimit()) {
+        <footer class="panel-footer">
+          <button
+            type="button"
+            class="btn-curation-expand"
+            data-testid="curation-expand-btn"
+            (click)="toggleExpand()"
+          >
+            <i
+              class="fa-solid"
+              [class.fa-chevron-down]="!isExpanded()"
+              [class.fa-chevron-up]="isExpanded()"
+              aria-hidden="true"
+            ></i>
+            {{ isExpanded() ? 'Mostrar menos' : 'Ver todos (' + items().length + ')' }}
+          </button>
+        </footer>
+      }
+    }
+  </section>
+}

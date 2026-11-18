@@ -24,12 +24,15 @@ export class ModalGalleryComponent {
   backendUrl = environment.imagesBaseUrl;
   hasImageError = signal<boolean>(false);
 
+  /** Verdadeiro quando o produto ativo não possui foto cadastrada (P-412). */
+  isPlaceholderImage = computed(() => !this.product()?.imageUrl && !this.hasImageError());
+
   constructor() {
     effect(() => {
       // Whenever product input changes, reset error state
       this.product();
       this.hasImageError.set(false);
-    });
+    }, { allowSignalWrites: true });
   }
 
   formattedImageUrl = computed(() => {
