@@ -1,167 +1,348 @@
 <div class="modal-overlay" (click)="close.emit()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
-    
+  <div
+    class="modal-card"
+    [class.modal-card--product]="type() === 'Produtos'"
+    (click)="$event.stopPropagation()"
+  >
     <header class="modal-header">
-      <h2>{{ mode() === "create" ? "Adicionar" : "Editar" }} {{ type() }}</h2>
-      <button class="btn-close" (click)="close.emit()">
-        <i class="fa-solid fa-xmark"></i>
+      <h2>{{ mode() === 'create' ? 'Adicionar' : 'Editar' }} {{ type() }}</h2>
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Fechar modal"
+        (click)="close.emit()"
+      >
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
     </header>
 
     @if (missingDependenciesMessage()) {
       <div class="missing-dependencies-container">
-        <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+        <i class="fa-solid fa-triangle-exclamation warning-icon" aria-hidden="true"></i>
         <h3>Ação Necessária</h3>
         <p>{{ missingDependenciesMessage() }}</p>
         <div class="action-btn">
-          <app-button 
-            label="Entendi" 
-            variant="primary" 
-            (btnClick)="close.emit()">
-          </app-button>
+          <app-button
+            label="Entendi"
+            variant="primary"
+            type="button"
+            (btnClick)="close.emit()"
+          />
         </div>
       </div>
-    } 
-    @else {
+    } @else {
       <form
         [formGroup]="entityForm"
         (ngSubmit)="onSubmit()"
         class="modal-content"
       >
-        @if (type() !== "Usuários") {
-          <div class="image-upload-section">
+        @if (type() === 'Produtos') {
+          <!-- Bloco A: Identidade Básica & Mídia -->
+          <div class="product-identity-grid">
             <div
-              class="preview-box"
-              [class.empty]="!imagePreview"
-              [class.error-border]="submitAttempted && !isImageValid"
+              class="image-upload-section"
+              [class.upload-highlight]="focusImageUpload()"
+              [class.focus-highlight]="focusImageUpload()"
             >
-              @if (imagePreview) {
-                <img [src]="imagePreview" alt="Preview da Imagem" />
-              } @else {
-                <i class="fa-solid fa-cloud-arrow-up"></i>
+              <div
+                class="preview-box"
+                [class.empty]="!imagePreview"
+                [class.error-border]="submitAttempted && !isImageValid"
+              >
+                @if (imagePreview) {
+                  <img [src]="imagePreview" alt="Preview da Imagem" />
+                } @else {
+                  <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                }
+              </div>
+              <label for="image-input" class="upload-label" tabindex="0">
+                {{ imagePreview ? 'Alterar Imagem' : 'Selecionar Imagem' }}
+                <input
+                  type="file"
+                  id="image-input"
+                  (change)="onFileSelected($event)"
+                  accept="image/*"
+                />
+              </label>
+              @if (focusImageUpload() && !imagePreview) {
+                <small class="upload-hint">
+                  Anexe a foto do produto para concluir a curadoria.
+                </small>
               }
             </div>
-            <label for="image-input" class="upload-label">
-              {{ imagePreview ? "Alterar Imagem" : "Selecionar Imagem" }}
-              <input
-                type="file"
-                id="image-input"
-                (change)="onFileSelected($event)"
-                accept="image/*"
+
+            <div class="identity-fields">
+              <app-input
+                label="Nome"
+                id="name"
+                formControlName="name"
+                [required]="true"
+                placeholder="Digite o nome completo do produto"
+                [showError]="submitAttempted && !!entityForm.get('name')?.invalid"
+                errorMsg="O nome é obrigatório e deve ter no mínimo 3 caracteres."
               />
-            </label>
 
-            @if (submitAttempted && !isImageValid) {
-              <small class="error-msg">A imagem é obrigatória para o cadastro.</small>
-            }
-          </div>
-        }
+              <div class="selects-row">
+                <app-select
+                  label="Categoria"
+                  id="category"
+                  formControlName="categoryName"
+                  [options]="categoryNames()"
+                  [searchable]="true"
+                  [showError]="submitAttempted && !!entityForm.get('categoryName')?.invalid"
+                  errorMsg="A categoria é obrigatória."
+                />
 
-        <div class="fields-grid">
-          @if (type() !== 'Banners') {
-            <app-input
-              label="Nome"
-              id="name"
-              formControlName="name"
-              [required]="true"
-              placeholder="Digite o nome completo"
-              [showError]="submitAttempted && !!entityForm.get('name')?.invalid"
-              errorMsg="O nome é obrigatório e deve ter no mínimo 3 caracteres."
-            />
-          } @else {
-            <app-input
-              label="Título do Banner"
-              id="title"
-              formControlName="title"
-              [required]="true"
-              placeholder="Promoção de Inverno"
-              [showError]="submitAttempted && !!entityForm.get('title')?.invalid"
-              errorMsg="O título é obrigatório e deve ter entre 2 e 100 caracteres."
-            />
-          }
+                <app-select
+                  label="Fornecedor"
+                  id="supplier"
+                  formControlName="supplierName"
+                  [options]="supplierNames()"
+                  [searchable]="true"
+                  [showError]="submitAttempted && !!entityForm.get('supplierName')?.invalid"
+                  errorMsg="O fornecedor é obrigatório."
+                />
+              </div>
 
-          @switch (type()) {
-            @case ("Produtos") {
               <app-textarea
                 label="Descrição"
                 id="description"
                 formControlName="description"
                 placeholder="Descreva as propriedades do produto"
-                [rows]="5"
+                [rows]="3"
                 [showError]="submitAttempted && !!entityForm.get('description')?.invalid"
-                errorMsg="A descrição deve ter entre 3 e 5000 caracteres."
+                errorMsg="A descrição deve ter no máximo 5000 caracteres."
               />
-              <app-input
-                label="Apresentação (Separados por vírgula)"
-                id="presentation"
-                formControlName="presentation"
-                placeholder="Ex: 100g, 250g, 500g"
-              />
-              <app-input
-                label="Sabores (Separados por vírgula)"
-                id="flavours"
-                formControlName="flavours"
-                placeholder="Ex: Chocolate, Morango"
-              />
-              <app-select
-                label="Categoria"
-                id="category"
-                formControlName="categoryName"
-                [options]="categoryNames()"
-                [searchable]="true"
-                [showError]="submitAttempted && !!entityForm.get('categoryName')?.invalid"
-                errorMsg="A categoria é obrigatória."
-              />
-              <app-select
-                label="Fornecedor"
-                id="supplier"
-                formControlName="supplierName"
-                [options]="supplierNames()"
-                [searchable]="true"
-                [showError]="submitAttempted && !!entityForm.get('supplierName')?.invalid"
-                errorMsg="O fornecedor é obrigatório."
-              />
-            }
-            @case ("Usuários") {
-              <app-input
-                label="Email"
-                id="email"
-                formControlName="email"
-                type="email"
-                placeholder="email@fitoherb.com"
-              />
-              <app-select
-                label="Nível de Acesso"
-                id="role"
-                formControlName="role"
-                [options]="roleOptions"
-              />
-            }
-            @case ("Fornecedores") {
-              <!-- O checkbox de fornecedor em destaque foi removido a pedido -->
-            }
-            @case ("Banners") {
-              <app-input
-                label="Posição (Ordem)"
-                id="position"
-                formControlName="position"
-                type="number"
-              />
-              <div class="checkbox-group">
+            </div>
+          </div>
+
+          <!-- Bloco B/D: Input de Código + Botões simples para Sabor e Apresentação -->
+          <section class="product-section" formArrayName="skus">
+            <div class="section-header-row">
+              <h3>
+                {{ topology() === 'SIMPLE' ? 'Código' : 'Código e Variações' }}
+              </h3>
+              <div class="sku-header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button
+                  type="button"
+                  class="btn-add-sku"
+                  data-testid="btn-add-flavour-sku"
+                  (click)="addFlavourRow()"
+                >
+                  <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                  Adicionar Sabor
+                </button>
+                <button
+                  type="button"
+                  class="btn-add-sku"
+                  data-testid="btn-add-presentation-sku"
+                  (click)="addPresentationRow()"
+                >
+                  <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                  Adicionar Apresentação
+                </button>
+              </div>
+            </div>
+
+            <div class="sku-rows-list">
+              @for (skuCtrl of skusFormArray.controls; track $index; let i = $index) {
+                <div class="sku-row" [formGroupName]="i">
+                  @if (isPresentationRow(i)) {
+                    <div class="sku-field">
+                      <label [attr.for]="'sku-pres-' + i">Apresentação *</label>
+                      <input
+                        [id]="'sku-pres-' + i"
+                        type="text"
+                        formControlName="presentation"
+                        placeholder="Ex: 150g, 300g, 60ml"
+                      />
+                    </div>
+                  }
+
+                  @if (isFlavourRow(i)) {
+                    <div class="sku-field">
+                      <label [attr.for]="'sku-flav-' + i">Sabor *</label>
+                      <input
+                        [id]="'sku-flav-' + i"
+                        type="text"
+                        formControlName="flavour"
+                        placeholder="Ex: Baunilha, Chocolate"
+                      />
+                    </div>
+                  }
+
+                  <div class="sku-field sku-field--code">
+                    <label [attr.for]="'sku-code-' + i">Código *</label>
+                    <input
+                      [id]="'sku-code-' + i"
+                      type="number"
+                      inputmode="numeric"
+                      formControlName="erpCode"
+                      placeholder="Ex: 131476"
+                      (blur)="onSkuErpCodeBlur(i)"
+                    />
+                  </div>
+
+                  <div class="sku-status-cell">
+                    @if (skuCtrl.get('erpInactive')?.value) {
+                      <span class="erp-badge badge-warning">
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                        Inativo
+                      </span>
+                    } @else if (skuCtrl.get('erpDescription')?.value) {
+                      <span class="erp-badge badge-success" [title]="skuCtrl.get('erpDescription')?.value">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                        {{ skuCtrl.get('erpDescription')?.value }}
+                      </span>
+                    }
+                  </div>
+
+                  @if (topology() !== 'SIMPLE' || skusFormArray.length > 1) {
+                    <div class="sku-row-actions">
+                      <button
+                        type="button"
+                        class="btn-sku-action btn-sku-action--danger"
+                        title="Remover variação"
+                        aria-label="Remover variação"
+                        [disabled]="skusFormArray.length <= 1"
+                        (click)="removeSkuRow(i)"
+                      >
+                        <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+
+          @if (hasInactiveSkus()) {
+            <div class="inactive-erp-alert" role="alert">
+              <div class="inactive-alert-header">
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <strong>
+                  Código(s) marcado(s) como inativo(s) no sistema ({{ inactiveSkuCodes().join(', ') }})
+                </strong>
+              </div>
+              <label class="inactive-confirm-label">
                 <input
                   type="checkbox"
-                  id="active"
-                  formControlName="active"
+                  [checked]="allowInactiveErp()"
+                  (change)="allowInactiveErp.set($any($event.target).checked)"
                 />
-                <label for="active">Banner Ativo?</label>
-              </div>
-            }
+                <span>
+                  Estou ciente de que este(s) item(ns) consta(m) como inativo(s) e confirmo o vínculo ao catálogo do site.
+                </span>
+              </label>
+            </div>
           }
-        </div>
+
+          @if (topology() !== 'SIMPLE' && (previewFlavours().length > 0 || previewPresentations().length > 0)) {
+            <div class="public-preview-box">
+              <strong>Prévia na vitrine pública (sem códigos):</strong>
+              <div class="preview-axes">
+                @if (previewPresentations().length > 0) {
+                  <span>Apresentações ({{ previewPresentations().length }}): {{ previewPresentations().join(' · ') }}</span>
+                }
+                @if (previewFlavours().length > 0) {
+                  <span>Sabores ({{ previewFlavours().length }}): {{ previewFlavours().join(' · ') }}</span>
+                }
+              </div>
+            </div>
+          }
+        } @else {
+          <!-- Demais Entidades (Usuários, Categorias, Fornecedores, Banners) -->
+          @if (type() !== 'Usuários') {
+            <div class="image-upload-section">
+              <div
+                class="preview-box"
+                [class.empty]="!imagePreview"
+                [class.error-border]="submitAttempted && !isImageValid"
+              >
+                @if (imagePreview) {
+                  <img [src]="imagePreview" alt="Preview da Imagem" />
+                } @else {
+                  <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                }
+              </div>
+              <label for="image-input" class="upload-label">
+                {{ imagePreview ? 'Alterar Imagem' : 'Selecionar Imagem' }}
+                <input
+                  type="file"
+                  id="image-input"
+                  (change)="onFileSelected($event)"
+                  accept="image/*"
+                />
+              </label>
+
+              @if (submitAttempted && !isImageValid) {
+                <small class="error-msg">A imagem é obrigatória para o cadastro.</small>
+              }
+            </div>
+          }
+
+          <div class="fields-grid">
+            @if (type() !== 'Banners') {
+              <app-input
+                label="Nome"
+                id="name"
+                formControlName="name"
+                [required]="true"
+                placeholder="Digite o nome completo"
+                [showError]="submitAttempted && !!entityForm.get('name')?.invalid"
+                errorMsg="O nome é obrigatório e deve ter no mínimo 3 caracteres."
+              />
+            } @else {
+              <app-input
+                label="Título do Banner"
+                id="title"
+                formControlName="title"
+                [required]="true"
+                placeholder="Promoção de Inverno"
+                [showError]="submitAttempted && !!entityForm.get('title')?.invalid"
+                errorMsg="O título é obrigatório e deve ter entre 2 e 100 caracteres."
+              />
+            }
+
+            @switch (type()) {
+              @case ('Usuários') {
+                <app-input
+                  label="Email"
+                  id="email"
+                  formControlName="email"
+                  type="email"
+                  placeholder="email@fitoherb.com"
+                />
+                <app-select
+                  label="Nível de Acesso"
+                  id="role"
+                  formControlName="role"
+                  [options]="roleOptions"
+                />
+              }
+              @case ('Banners') {
+                <app-input
+                  label="Posição (Ordem)"
+                  id="position"
+                  formControlName="position"
+                  type="number"
+                />
+                <div class="checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="active"
+                    formControlName="active"
+                  />
+                  <label for="active">Banner Ativo?</label>
+                </div>
+              }
+            }
+          </div>
+        }
 
         @if (formError()) {
-          <div class="form-error-alert">
-            <i class="fa-solid fa-circle-exclamation"></i>
+          <div class="form-error-alert" role="alert">
+            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
             {{ formError() }}
           </div>
         }

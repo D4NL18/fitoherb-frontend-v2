@@ -4,81 +4,196 @@
       <thead>
         <tr>
           @for (col of columns(); track col.label) {
-          <th>
-            <div class="th-content">
-              <span>{{ col.label }}</span>
-              @if (col.filterable && col.filterOptions) {
-                <app-table-filter 
-                  [options]="col.filterOptions"
-                  [selectedValues]="activeFilters()[col.key] || []"
-                  (applyFilter)="onFilterApply(col.key, $event)"
-                ></app-table-filter>
-              }
-            </div>
-          </th>
+            <th>
+              <div class="th-content">
+                <span>{{ col.label }}</span>
+                @if (col.filterable && col.filterOptions) {
+                  <app-table-filter
+                    [options]="col.filterOptions"
+                    [selectedValues]="activeFilters()[col.key] || []"
+                    (applyFilter)="onFilterApply(col.key, $event)"
+                  ></app-table-filter>
+                }
+              </div>
+            </th>
           }
         </tr>
       </thead>
       <tbody>
-        @for (row of data(); track row) {
-        <tr>
-          @for (col of columns(); track col.key) {
-          <td>
-            @switch (col.type) {
-            @case ('image') {
-            <img [src]="row[col.key]" [alt]="row.name" class="product-img">
-            }
-            @case ('price') {
-            <span class="price-text">{{ row[col.key] | currency:'BRL' }}</span>
-            }
-            @case ('badge') {
-            <span class="badge-category">{{ row[col.key] }}</span>
-            }
-            @case ('stock') {
-            <span class="badge-stock">{{ row[col.key] }}</span>
-            }
-            @case ('actions') {
-            <div class="actions-box">
-              <button class="btn-icon edit" [disabled]="disableActions()" [title]="disableActions() ? 'Acesso restrito (Apenas Admin)' : 'Editar'" (click)="onEdit(row)">
-                <i class="fa-solid" [ngClass]="disableActions() ? 'fa-lock' : 'fa-pen'"></i>
-              </button>
-              <button class="btn-icon delete" [disabled]="disableActions()" [title]="disableActions() ? 'Acesso restrito (Apenas Admin)' : 'Excluir'" (click)="onDelete(row)">
-                <i class="fa-solid" [ngClass]="disableActions() ? 'fa-lock' : 'fa-trash-can'"></i>
-              </button>
-            </div>
-            }
-            @default {
-            <span class="default-text">{{ row[col.key] }}</span>
-            }
-            }
-          </td>
+        @if (isLoading()) {
+          @for (skeleton of skeletonRows; track skeleton) {
+            <tr class="skeleton-row">
+              @for (col of columns(); track col.label) {
+                <td>
+                  <div class="skeleton-shimmer skeleton-cell"></div>
+                </td>
+              }
+            </tr>
           }
-        </tr>
+        } @else {
+          @for (row of data(); track row) {
+            <tr [class.row-hidden-catalog]="row.active === false">
+              @for (col of columns(); track col.key + col.label) {
+                <td>
+                  @switch (col.type) {
+                    @case ('image') {
+                      <img
+                        [src]="getRowImageUrl(row[col.key])"
+                        [alt]="row.name || 'Produto'"
+                        class="product-img"
+                        [class.product-img--placeholder]="!row[col.key]"
+                        (error)="onRowImageError($event)"
+                      />
+                    }
+                    @case ('price') {
+                      <span class="price-text">{{ row[col.key] | currency:'BRL' }}</span>
+                    }
+                    @case ('badge') {
+                      <span class="badge-category">{{ row[col.key] }}</span>
+                    }
+                    @case ('stock') {
+                      <span class="badge-stock">{{ row[col.key] }}</span>
+                    }
+                    @case ('erp-code') {
+                      @if (isMultiSku(row)) {
+                        <button
+                          type="button"
+                          class="erp-sku-trigger btn-erp-multi"
+                          data-testid="erp-sku-popover-trigger"
+                          [attr.aria-expanded]="activePopoverRow() === row"
+                          (click)="toggleSkuPopover(row, $event)"
+                        >
+                          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                          <span class="tabular-nums">{{ getSkuCount(row) }} códigos · {{ getSimpleErpCode(row) }}</span>
+                          <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                      } @else if (getSimpleErpCode(row)) {
+                        <span class="tabular-nums">{{ getSimpleErpCode(row) }}</span>
+                      } @else {
+                        <span class="erp-code-empty">—</span>
+                      }
+                    }
+                    @case ('erp-status') {
+                      <div class="erp-status-group">
+                        @if (row.curationStatus === 'PENDING_IMAGE' || !row.imageUrl) {
+                          <span class="erp-status-badge tag-warning">
+                            <i class="fa-solid fa-image" aria-hidden="true"></i>
+                            Incompleto
+                          </span>
+                        } @else {
+                          <span class="erp-status-badge tag-success">
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                            Completo
+                          </span>
+                        }
+                      </div>
+                    }
+                    @case ('actions') {
+                      <div class="actions-box">
+                        <button
+                          type="button"
+                          class="btn-icon edit"
+                          [disabled]="disableActions()"
+                          [title]="disableActions() ? 'Acesso restrito (Apenas Admin)' : 'Editar'"
+                          (click)="onEdit(row)"
+                        >
+                          <i class="fa-solid" [ngClass]="disableActions() ? 'fa-lock' : 'fa-pen'" aria-hidden="true"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-icon delete"
+                          [disabled]="disableActions()"
+                          [title]="disableActions() ? 'Acesso restrito (Apenas Admin)' : 'Excluir'"
+                          (click)="onDelete(row)"
+                        >
+                          <i class="fa-solid" [ngClass]="disableActions() ? 'fa-lock' : 'fa-trash-can'" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                    }
+                    @default {
+                      <span class="default-text">{{ row[col.key] }}</span>
+                    }
+                  }
+                </td>
+              }
+            </tr>
+          }
         }
       </tbody>
     </table>
   </div>
 
+  @if (activePopoverRow()) {
+    <div
+      class="erp-sku-popover"
+      data-testid="erp-sku-popover"
+      role="dialog"
+      [attr.aria-label]="'SKUs de ' + activePopoverRow()?.name"
+      [style.position]="'fixed'"
+      [style.top.px]="popoverPosition().top"
+      [style.left.px]="popoverPosition().left"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="popover-header">
+        <div class="popover-title">
+          <strong>{{ activePopoverRow()?.name }}</strong>
+          <span>{{ getSkuCount(activePopoverRow()) }} SKUs mapeados</span>
+        </div>
+        <button
+          type="button"
+          class="btn-close-popover"
+          aria-label="Fechar lista de SKUs"
+          (click)="closeSkuPopover()"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+      <ul class="popover-sku-list">
+        @for (sku of activePopoverRow()?.skus || []; track sku.id || sku.erpCode) {
+          <li class="popover-sku-item">
+            <span class="sku-variant">{{ formatSkuVariant(sku) }}</span>
+            <div class="sku-right">
+              @if (sku.erpInactive) {
+                <span class="sku-inactive-tag">Inativo</span>
+              }
+              <span class="sku-code tabular-nums">{{ sku.erpCode }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
   @if (totalElements() > 0) {
-  <div class="pagination-footer">
-    <span class="pagination-info">
-      Exibindo <strong>{{ startItem() }}</strong> a <strong>{{ endItem() }}</strong> de <strong>{{ totalElements()
-        }}</strong> registros
-    </span>
-
-    <div class="pagination-controls">
-      <button class="btn-page" [disabled]="currentPage() === 0" (click)="changePage(currentPage() - 1)">
-        <i class="fa-solid fa-chevron-left"></i> Anterior
-      </button>
-
-      <span class="page-number">
-        Página {{ currentPage() + 1 }} de {{ totalPages() }}
+    <div class="pagination-footer">
+      <span class="pagination-info">
+        Exibindo <strong>{{ startItem() }}</strong> a <strong>{{ endItem() }}</strong> de
+        <strong>{{ totalElements() }}</strong> registros
       </span>
 
-      <button class="btn-page" [disabled]="currentPage() >= totalPages() - 1" (click)="changePage(currentPage() + 1)">
-        Próxima <i class="fa-solid fa-chevron-right"></i>
-      </button>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="btn-page"
+          [disabled]="currentPage() === 0"
+          (click)="changePage(currentPage() - 1)"
+        >
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Anterior
+        </button>
+
+        <span class="page-number">
+          Página {{ currentPage() + 1 }} de {{ totalPages() }}
+        </span>
+
+        <button
+          type="button"
+          class="btn-page"
+          [disabled]="currentPage() >= totalPages() - 1"
+          (click)="changePage(currentPage() + 1)"
+        >
+          Próxima <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>
-  </div>
   }
 </div>

@@ -362,13 +362,18 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private initMapTimeoutId?: ReturnType<typeof setTimeout>;
+
   ngAfterViewInit() {
-    setTimeout(() => {
+    this.initMapTimeoutId = setTimeout(() => {
       this.initMap();
     }, 200);
   }
 
   ngOnDestroy() {
+    if (this.initMapTimeoutId) {
+      clearTimeout(this.initMapTimeoutId);
+    }
     if (typeof document !== 'undefined') {
       document.body.classList.remove('modal-open-lock');
     }
@@ -385,8 +390,9 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   loadSavedLocations() {
     this.savedLocationsService.getAll().subscribe({
       next: (locations) => {
-        this.savedLocations.set(locations);
-        const base = locations.find(l => l.type === 'BASE');
+        const safeLocations = Array.isArray(locations) ? locations : [];
+        this.savedLocations.set(safeLocations);
+        const base = safeLocations.find(l => l.type === 'BASE');
         if (base) {
           this.isUsingCustomBase.set(true);
           this.depot.set({
@@ -417,7 +423,7 @@ export class SellerRoutesComponent implements OnInit, AfterViewInit, OnDestroy {
   // Inicialização do Leaflet
   private initMap() {
     const startPoint = this.depot();
-    if (!L) return;
+    if (!L || typeof document === 'undefined' || !document.getElementById('sellerRouteMap')) return;
 
     this.map = L.map('sellerRouteMap', {
       center: [startPoint.lat, startPoint.lon],
