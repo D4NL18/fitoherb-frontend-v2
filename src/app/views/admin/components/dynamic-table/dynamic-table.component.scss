@@ -20,7 +20,7 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  text-align: center;
   min-width: 780px;
 
   thead {
@@ -36,6 +36,7 @@ table {
       .th-content {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: var(--space-1);
       }
     }
@@ -176,6 +177,7 @@ table {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: var(--space-1);
 }
 
@@ -310,19 +312,14 @@ table {
   }
 }
 
-$action-btn-size: 44px;
-$action-icon-size: 1.05rem;
-
 .actions-box {
   display: flex;
+  justify-content: center;
   gap: var(--space-2);
-  // O ícone fica centralizado num botão de 44px (alvo de toque); recuamos o grupo
-  // pela folga lateral para o ícone alinhar com o título "Ações" da coluna.
-  margin-left: calc((#{$action-btn-size} - #{$action-icon-size}) / -2);
 
   .btn-icon {
-    width: $action-btn-size;
-    height: $action-btn-size;
+    width: 44px;
+    height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -330,7 +327,7 @@ $action-icon-size: 1.05rem;
     border: none;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: $action-icon-size;
+    font-size: 1.05rem;
     transition: transform var(--dur-fast) var(--ease-interact), background-color var(--dur-fast) var(--ease-interact);
 
     &.edit {
