@@ -302,4 +302,16 @@ describe('AdminComponent', () => {
     req.flush({ content: [], totalPages: 0, totalElements: 0, size: 10, number: 0, first: true, last: true, empty: true });
   });
 
+  it('should flag isTableLoading while a new page is being fetched and clear it afterwards', () => {
+    httpMock = TestBed.inject(HttpTestingController);
+    flushInitialAdminRequests(true);
+    expect(component.isTableLoading()).toBeFalse();
+
+    component.onPageChange(1);
+    expect(component.isTableLoading()).toBeTrue();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/products`);
+    req.flush({ content: [], totalPages: 2, totalElements: 12, size: 10, number: 1, first: false, last: true, empty: true });
+    expect(component.isTableLoading()).toBeFalse();
+  });
 });

@@ -165,6 +165,18 @@ export class AdminComponent implements OnInit, OnDestroy {
     return data?.totalElements || 0;
   });
 
+  /** Indica que a página atual da tabela está sendo buscada na API (exibe skeleton). */
+  isTableLoading = computed(() => {
+    const loadingMap: Record<string, boolean> = {
+      'Produtos': this.productsService.isAdminProductsLoading(),
+      'Fornecedores': this.suppliersService.isPaginatedLoading(),
+      'Categorias de Produtos': this.categoryService.isPaginatedLoading(),
+      'Usuários': this.usersService.isPaginatedLoading(),
+      'Banners': this.bannersService.isPaginatedLoading()
+    };
+    return loadingMap[this.pageTitle()] ?? false;
+  });
+
   passwordForm: FormGroup = this.fb.group(
     {
       currentPassword: ['', Validators.required],

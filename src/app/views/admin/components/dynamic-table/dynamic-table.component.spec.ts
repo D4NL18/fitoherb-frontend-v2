@@ -33,6 +33,19 @@ describe('DynamicTableComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should render one skeleton row per page item instead of data rows while isLoading is true', () => {
+    fixture.componentRef.setInput('columns', productColumns);
+    fixture.componentRef.setInput('data', [{ name: 'Mel', slug: 'mel' }]);
+    fixture.componentRef.setInput('pageSize', 10);
+    fixture.componentRef.setInput('isLoading', true);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelectorAll('tr.skeleton-row').length).toBe(10);
+    expect(el.textContent).not.toContain('Mel');
+    expect(el.querySelector('table')?.getAttribute('aria-busy')).toBe('true');
+  });
+
   // TDD Red — P-408 / P-406 / P-411: badge Inativo ERP, código direto e fallback de imagem
   it('should render direct ERP code for simple SKU, fallback leaf icon when imageUrl is null, and Inativo ERP badge', () => {
     // Arrange
