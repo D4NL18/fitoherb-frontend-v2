@@ -48,6 +48,11 @@ import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal
 import { CurationPendingItem } from '../../types/erp/erp.interface';
 import { ErpMappingStatus } from '../../types/products/ProductSku.interface';
 
+const CURATION_FILTER_OPTIONS = [
+  { label: 'Completo', value: 'COMPLETE' },
+  { label: 'Incompleto', value: 'PENDING_IMAGE' }
+];
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -361,7 +366,12 @@ export class AdminComponent implements OnInit, OnDestroy {
       'Produtos': () => {
         const categories = this.activeFilters()['categoryName'] || [];
         const suppliers = this.activeFilters()['supplierName'] || [];
-        const curationStatuses = (this.activeFilters()['curationStatus'] || []) as any[];
+        // O backend aceita um único curationStatus: com ambas as opções marcadas
+        // equivale a "sem filtro", então não enviamos o parâmetro.
+        const selectedStatuses = this.activeFilters()['curationStatus'] || [];
+        const curationStatuses = (
+          selectedStatuses.length >= CURATION_FILTER_OPTIONS.length ? [] : selectedStatuses
+        ) as any[];
         this.productsService.getPaginated(
           term,
           this.currentPage(),
@@ -485,10 +495,7 @@ export class AdminComponent implements OnInit, OnDestroy {
           key: 'curationStatus',
           type: 'erp-status',
           filterable: true,
-          filterOptions: [
-            { label: 'Completo', value: 'COMPLETE' },
-            { label: 'Incompleto', value: 'PENDING_IMAGE' }
-          ]
+          filterOptions: CURATION_FILTER_OPTIONS
         },
         { label: 'Ações', key: '', type: 'actions' }
       ],
