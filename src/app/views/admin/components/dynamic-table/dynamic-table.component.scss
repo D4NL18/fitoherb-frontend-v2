@@ -101,6 +101,19 @@ table {
   white-space: nowrap;
 }
 
+.category-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--cat-1);
+
+  @for $i from 1 through 8 {
+    &.cat-color-#{$i} {
+      color: var(--cat-#{$i});
+    }
+  }
+}
+
 .badge-stock {
   background-color: var(--green-800);
   color: var(--white);
@@ -169,28 +182,25 @@ table {
 .erp-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  color: var(--white);
-  font-size: 0.75rem;
-  font-weight: 600;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
   white-space: nowrap;
 
   &.tag-success {
-    background-color: var(--tag-success);
+    color: var(--tag-success);
   }
 
   &.tag-warning {
-    background-color: var(--tag-warning);
+    color: var(--tag-warning);
   }
 
   &.tag-danger {
-    background-color: var(--tag-danger);
+    color: var(--tag-danger);
   }
 
   &.tag-info {
-    background-color: var(--tag-info);
+    color: var(--tag-info);
   }
 }
 

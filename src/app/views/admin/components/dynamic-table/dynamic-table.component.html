@@ -51,6 +51,9 @@
                     @case ('badge') {
                       <span class="badge-category">{{ row[col.key] }}</span>
                     }
+                    @case ('category') {
+                      <span class="category-text" [ngClass]="'cat-color-' + (row.categoryColorIndex || 1)">{{ row[col.key] }}</span>
+                    }
                     @case ('stock') {
                       <span class="badge-stock">{{ row[col.key] }}</span>
                     }

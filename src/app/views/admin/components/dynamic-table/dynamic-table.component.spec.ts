@@ -33,6 +33,22 @@ describe('DynamicTableComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should render category as colored text (no badge) using the row color index', () => {
+    fixture.componentRef.setInput('columns', [{ label: 'Categoria', key: 'categoryName', type: 'category' }]);
+    fixture.componentRef.setInput('data', [
+      { categoryName: 'Chás', categoryColorIndex: 3 },
+      { categoryName: 'Óleos', categoryColorIndex: 5 }
+    ]);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    const items = el.querySelectorAll('.category-text');
+    expect(items.length).toBe(2);
+    expect(items[0].classList).toContain('cat-color-3');
+    expect(items[1].classList).toContain('cat-color-5');
+    expect(el.querySelector('.badge-category')).toBeNull();
+  });
+
   it('should render one skeleton row per page item instead of data rows while isLoading is true', () => {
     fixture.componentRef.setInput('columns', productColumns);
     fixture.componentRef.setInput('data', [{ name: 'Mel', slug: 'mel' }]);
