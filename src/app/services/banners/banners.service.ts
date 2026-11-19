@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, finalize, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PageResponse } from '../../types/page-response.interface';
 import { BannerRes } from '../../types/banners/BannerRes.interface';
@@ -21,6 +21,9 @@ export class BannersService {
 
   private paginatedBannersState = signal<PageResponse<BannerRes> | null>(null);
   public paginatedBanners = this.paginatedBannersState.asReadonly();
+
+  private isPaginatedLoadingState = signal<boolean>(false);
+  public isPaginatedLoading = this.isPaginatedLoadingState.asReadonly();
 
   getActive() {
     this.isLoadingState.set(true);
@@ -43,7 +46,10 @@ export class BannersService {
       .set('sortField', sortField)
       .set('direction', direction);
 
-    this.http.get<PageResponse<BannerRes>>(this.API_URL, { params }).subscribe({
+    this.isPaginatedLoadingState.set(true);
+    this.http.get<PageResponse<BannerRes>>(this.API_URL, { params }).pipe(
+      finalize(() => this.isPaginatedLoadingState.set(false))
+    ).subscribe({
       next: (res) => this.paginatedBannersState.set(res),
       error: (err) => console.error('Erro na paginação de banners', err),
     });

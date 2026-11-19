@@ -33,6 +33,35 @@ describe('DynamicTableComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should render category as colored text (no badge) using the row color index', () => {
+    fixture.componentRef.setInput('columns', [{ label: 'Categoria', key: 'categoryName', type: 'category' }]);
+    fixture.componentRef.setInput('data', [
+      { categoryName: 'Chás', categoryColorIndex: 3 },
+      { categoryName: 'Óleos', categoryColorIndex: 5 }
+    ]);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    const items = el.querySelectorAll('.category-text');
+    expect(items.length).toBe(2);
+    expect(items[0].classList).toContain('cat-color-3');
+    expect(items[1].classList).toContain('cat-color-5');
+    expect(el.querySelector('.badge-category')).toBeNull();
+  });
+
+  it('should render one skeleton row per page item instead of data rows while isLoading is true', () => {
+    fixture.componentRef.setInput('columns', productColumns);
+    fixture.componentRef.setInput('data', [{ name: 'Mel', slug: 'mel' }]);
+    fixture.componentRef.setInput('pageSize', 10);
+    fixture.componentRef.setInput('isLoading', true);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelectorAll('tr.skeleton-row').length).toBe(10);
+    expect(el.textContent).not.toContain('Mel');
+    expect(el.querySelector('table')?.getAttribute('aria-busy')).toBe('true');
+  });
+
   // TDD Red — P-408 / P-406 / P-411: badge Inativo ERP, código direto e fallback de imagem
   it('should render direct ERP code for simple SKU, fallback leaf icon when imageUrl is null, and Inativo ERP badge', () => {
     // Arrange

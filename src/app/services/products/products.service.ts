@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, finalize } from 'rxjs';
 import { ProductRes } from '../../types/products/productRes.interface';
 import { PageResponse } from '../../types/page-response.interface';
 import { ProductReq } from '../../types/products/ProductReq.interface';
@@ -28,6 +28,9 @@ export class ProductsService {
 
   private adminProductsState = signal<PageResponse<ProductAdminRes> | null>(null);
   public adminProducts = this.adminProductsState.asReadonly();
+
+  private isAdminProductsLoadingState = signal<boolean>(false);
+  public isAdminProductsLoading = this.isAdminProductsLoadingState.asReadonly();
 
   private isGalleryLoadingState = signal<boolean>(false);
   public isGalleryLoading = this.isGalleryLoadingState.asReadonly();
@@ -85,7 +88,10 @@ export class ProductsService {
     }
     curationStatuses.forEach(cs => { params = params.append('curationStatus', cs); });
 
-    this.http.get<PageResponse<ProductAdminRes>>(this.API_URL, { params }).subscribe({
+    this.isAdminProductsLoadingState.set(true);
+    this.http.get<PageResponse<ProductAdminRes>>(this.API_URL, { params }).pipe(
+      finalize(() => this.isAdminProductsLoadingState.set(false))
+    ).subscribe({
       next: (res) => this.adminProductsState.set(res),
       error: (err) => console.error('Erro ao carregar produtos (admin)', err)
     });

@@ -150,6 +150,7 @@
         [activeFilters]="activeFilters()"
         (filterApply)="onFilterApply($event)"
         [disableActions]="disableUserActions()"
+        [isLoading]="isTableLoading()"
       ></app-dynamic-table>
     </div>
   }

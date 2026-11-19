@@ -48,6 +48,13 @@ import { RoutesTutorialModalComponent } from './components/routes-tutorial-modal
 import { CurationPendingItem } from '../../types/erp/erp.interface';
 import { ErpMappingStatus } from '../../types/products/ProductSku.interface';
 
+const CATEGORY_PALETTE_SIZE = 8;
+
+const CURATION_FILTER_OPTIONS = [
+  { label: 'Completo', value: 'COMPLETE' },
+  { label: 'Incompleto', value: 'PENDING_IMAGE' }
+];
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -158,6 +165,30 @@ export class AdminComponent implements OnInit, OnDestroy {
 
     const data = sourceMap[this.pageTitle()];
     return data?.totalElements || 0;
+  });
+
+  /**
+   * Cada categoria recebe uma cor da paleta (--cat-1..--cat-8), na ordem alfabética do slug,
+   * o que garante cores distintas enquanto houver até 8 categorias.
+   */
+  private categoryColorIndexBySlug = computed(() => {
+    const slugs = this.categoryService
+      .productCategories()
+      .map((c) => c.slug)
+      .sort((a, b) => a.localeCompare(b));
+    return new Map(slugs.map((slug, index) => [slug, (index % CATEGORY_PALETTE_SIZE) + 1]));
+  });
+
+  /** Indica que a página atual da tabela está sendo buscada na API (exibe skeleton). */
+  isTableLoading = computed(() => {
+    const loadingMap: Record<string, boolean> = {
+      'Produtos': this.productsService.isAdminProductsLoading(),
+      'Fornecedores': this.suppliersService.isPaginatedLoading(),
+      'Categorias de Produtos': this.categoryService.isPaginatedLoading(),
+      'Usuários': this.usersService.isPaginatedLoading(),
+      'Banners': this.bannersService.isPaginatedLoading()
+    };
+    return loadingMap[this.pageTitle()] ?? false;
   });
 
   passwordForm: FormGroup = this.fb.group(
@@ -361,7 +392,12 @@ export class AdminComponent implements OnInit, OnDestroy {
       'Produtos': () => {
         const categories = this.activeFilters()['categoryName'] || [];
         const suppliers = this.activeFilters()['supplierName'] || [];
-        const curationStatuses = (this.activeFilters()['curationStatus'] || []) as any[];
+        // O backend aceita um único curationStatus: com ambas as opções marcadas
+        // equivale a "sem filtro", então não enviamos o parâmetro.
+        const selectedStatuses = this.activeFilters()['curationStatus'] || [];
+        const curationStatuses = (
+          selectedStatuses.length >= CURATION_FILTER_OPTIONS.length ? [] : selectedStatuses
+        ) as any[];
         this.productsService.getPaginated(
           term,
           this.currentPage(),
@@ -465,7 +501,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         {
           label: 'Categoria',
           key: 'categoryName',
-          type: 'badge',
+          type: 'category',
           filterable: true,
           filterOptions: this.categoryService
             .productCategories()
@@ -485,10 +521,7 @@ export class AdminComponent implements OnInit, OnDestroy {
           key: 'curationStatus',
           type: 'erp-status',
           filterable: true,
-          filterOptions: [
-            { label: 'Completo', value: 'COMPLETE' },
-            { label: 'Incompleto', value: 'PENDING_IMAGE' }
-          ]
+          filterOptions: CURATION_FILTER_OPTIONS
         },
         { label: 'Ações', key: '', type: 'actions' }
       ],
@@ -544,6 +577,8 @@ export class AdminComponent implements OnInit, OnDestroy {
         ...item,
         imageUrl: formattedImageUrl,
         categoryName: item.category?.name ?? item.categoryName,
+        categoryColorIndex:
+          this.categoryColorIndexBySlug().get(item.category?.slug ?? item.categorySlug) ?? 1,
         supplierName: item.supplier?.name ?? item.supplierName
       };
     });

@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, finalize, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ProductCategoryRes } from '../../types/product-categories/productCategoriesRes.interface';
 import { PageResponse } from '../../types/page-response.interface';
@@ -19,6 +19,9 @@ export class ProductCategoriesService {
   private paginatedCategoryState = signal<PageResponse<ProductCategoryRes> | null>(null);
   public paginatedCategories = this.paginatedCategoryState.asReadonly();
 
+  private isPaginatedLoadingState = signal<boolean>(false);
+  public isPaginatedLoading = this.isPaginatedLoadingState.asReadonly();
+
   getAll() {
     this.http.get<ProductCategoryRes[]>(`${this.API_URL}/get-all`).subscribe({
       next: (res) => this.categoryState.set(res),
@@ -33,7 +36,10 @@ export class ProductCategoriesService {
       .set('sortField', sortField)
       .set('direction', direction);
 
-    this.http.get<PageResponse<ProductCategoryRes>>(this.API_URL, { params }).subscribe({
+    this.isPaginatedLoadingState.set(true);
+    this.http.get<PageResponse<ProductCategoryRes>>(this.API_URL, { params }).pipe(
+      finalize(() => this.isPaginatedLoadingState.set(false))
+    ).subscribe({
       next: (res) => this.paginatedCategoryState.set(res),
       error: (err) => console.error('Erro na paginação de categorias', err),
     });

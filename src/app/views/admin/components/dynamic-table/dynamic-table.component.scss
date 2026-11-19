@@ -20,7 +20,7 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  text-align: center;
   min-width: 780px;
 
   thead {
@@ -36,6 +36,7 @@ table {
       .th-content {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: var(--space-1);
       }
     }
@@ -101,6 +102,19 @@ table {
   white-space: nowrap;
 }
 
+.category-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--cat-1);
+
+  @for $i from 1 through 8 {
+    &.cat-color-#{$i} {
+      color: var(--cat-#{$i});
+    }
+  }
+}
+
 .badge-stock {
   background-color: var(--green-800);
   color: var(--white);
@@ -163,34 +177,32 @@ table {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: var(--space-1);
 }
 
 .erp-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  color: var(--white);
-  font-size: 0.75rem;
-  font-weight: 600;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
   white-space: nowrap;
 
   &.tag-success {
-    background-color: var(--tag-success);
+    color: var(--green-600);
   }
 
   &.tag-warning {
-    background-color: var(--tag-warning);
+    color: var(--tag-warning);
   }
 
   &.tag-danger {
-    background-color: var(--tag-danger);
+    color: var(--tag-danger);
   }
 
   &.tag-info {
-    background-color: var(--tag-info);
+    color: var(--tag-info);
   }
 }
 
@@ -302,6 +314,7 @@ table {
 
 .actions-box {
   display: flex;
+  justify-content: center;
   gap: var(--space-2);
 
   .btn-icon {

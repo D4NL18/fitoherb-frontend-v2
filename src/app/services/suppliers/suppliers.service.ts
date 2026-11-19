@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, finalize, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SupplierRes } from '../../types/suppliers/SupplierRes.interface';
 import { SupplierReq } from '../../types/suppliers/SupplierReq.interface';
@@ -19,6 +19,9 @@ export class SuppliersService {
   private paginatedSupplierState = signal<PageResponse<SupplierRes> | null>(null);
   public paginatedSuppliers = this.paginatedSupplierState.asReadonly();
 
+  private isPaginatedLoadingState = signal<boolean>(false);
+  public isPaginatedLoading = this.isPaginatedLoadingState.asReadonly();
+
   getAll() {
     this.http.get<SupplierRes[]>(`${this.API_URL}/get-all`).subscribe({
       next: (res) => this.supplierState.set(res),
@@ -33,7 +36,10 @@ export class SuppliersService {
       .set('sortField', sortField)
       .set('direction', direction);
 
-    this.http.get<PageResponse<SupplierRes>>(this.API_URL, { params }).subscribe({
+    this.isPaginatedLoadingState.set(true);
+    this.http.get<PageResponse<SupplierRes>>(this.API_URL, { params }).pipe(
+      finalize(() => this.isPaginatedLoadingState.set(false))
+    ).subscribe({
       next: (res) => this.paginatedSupplierState.set(res),
       error: (err) => console.error('Erro na paginação de fornecedores', err),
     });
