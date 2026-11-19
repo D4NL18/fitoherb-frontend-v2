@@ -1,6 +1,6 @@
 <div class="table-wrapper">
   <div class="table-responsive">
-    <table>
+    <table [attr.aria-busy]="isLoading()">
       <thead>
         <tr>
           @for (col of columns(); track col.label) {
@@ -21,7 +21,7 @@
       </thead>
       <tbody>
         @if (isLoading()) {
-          @for (skeleton of skeletonRows; track skeleton) {
+          @for (skeleton of skeletonRows(); track skeleton) {
             <tr class="skeleton-row">
               @for (col of columns(); track col.label) {
                 <td>
@@ -50,6 +50,9 @@
                     }
                     @case ('badge') {
                       <span class="badge-category">{{ row[col.key] }}</span>
+                    }
+                    @case ('category') {
+                      <span class="category-text" [ngClass]="'cat-color-' + (row.categoryColorIndex || 1)">{{ row[col.key] }}</span>
                     }
                     @case ('stock') {
                       <span class="badge-stock">{{ row[col.key] }}</span>
