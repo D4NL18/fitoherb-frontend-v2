@@ -48,7 +48,9 @@ export class DynamicTableComponent {
     left: 0,
     openUpward: false
   });
-  readonly skeletonRows = [0, 1, 2, 3, 4];
+  readonly skeletonRows = computed(() =>
+    Array.from({ length: Math.max(this.pageSize(), 1) }, (_, index) => index)
+  );
 
   startItem = computed(() => {
     if (this.totalElements() === 0) return 0;

@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, finalize } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PageResponse } from '../../types/page-response.interface';
 import { UserRes } from '../../types/users/UserRes.interface';
@@ -17,6 +17,9 @@ export class UsersService {
   private userPageState = signal<PageResponse<UserRes> | null>(null);
   public paginatedUsers = this.userPageState.asReadonly();
 
+  private isPaginatedLoadingState = signal<boolean>(false);
+  public isPaginatedLoading = this.isPaginatedLoadingState.asReadonly();
+
   getPaginated(search: string = '', page: number = 0, sortField: string = 'name', direction: string = 'ASC') {
     const params = new HttpParams()
       .set('search', search)
@@ -24,7 +27,10 @@ export class UsersService {
       .set('sortField', sortField)
       .set('direction', direction);
 
-    this.http.get<PageResponse<UserRes>>(this.API_URL, { params }).subscribe({
+    this.isPaginatedLoadingState.set(true);
+    this.http.get<PageResponse<UserRes>>(this.API_URL, { params }).pipe(
+      finalize(() => this.isPaginatedLoadingState.set(false))
+    ).subscribe({
       next: (res) => this.userPageState.set(res),
       error: (err) => console.error('Erro ao carregar usuários', err),
     });
