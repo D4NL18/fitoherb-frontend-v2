@@ -1,9 +1,102 @@
 @forward 'colors';
 
+:root {
+  --green-900: #1a2d14;
+  --green-800: #243d1c;
+  --green-700: #2e4f24;
+  --green-600: #38582f;
+  --green-500: #4a7040;
+  --green-400: #5d8a52;
+  --green-300: #82b074;
+  --green-200: #b5d4a8;
+  --green-100: #ddefd6;
+  --green-50: #f0f8eb;
+
+  --color-primary: #38582f;
+  --color-primary-hover: #2e4f24;
+  --bg-green-base: #f4f9f1;
+  --bg-green-glow: #e3f0d8;
+  --bg-green-darker: #d0e6c1;
+
+  --cream: #faf8f3;
+  --white: #ffffff;
+  --gray-100: #f5f5f0;
+  --gray-200: #e8e8e0;
+  --gray-300: #d0d0c8;
+  --gray-500: #8a8a7a;
+  --gray-700: #4a4a3a;
+  --gray-900: #1a1a12;
+
+  --border-field: #e0e0e0;
+  --bg-field: #fdfdfd;
+  --bg-field-invalid: #fff9f9;
+
+  --text-strong: #1a1a12;
+  --text-body: #4a4a3a;
+  --text-subtle: #757575;
+  --text-muted: #666666;
+
+  --tag-brand: #243d1c;
+  --tag-success: #065f46;
+  --tag-warning: #92400e;
+  --tag-danger: #991b1b;
+  --tag-info: #1e40af;
+  --tag-new: #2e4f24;
+
+  /* Cores de texto por categoria: tons naturais (contraste >= 4.5:1 sobre branco) */
+  --cat-1: #38582f; /* verde-floresta */
+  --cat-2: #8a5a00; /* mel */
+  --cat-3: #9a3f2c; /* argila */
+  --cat-4: #7a3355; /* bordô */
+  --cat-5: #2f6b6b; /* sálvia-petróleo */
+  --cat-6: #66741a; /* oliva */
+  --cat-7: #5c4a3a; /* casca */
+  --cat-8: #3f5f7a; /* azul-ardósia */
+
+  --surface-warning: #fef3c7;
+  --surface-warning-fg: #92400e;
+  --surface-danger: #fee2e2;
+  --surface-danger-fg: #991b1b;
+  --surface-success: #ddefd6;
+  --surface-success-fg: #065f46;
+
+  --error: #c0392b;
+  --success: #27ae60;
+  --warning: #e67e22;
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 50px;
+
+  --outline-focus: 2px solid rgba(56, 88, 47, 0.65);
+  --dur-fast: 200ms;
+  --dur-base: 300ms;
+  --ease-interact: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --z-dropdown: 100;
+}
+
 * {
   box-sizing: border-box;
   scrollbar-width: thin;
   scrollbar-color: #38582f #f5f5f5;
+}
+
+html {
+  overflow-x: clip;
 }
 
 ::-webkit-scrollbar {
@@ -33,10 +126,10 @@
 
 body {
   margin: 0;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
   background-color: #f5f5f5;
   color: #1a1a1a;
-  overflow-x: hidden;
+  overflow-x: clip;
 
   &.modal-open-lock {
     overflow: hidden !important;

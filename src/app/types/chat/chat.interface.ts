@@ -20,7 +20,7 @@ export interface ChatAction {
 export interface ProductSnippet {
   name: string;
   slug: string;
-  image_url?: string;
+  image_url?: string | null;
   category?: string;
   supplier?: string;
 }

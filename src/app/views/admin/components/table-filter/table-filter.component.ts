@@ -22,6 +22,7 @@ export class TableFilterComponent {
   
   isOpen = signal(false);
   searchTerm = signal('');
+  dropdownPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
   
   // Local state for checkboxes before applying
   pendingSelected = signal<Set<string>>(new Set());
@@ -40,9 +41,31 @@ export class TableFilterComponent {
     }
   }
 
+  @HostListener('document:keydown.escape')
+  onEscapeKey() {
+    if (this.isOpen()) {
+      this.close();
+    }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    if (this.isOpen()) {
+      this.close();
+    }
+  }
+
   toggleOpen(event: Event) {
     event.stopPropagation();
     if (!this.isOpen()) {
+      const trigger = event.currentTarget as HTMLElement | null;
+      if (trigger) {
+        const rect = trigger.getBoundingClientRect();
+        const dropdownWidth = 250;
+        const left = Math.max(12, Math.min(rect.right - dropdownWidth, window.innerWidth - dropdownWidth - 12));
+        const top = rect.bottom + 8;
+        this.dropdownPosition.set({ top, left });
+      }
       // Initialize pending selections with current selected values
       this.pendingSelected.set(new Set(this.selectedValues()));
       this.searchTerm.set('');
