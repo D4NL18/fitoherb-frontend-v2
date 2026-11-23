@@ -1,5 +1,6 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { calculateFitoherbYears } from '../../shared/utils/company-age.util';
 
 @Component({
   selector: 'app-about',
@@ -15,6 +16,8 @@ export class AboutComponent implements AfterViewInit {
   @ViewChild('gallerySection') gallerySection!: ElementRef;
   @ViewChild('videoSection') videoSection!: ElementRef;
   @ViewChild('teamSection') teamSection!: ElementRef;
+
+  readonly companyYears = calculateFitoherbYears();
 
   stats = {
     years: signal(0),
@@ -60,7 +63,7 @@ export class AboutComponent implements AfterViewInit {
     this.animatedStats = true;
     const duration = 1200;
 
-    this.counter(28, 'years', duration);
+    this.counter(this.companyYears, 'years', duration);
     this.counter(1800, 'products', duration);
     this.counter(2000, 'partners', duration);
     this.counter(40, 'brands', duration);
