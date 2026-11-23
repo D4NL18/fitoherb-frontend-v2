@@ -3,6 +3,7 @@ import { ProductCategoriesService } from '../../services/product-categories/prod
 import { ProductCategoryRes } from '../../types/product-categories/productCategoriesRes.interface';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { calculateFitoherbYears } from '../utils/company-age.util';
 
 @Component({
   selector: 'app-footer',
@@ -20,5 +21,6 @@ export class FooterComponent implements OnInit {
   }
 
   public productCategories = this.productCategoriesService.productCategories;
+  readonly companyYears = calculateFitoherbYears();
 
 }

@@ -13,6 +13,7 @@ import { ProductCategoriesService } from '../../services/product-categories/prod
 import { environment } from '../../../environments/environment';
 import { ButtonComponent } from '../../shared/button/button.component';
 import { Router } from '@angular/router';
+import { calculateFitoherbYears } from '../../shared/utils/company-age.util';
 
 @Component({
   selector: 'app-home',
@@ -28,6 +29,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild('aboutSection') aboutSection!: ElementRef;
   @ViewChild('productsSection') productsSection!: ElementRef;
   @ViewChild('contactSection') contactSection!: ElementRef;
+
+  readonly companyYears = calculateFitoherbYears();
 
   stats = {
     products: signal(0),
@@ -101,7 +104,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     const fastDuration = 800;
 
     this.counter(1800, 'products', fastDuration);
-    this.counter(28, 'years', fastDuration);
+    this.counter(this.companyYears, 'years', fastDuration);
     this.counter(2000, 'clients', fastDuration);
   }
 
