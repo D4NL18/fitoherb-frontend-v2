@@ -2,9 +2,10 @@
 <div class="carousel-loading">
   <div class="skeleton-banner"></div>
 </div>
-} @else if (displayImages.length > 0) {
+} @else if (originalImages.length > 0) {
 <div
   class="carousel-container"
+  [class.is-paused]="isPaused"
   (mousedown)="onDragStart($event)"
   (touchstart)="onDragStart($event)"
   (mousemove)="onDragMove($event)"
@@ -14,42 +15,44 @@
   (mouseleave)="onMouseLeave()"
   (mouseenter)="onMouseEnter()"
 >
-  @if (displayImages.length > 0) {
-    <div
-      class="carousel-track"
-      [style.transform]="'translateX(' + currentTranslate + '%)'"
-      [style.transition]="
-        isTransitioning ? 'transform ' + transitionTime + 's ease-in-out' : 'none'
-      "
-      (transitionend)="onTransitionEnd($event)"
-    >
-      @for (img of displayImages; track $index) {
-        <div class="carousel-slide">
-          <img [src]="img" alt="Banner promocional Fitoherb" draggable="false" (error)="onBannerError($event)" />
-        </div>
-      }
-    </div>
-
-    @if (originalImages.length > 1) {
-      <button
-        class="nav-btn prev-btn"
-        (mousedown)="$event.stopPropagation()"
-        (touchstart)="$event.stopPropagation()"
-        (click)="prev(); $event.stopPropagation()"
-        aria-label="Banner anterior"
-      >
-        <i class="fas fa-chevron-left"></i>
-      </button>
-      <button
-        class="nav-btn next-btn"
-        (mousedown)="$event.stopPropagation()"
-        (touchstart)="$event.stopPropagation()"
-        (click)="next(); $event.stopPropagation()"
-        aria-label="Próximo banner"
-      >
-        <i class="fas fa-chevron-right"></i>
-      </button>
+  <div class="carousel-stage">
+    @for (img of originalImages; track $index) {
+      <div class="carousel-slide" [class.is-active]="$index === activeIndex">
+        <img
+          [src]="img"
+          alt="Banner promocional Fitoherb"
+          draggable="false"
+          (error)="onBannerError($event)"
+        />
+      </div>
     }
+  </div>
+
+  @if (originalImages.length > 1) {
+    <button
+      type="button"
+      class="nav-btn prev-btn"
+      (mousedown)="$event.stopPropagation()"
+      (touchstart)="$event.stopPropagation()"
+      (click)="prev(); $event.stopPropagation()"
+      aria-label="Banner anterior"
+    >
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <button
+      type="button"
+      class="nav-btn next-btn"
+      (mousedown)="$event.stopPropagation()"
+      (touchstart)="$event.stopPropagation()"
+      (click)="next(); $event.stopPropagation()"
+      aria-label="Próximo banner"
+    >
+      <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <div class="carousel-progress" aria-hidden="true">
+      <div class="carousel-progress-bar" #progressBarEl></div>
+    </div>
   }
 </div>
 }

@@ -1,16 +1,15 @@
-<section class="title-section">
+<section class="title-section" appTitleSectionReveal>
   <span>Nossos Parceiros</span>
   <h1>Fornecedores</h1>
   <p>Trabalhamos com as melhores indústrias para garantir a pureza e a eficácia de cada produto distribuído pela Fitoherb.</p>
 </section>
 
-<section class="suppliers-container reveal-group" #suppliersGrid>
-  <div class="grid">
-    @for (item of sortedSuppliers(); track item.slug; let i = $index) {
+<section class="suppliers-container" #suppliersGrid>
+  <div class="grid suppliers-grid" appFlyIn3dGrid flyCardSelector=".supplier-card">
+    @for (item of sortedSuppliers(); track item.slug) {
       <button
-        class="supplier-card reveal-bottom"
+        class="supplier-card"
         [class.highlighted]="item.isHighlighted"
-        [style.transition-delay]="(i * 0.1) + 's'"
         (click)="goToGallery(item.slug)"
       >
         @if (item.isHighlighted) {

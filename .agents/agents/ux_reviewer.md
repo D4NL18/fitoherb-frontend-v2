@@ -11,6 +11,7 @@ subagent: true
 
 **Repertório autorizado (carregar somente as skills pertinentes à tarefa):**
 - @.agents/skills/uiux-expert/SKILL.md
+- @.agents/skills/cinematic-web-motion/SKILL.md
 - @.agents/skills/frontend-lighthouse/SKILL.md
 - Figma MCP (`get_design_context`, `get_screenshot`: comparação visual com design aprovado)
 - Mobbin (`best-practices`: conferência contra padrões líderes de mercado)
@@ -39,6 +40,7 @@ Atuar na Etapa 4 do fluxo de desenvolvimento (UX Review / Vibe Check), auditando
 | Ferramenta / Skill | Finalidade no Agente |
 | :--- | :--- |
 | **`uiux-expert`** | Auditoria dos 8 estados interativos obrigatórios, Skeleton Loaders e conformidade de tokens. |
+| **`cinematic-web-motion`** | Auditoria de motion, curvas de easing, contenção em microinterações sutis, fallbacks de `prefers-reduced-motion`, responsividade mobile e performance de 3D/scroll. |
 | **`frontend-lighthouse`** | Auditoria de Core Web Vitals (LCP, CLS, INP) e orçamentos de performance no CI. |
 | **Figma (MCP)** | Inspeção direta dos frames originais no Figma para validar alinhamento e tipografia. |
 | **Mobbin** | Validação contra as melhores convenções de microcopy e usabilidade de apps de ponta. |

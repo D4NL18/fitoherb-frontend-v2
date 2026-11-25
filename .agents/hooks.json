@@ -8,7 +8,7 @@
       },
       {
         "type": "command",
-        "command": "npm run test || echo \"Testes falharam, favor refatorar\"",
+        "command": "npx ng test --watch=false --browsers=ChromeHeadless || echo \"Testes falharam, favor refatorar\"",
         "timeout": 60
       }
     ]

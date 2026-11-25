@@ -1,0 +1,99 @@
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spotlight-spin {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.spotlight-card {
+  --mx: 50%;
+  --my: 50%;
+  --o: 0;
+  position: relative;
+  padding: var(--bw, 2px);
+  isolation: isolate;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    z-index: -2;
+    background: conic-gradient(
+      from var(--angle),
+      transparent 0 70%,
+      var(--spotlight-conic, rgba(76, 140, 62, 0.7)) 85%,
+      transparent 100%
+    );
+    animation: spotlight-spin 6s linear infinite;
+    opacity: 0.55;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      calc(var(--spot-size, 380px) * 0.7) circle at var(--mx) var(--my),
+      var(--ring, rgba(76, 140, 62, 0.85)),
+      transparent 60%
+    );
+    opacity: var(--o);
+    transition: opacity 0.35s;
+  }
+
+  &:hover {
+    --o: 1;
+  }
+}
+
+.spotlight-card-inner {
+  position: relative;
+  height: 100%;
+  border-radius: calc(var(--r, 24px) - var(--bw, 2px));
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      var(--spot-size, 380px) circle at var(--mx) var(--my),
+      var(--spot-color, rgba(76, 140, 62, 0.08)),
+      transparent 65%
+    );
+    opacity: var(--o);
+    transition: opacity 0.35s;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-card {
+    &::before {
+      animation: none;
+    }
+
+    &::after {
+      transition: none;
+    }
+  }
+
+  .spotlight-card-inner::before {
+    transition: none;
+  }
+}
