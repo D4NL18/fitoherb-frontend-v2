@@ -1,4 +1,7 @@
 @forward 'colors';
+@use './app/shared/directives/bento-hover';
+@use './app/shared/directives/spotlight-cards';
+@use './app/shared/directives/magnetic-button';
 
 :root {
   --green-900: #1a2d14;

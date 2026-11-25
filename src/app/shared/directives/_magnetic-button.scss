@@ -1,0 +1,81 @@
+[appMagneticButton] {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  will-change: transform;
+
+  .magnetic-fill {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 150%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--fill, #ffffff);
+    transform: translate(-50%, 0) scale(0);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .magnetic-label {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    transition: color 0.35s ease;
+    will-change: transform;
+  }
+
+  .magnetic-arrow {
+    position: relative;
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    .arr {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      line-height: 1;
+
+      &.b {
+        transform: translate(-110%, 110%);
+      }
+    }
+  }
+
+  &.nomag {
+    will-change: auto;
+
+    &:hover .magnetic-fill,
+    &:focus-visible .magnetic-fill {
+      transform: translate(-50%, -50%) scale(1);
+      top: 50%;
+    }
+
+    &:hover .magnetic-arrow .arr.a,
+    &:focus-visible .magnetic-arrow .arr.a {
+      transform: translate(110%, -110%);
+    }
+
+    &:hover .magnetic-arrow .arr.b,
+    &:focus-visible .magnetic-arrow .arr.b {
+      transform: translate(0, 0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [appMagneticButton] .magnetic-fill,
+  [appMagneticButton] .magnetic-label {
+    transition: none;
+  }
+}

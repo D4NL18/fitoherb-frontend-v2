@@ -1,0 +1,68 @@
+.bento-grid-3d {
+  perspective: 1200px;
+}
+
+.bento-tile-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      400px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 255, 255, 0.16),
+      transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .bento-art {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 0;
+  }
+
+  > img {
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  > *:not(.bento-art):not(img) {
+    position: relative;
+    z-index: 2;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover::before {
+      opacity: 1;
+    }
+
+    &:hover .bento-art,
+    &:hover > img {
+      transform: scale(1.08);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bento-tile-3d {
+    will-change: auto;
+
+    &::before {
+      display: none;
+    }
+
+    .bento-art,
+    > img {
+      transition: none;
+      transform: none !important;
+    }
+  }
+}

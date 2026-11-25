@@ -11,7 +11,7 @@
   background: linear-gradient(180deg, styles.$forest-mid 0%, styles.$forest-light 100%);
   color: white;
 
-    &::after {
+  &::after {
     content: "";
     position: absolute;
     top: -10%;
@@ -20,9 +20,18 @@
     height: 600px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+    z-index: 0;
   }
 
-  span {
+  > span,
+  > h1,
+  > p {
+    position: relative;
+    z-index: 1;
+  }
+
+  > span {
     text-transform: uppercase;
     color: #82b074;
     font-weight: 600;
@@ -216,17 +225,6 @@
       opacity: 1;
     }
   }
-}
-
-.reveal-bottom {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: all 1s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.is-visible .reveal-bottom {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 @media (max-width: 768px) {

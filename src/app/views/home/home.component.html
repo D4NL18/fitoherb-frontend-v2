@@ -4,21 +4,21 @@
 
 <section class="about reveal-group" #aboutSection>
   <div class="container">
-    <div class="content-left reveal-left">
+    <div class="content-left">
 
 
-      <h1 class="item-2">
+      <h1 appSplitTextReveal [splitStagger]="0.12">
         Natureza que <i>nutre</i>, <br />
         qualidade que <span>transforma.</span>
       </h1>
 
-      <p class="item-3">
+      <p appSplitTextReveal [splitStagger]="0.08" [splitDelay]="0.12">
         A Fitoherb é referência nacional na distribuição de suplementos naturais
         de alta qualidade. Conectamos os melhores fornecedores às marcas que
         acreditam no poder da natureza.
       </p>
 
-      <div class="cta-group item-4">
+      <div class="cta-group reveal-left item-4">
         <app-button
           label="Explorar Produtos"
           variant="primary"
@@ -35,7 +35,7 @@
         </app-button>
       </div>
 
-      <div class="stats item-5">
+      <div class="stats reveal-left item-5" #statsContainer>
         <div class="stat-item">
           <strong>{{ stats.products() }}+</strong>
           <span>Produtos distribuídos</span>
@@ -51,8 +51,8 @@
       </div>
     </div>
 
-    <div class="content-right reveal-right">
-      <div class="image-wrapper">
+    <div class="content-right">
+      <div class="image-wrapper" appClipPathReveal revealDirection="right" curtainColor="#1f3b21">
         <img
           src="assets/images/company.png"
           alt="Foto Empresa"
@@ -70,17 +70,17 @@
     todas as necessidades do seu negócio.
   </p>
 
-  <div class="product-categories">
+  <div class="product-categories" appBentoHover bentoTileSelector=".category">
     @for (
       category of productCategories();
-      track category.slug;
-      let i = $index
+      track category.slug
     ) {
-      <div class="category-wrapper reveal-left" [style.transition-delay]="i * 0.3 + 0.4 + 's'">
-        <div
-          class="category"
-          [style.backgroundImage]="'url(' + category.imageUrl + ')'"
-        >
+      <div class="category-wrapper">
+        <div class="category">
+          <div
+            class="bento-art"
+            [style.backgroundImage]="'url(' + category.imageUrl + ')'"
+          ></div>
           <h3>{{ category.name }}</h3>
 
           <app-button
@@ -96,7 +96,36 @@
   </div>
 </section>
 
-<section class="contact" #contactSection>
+<section class="suppliers-carousel-section reveal-group" #suppliersSection>
+  <div class="suppliers-header">
+    <div class="suppliers-heading">
+      <h2 class="reveal-left item-1">Nossos <span>parceiros</span></h2>
+      <p class="reveal-left item-2">
+        Trabalhamos lado a lado com os principais laboratórios e indústrias de
+        suplementos naturais do país.
+      </p>
+    </div>
+  </div>
+
+  <div class="reveal-bottom">
+    <app-suppliers-3d-carousel [suppliers]="featuredSuppliers()">
+    </app-suppliers-3d-carousel>
+  </div>
+
+  <p class="carousel-hint">Arraste · ← →</p>
+
+  <div class="suppliers-actions reveal-bottom">
+    <app-button
+      label="Ver todos os fornecedores"
+      variant="outline"
+      icon="fas fa-arrow-right"
+      (btnClick)="goToSuppliers()"
+    >
+    </app-button>
+  </div>
+</section>
+
+<section class="contact" #contactSection appDotGridReactive>
   <div class="contact-wrapper reveal-bottom">
     <span class="tag">SEJA NOSSO PARCEIRO</span>
 
@@ -110,11 +139,21 @@
       como podemos impulsionar o seu negócio.
     </p>
 
-    <app-button
-      label="Fale com um consultor"
-      variant="white"
-      (btnClick)="goToContact()"
+    <button
+      type="button"
+      class="magnetic-consultor-btn"
+      appMagneticButton
+      [magneticStrength]="0.35"
+      (click)="goToContact()"
     >
-    </app-button>
+      <span class="magnetic-label">
+        Fale com um consultor
+        <span class="magnetic-arrow" aria-hidden="true">
+          <span class="arr a">↗</span>
+          <span class="arr b">↗</span>
+        </span>
+      </span>
+      <span class="magnetic-fill" aria-hidden="true"></span>
+    </button>
   </div>
 </section>

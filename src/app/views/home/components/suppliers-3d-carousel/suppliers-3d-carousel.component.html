@@ -1,0 +1,43 @@
+<div class="carousel-shell">
+  @if (suppliers().length > 0) {
+    <div class="stage" #stageRef>
+      <div class="ring" #ringRef>
+        @for (supplier of suppliers(); track supplier.slug) {
+          <article
+            class="card"
+            [attr.data-slug]="supplier.slug"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Ver produtos de ' + supplier.name"
+            (click)="onCardClick(supplier.slug)"
+            (keydown)="onCardKeydown($event, supplier.slug)"
+          >
+            <div class="logo-box">
+              <img
+                [src]="supplier.imageUrl || fallbackImage"
+                [alt]="supplier.name"
+                draggable="false"
+                loading="lazy"
+                (error)="onImageError($event)"
+              />
+            </div>
+
+            <div class="card-meta">
+              <h3>{{ supplier.name }}</h3>
+              <span class="product-count">
+                {{ supplier.count }}
+                {{ supplier.count === 1 ? 'produto' : 'produtos' }}
+              </span>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="carousel-skeleton" aria-hidden="true">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card is-center"></div>
+      <div class="skeleton-card"></div>
+    </div>
+  }
+</div>

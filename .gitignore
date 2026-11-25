@@ -43,3 +43,8 @@ Thumbs.db
 
 # Agent state
 .agents/docs/STATE.md
+
+# Local environment secrets
+.env
+.env.*
+!.env.example
