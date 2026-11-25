@@ -22,6 +22,7 @@ subagent: true
 - @.agents/skills/async-python-patterns/SKILL.md
 - @.agents/skills/frontend-optimistic-mutations/SKILL.md
 - @.agents/skills/frontend-data-contracts/SKILL.md
+- @.agents/skills/cinematic-web-motion/SKILL.md
 - @.agents/skills/framework-migration-code-migrate/SKILL.md
 - @.agents/skills/auth-implementation-patterns/SKILL.md
 - @.agents/skills/n8n-workflow-expert/SKILL.md
@@ -61,6 +62,7 @@ Implementar código limpo, performático e tipado na Etapa 3 (Execução), guiad
 | **Figma to Code** | `figma-design-to-code` e `figma-code-connect` para tradução de designs em código pixel-perfect. |
 | **Supabase** | Client SDK, queries seguras, autenticação e types TypeScript sincronizados. |
 | **`frontend-data-contracts`** | Tipagem estrita na borda de rede e sincronização de dados entre cliente e servidor. |
+| **`cinematic-web-motion`** | Implementação de landing pages, animações de scroll (GSAP/ScrollTrigger/Lenis), 3D/WebGL (Three.js/R3F/Spline), shaders e microinterações sutis de UI usando o catálogo de 50 exemplos. |
 | **`auth-implementation-patterns`**| Sessões e autenticação via Cookies `HttpOnly`, `Secure` e `SameSite`. |
 | **`n8n-workflow-expert`** | Implementação de webhooks e conectores pro-code/low-code. |
 | **`openai-api-expert`** | Integração com endpoints OpenAI, streaming de respostas e structured outputs. |

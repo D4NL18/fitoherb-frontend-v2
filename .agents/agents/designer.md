@@ -12,6 +12,7 @@ subagent: true
 **Repertório autorizado (carregar somente as skills pertinentes à tarefa):**
 - @.agents/skills/uiux-expert/SKILL.md
 - @.agents/skills/animejs-animation/SKILL.md
+- @.agents/skills/cinematic-web-motion/SKILL.md
 - @.agents/skills/image-generator/SKILL.md
 - Figma MCP & Skills (`figma-create-new-file`, `figma-generate-design`, `figma-spec`, `figma-use-figjam`, `figma-shaders`, `figma-implement-motion`)
 - Canva MCP & Skills (`edit-design`, `brand-check`, `bulk-create`, `get-design-feedback`, `resize-for-social-media`)
@@ -47,4 +48,5 @@ Garantir a excelência visual, a consistência estética internacional e a melho
 | **Mobbin** | Análise e benchmark de fluxos visuais reais em aplicativos de referência global. |
 | **Stitch (MCP)** | Geração assistida de telas a partir de prompts e consolidação de design systems estruturados. |
 | **`animejs-animation`** | Especificação de coreografias de micro-interações e transições fluidas de alto desempenho. |
+| **`cinematic-web-motion`** | Design e direção de motion para landing pages, scrollytelling, 3D/WebGL (Three.js/Spline), microinterações sutis de produto/SaaS, `DESIGN.md` e catálogo com 50 componentes de referência. |
 | **`image-generator`** | Geração e edição de assets gráficos sob demanda. |
