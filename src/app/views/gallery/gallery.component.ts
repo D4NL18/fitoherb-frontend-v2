@@ -19,6 +19,8 @@ import { SelectComponent } from '../../shared/select/select.component';
 import { ItemCardGalleryComponent } from './components/item-card-gallery/item-card-gallery.component';
 import { ModalGalleryComponent } from './components/modal-gallery/modal-gallery.component';
 import { SkeletonCardComponent } from '../../shared/skeleton-card/skeleton-card.component';
+import { TitleSectionRevealDirective } from '../../shared/directives/title-section-reveal.directive';
+import { SubtleFadeGridDirective } from '../../shared/directives/subtle-fade-grid.directive';
 
 import { ProductsService } from '../../services/products/products.service';
 import { ProductCategoriesService } from '../../services/product-categories/product-categories.service';
@@ -35,6 +37,8 @@ import { ProductRes } from '../../types/products/productRes.interface';
     ItemCardGalleryComponent,
     ModalGalleryComponent,
     SkeletonCardComponent,
+    TitleSectionRevealDirective,
+    SubtleFadeGridDirective,
   ],
   templateUrl: './gallery.component.html',
   styleUrl: './gallery.component.scss',

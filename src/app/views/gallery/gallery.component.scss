@@ -24,9 +24,18 @@
     height: 600px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+    z-index: 0;
   }
 
-  span {
+  > span,
+  > h1,
+  > p {
+    position: relative;
+    z-index: 1;
+  }
+
+  > span {
     text-transform: uppercase;
     color: #82b074;
     font-weight: 600;

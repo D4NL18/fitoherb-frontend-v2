@@ -1,26 +1,26 @@
-<section class="title-section">
+<section class="title-section" appTitleSectionReveal>
   <span>Nossa História</span>
   <h1>Quem Somos</h1>
   <p>Quase três décadas conectando a força da natureza com quem acredita no poder dos suplementos naturais.</p>
 </section>
 <section class="history reveal-group" #historySection>
   <div class="container">
-    <div class="content-left reveal-left">
-      <div class="image-wrapper">
+    <div class="content-left">
+      <div class="image-wrapper" appClipPathReveal revealDirection="left" curtainColor="#1f3b21">
         <img src="/assets/images/about/foto-28.jpg" alt="Centro de Distribuição Fitoherb" draggable="false" />
       </div>
     </div>
 
-    <div class="content-right reveal-right">
-      <span class="tag item-1">
+    <div class="content-right">
+      <span class="tag reveal-right item-1">
         <i class="fas fa-history"></i> NOSSA TRAJETÓRIA
       </span>
 
-      <h2 class="item-2">
+      <h2 appSplitTextReveal [splitStagger]="0.12">
         Excelência em distribuição em todo o <span>Nordeste.</span>
       </h2>
 
-      <p class="item-3" style="text-align: justify;">
+      <p appSplitTextReveal [splitStagger]="0.06" [splitDelay]="0.1" style="text-align: justify;">
         A <strong>FITOHERB NORDESTE DISTRIBUIDORA</strong> é uma das maiores distribuidoras do nordeste e referência nos
         segmentos de medicamentos fitoterápicos, alimentos nutracêuticos e naturais, apícolas, cosméticos, oficinais e
         suplementação
@@ -77,23 +77,23 @@
       <p>Um centro de distribuição moderno, com rigorosos processos de qualidade.</p>
     </div>
 
-    <div class="bento-grid">
-      <div class="bento-item item-main reveal-left">
+    <div class="bento-grid" appBentoHover bentoTileSelector=".bento-item">
+      <div class="bento-item item-main">
         <img src="/assets/images/about/foto-18.jpg" alt="Infraestrutura Fitoherb" />
       </div>
-      <div class="bento-item reveal-top item-1">
+      <div class="bento-item">
         <img src="/assets/images/about/foto-6.jpg" alt="Infraestrutura Fitoherb" />
       </div>
-      <div class="bento-item reveal-right item-2">
+      <div class="bento-item">
         <img src="/assets/images/about/foto-7.jpg" alt="Infraestrutura Fitoherb" />
       </div>
-      <div class="bento-item reveal-bottom item-3">
+      <div class="bento-item">
         <img src="/assets/images/about/foto-3.jpg" alt="Infraestrutura Fitoherb" />
       </div>
-      <div class="bento-item reveal-bottom item-4">
+      <div class="bento-item">
         <img src="/assets/images/about/foto-20.jpg" alt="Infraestrutura Fitoherb" />
       </div>
-      <div class="bento-item item-full reveal-bottom item-5">
+      <div class="bento-item item-full">
         <img src="/assets/images/about/fachada.jpg" alt="Infraestrutura Fitoherb" />
       </div>
     </div>
@@ -105,7 +105,7 @@
     <div class="team-header reveal-top">
       <h2>Nossa <span>Equipe Comercial</span></h2>
     </div>
-    <div class="team-image reveal-bottom">
+    <div class="team-image" appScrollScrubExpand scrubMode="zoomOut">
       <img src="/assets/images/about/equipe.jpg" alt="Equipe Fitoherb - Caças ao Extraordinário" />
     </div>
   </div>
@@ -113,49 +113,55 @@
 
 <section class="mvv reveal-group" #mvvSection>
   <div class="container">
-    <div class="mvv-grid">
+    <div class="mvv-grid" appSpotlightCards spotlightCardSelector=".mvv-card">
 
       <div class="reveal-bottom item-1">
-        <div class="mvv-card">
-          <div class="icon-box">
-            <i class="fas fa-bullseye"></i>
+        <div class="mvv-card spotlight-card">
+          <div class="mvv-card-inner spotlight-card-inner">
+            <div class="icon-box">
+              <i class="fas fa-bullseye"></i>
+            </div>
+            <h3>Missão</h3>
+            <p>
+              Distribuir e desenvolver marcas como soluções para o varejo, gerando resultados
+              às empresas parceiras agregando valor através de produtos de qualidade e ótima
+              prestação de serviço.
+            </p>
           </div>
-          <h3>Missão</h3>
-          <p>
-            Distribuir e desenvolver marcas como soluções para o varejo, gerando resultados
-            às empresas parceiras agregando valor através de produtos de qualidade e ótima
-            prestação de serviço.
-          </p>
         </div>
       </div>
 
       <div class="reveal-bottom item-2">
-        <div class="mvv-card">
-          <div class="icon-box">
-            <i class="fas fa-eye"></i>
+        <div class="mvv-card spotlight-card">
+          <div class="mvv-card-inner spotlight-card-inner">
+            <div class="icon-box">
+              <i class="fas fa-eye"></i>
+            </div>
+            <h3>Visão</h3>
+            <p>
+              Ser considerada uma das melhores distribuidoras do Nordeste: Ágil, determinada,
+              inovadora e eficiente. Focando nosso dinamismo, coerência e ética pelos seus
+              clientes, fornecedores e colaboradores.
+            </p>
           </div>
-          <h3>Visão</h3>
-          <p>
-            Ser considerada uma das melhores distribuidoras do Nordeste: Ágil, determinada,
-            inovadora e eficiente. Focando nosso dinamismo, coerência e ética pelos seus
-            clientes, fornecedores e colaboradores.
-          </p>
         </div>
       </div>
 
       <div class="reveal-bottom item-3">
-        <div class="mvv-card">
-          <div class="icon-box">
-            <i class="fas fa-handshake"></i>
+        <div class="mvv-card spotlight-card">
+          <div class="mvv-card-inner spotlight-card-inner">
+            <div class="icon-box">
+              <i class="fas fa-handshake"></i>
+            </div>
+            <h3>Valores</h3>
+            <ul class="values-list">
+              <li><span>Ética & Respeito</span></li>
+              <li><span>Comprometimento Profissional</span></li>
+              <li><span>Honestidade & Transparência</span></li>
+              <li><span>Trabalho em Equipe</span></li>
+              <li><span>Inovação & Aprendizado</span></li>
+            </ul>
           </div>
-          <h3>Valores</h3>
-          <ul class="values-list">
-            <li><span>Ética & Respeito</span></li>
-            <li><span>Comprometimento Profissional</span></li>
-            <li><span>Honestidade & Transparência</span></li>
-            <li><span>Trabalho em Equipe</span></li>
-            <li><span>Inovação & Aprendizado</span></li>
-          </ul>
         </div>
       </div>
 
@@ -163,15 +169,15 @@
   </div>
 </section>
 
-<section class="institutional-video reveal-group" #videoSection>
+<section class="institutional-video reveal-group" #videoSection appCursorConstellation>
   <div class="container">
     <div class="video-header reveal-top">
       <h2>A <span>Fitoherb</span> em Movimento</h2>
       <p>Veja como nossa operação garante excelência e agilidade, de ponta a ponta.</p>
     </div>
 
-    <div class="video-wrapper reveal-bottom">
-      <div class="video-container">
+    <div class="video-wrapper">
+      <div class="video-container" appScrollScrubExpand>
         <video controls poster="/assets/images/about/fachada.jpg" preload="none">
           <source src="/assets/images/about/fitoherb-institucional.mp4" type="video/mp4" />
           Seu navegador não suporta vídeos HTML5.

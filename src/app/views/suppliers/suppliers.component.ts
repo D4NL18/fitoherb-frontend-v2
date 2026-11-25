@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { SuppliersService } from '../../services/suppliers/suppliers.service';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
+import { FlyIn3dGridDirective } from '../../shared/directives/fly-in-3d-grid.directive';
+import { TitleSectionRevealDirective } from '../../shared/directives/title-section-reveal.directive';
 
 @Component({
   selector: 'app-suppliers',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FlyIn3dGridDirective, TitleSectionRevealDirective],
   templateUrl: './suppliers.component.html',
   styleUrl: './suppliers.component.scss'
 })
@@ -27,7 +29,10 @@ export class SuppliersComponent implements OnInit, AfterViewInit {
       return 0;
     }).map(s => {
       let url = s.imageUrl;
-      if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
+      if (url && !url.startsWith('http') && !url.startsWith('assets/') && !url.startsWith('/assets/')) {
+        if (this.backendUrl.includes('storage.googleapis.com')) {
+          url = url.replace(/^\/?uploads\/?/, '/');
+        }
         url = this.backendUrl + (url.startsWith('/') ? '' : '/') + url;
       }
       return { ...s, imageUrl: url };

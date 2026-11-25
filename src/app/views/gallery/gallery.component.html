@@ -1,4 +1,4 @@
-<section class="title-section">
+<section class="title-section" appTitleSectionReveal>
   <span>Catálogo</span>
   <h1>Nossos <i>Produtos</i></h1>
   <p>Veja nosso catálogo e descubra quais são as melhores opções para você!</p>
@@ -57,7 +57,7 @@
       <p>Mostrando <strong>{{ products().content.length }}</strong> de <strong>{{ products().totalElements }}</strong> produtos</p>
     </div>
 
-    <div class="products-grid" #productsGrid>
+    <div class="products-grid" #productsGrid appSubtleFadeGrid>
       @for (product of products().content; track product.name) {
         <app-item-card-gallery [product]="product" (productClicked)="onOpenProductDetails($event)"></app-item-card-gallery>
       }
