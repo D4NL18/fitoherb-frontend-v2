@@ -1,11 +1,18 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BentoHoverDirective } from '../../shared/directives/bento-hover.directive';
+import { SpotlightCardsDirective } from '../../shared/directives/spotlight-cards.directive';
+import { ClipPathRevealDirective } from '../../shared/directives/clip-path-reveal.directive';
+import { ScrollScrubExpandDirective } from '../../shared/directives/scroll-scrub-expand.directive';
+import { CursorConstellationDirective } from '../../shared/directives/cursor-constellation.directive';
+import { TitleSectionRevealDirective } from '../../shared/directives/title-section-reveal.directive';
+import { SplitTextRevealDirective } from '../../shared/directives/split-text-reveal.directive';
 import { calculateFitoherbYears } from '../../shared/utils/company-age.util';
 
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BentoHoverDirective, SpotlightCardsDirective, ClipPathRevealDirective, ScrollScrubExpandDirective, CursorConstellationDirective, TitleSectionRevealDirective, SplitTextRevealDirective],
   templateUrl: './about.component.html',
   styleUrl: './about.component.scss'
 })

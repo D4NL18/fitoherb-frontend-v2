@@ -1,5 +1,18 @@
-import { Component, OnInit, OnDestroy, HostListener, Inject, PLATFORM_ID, inject, effect } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  HostListener,
+  Inject,
+  NgZone,
+  OnInit,
+  PLATFORM_ID,
+  ViewChild,
+  effect,
+  inject,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import gsap from 'gsap';
 import { BannersService } from '../../../../services/banners/banners.service';
 import { environment } from '../../../../../environments/environment';
 
@@ -8,40 +21,48 @@ import { environment } from '../../../../../environments/environment';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './banner-carousel.component.html',
-  styleUrl: './banner-carousel.component.scss'
+  styleUrl: './banner-carousel.component.scss',
 })
-export class BannerCarouselComponent implements OnInit, OnDestroy {
-  bannersService = inject(BannersService);
+export class BannerCarouselComponent implements OnInit {
+  private readonly bannersService = inject(BannersService);
+  private readonly ngZone = inject(NgZone);
+  private readonly destroyRef = inject(DestroyRef);
+
+  @ViewChild('progressBarEl') progressBarEl?: ElementRef<HTMLElement>;
 
   originalImages: string[] = [];
-
-  displayImages: string[] = [];
-
-  currentIndex = 1;
-  isTransitioning = false;
-  transitionTime = 0.5;
-  currentTranslate = -100;
-  prevTranslate = -100;
-  isResetting = false;
-
-  isDragging = false;
-  startX = 0;
-
-  autoplayInterval: any;
+  activeIndex = 0;
   isLoading = true;
+  isPaused = false;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  private isDragging = false;
+  private startX = 0;
+  private currentX = 0;
+  private readonly AUTOPLAY_SECONDS = 6;
+  private progressTween: gsap.core.Tween | null = null;
+  private reduceMotion = false;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {
+    if (isPlatformBrowser(this.platformId)) {
+      this.reduceMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+    }
+
     effect(() => {
       const banners = this.bannersService.activeBanners();
       const baseUrl = environment.imagesBaseUrl;
-      
+
       this.isLoading = this.bannersService.isLoading();
 
       if (!this.isLoading) {
         if (banners.length > 0) {
-          this.originalImages = banners.map(b => {
+          this.originalImages = banners.map((b) => {
             let url = b.imagePath;
             if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
+              if (baseUrl.includes('storage.googleapis.com')) {
+                url = url.replace(/^\/?uploads\/?/, '/');
+              }
               url = `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
             }
             return url;
@@ -50,118 +71,102 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
           this.originalImages = [];
         }
 
-        if (this.originalImages.length > 0) {
-          const first = this.originalImages[0];
-          const last = this.originalImages[this.originalImages.length - 1];
-          this.displayImages = [last, ...this.originalImages, first];
-          this.currentIndex = 1;
-          this.updateCarousel(false);
-          this.stopAutoplay();
-          this.startAutoplay();
+        this.activeIndex = 0;
+        if (isPlatformBrowser(this.platformId) && this.originalImages.length > 1) {
+          setTimeout(() => this.restartProgress(), 0);
         } else {
-          this.displayImages = [];
+          this.stopProgress();
         }
+      }
+    });
+
+    this.destroyRef.onDestroy(() => {
+      this.stopProgress();
+    });
+  }
+
+  ngOnInit(): void {
+    this.bannersService.getActive();
+  }
+
+  next(): void {
+    if (this.originalImages.length <= 1) return;
+    this.activeIndex = (this.activeIndex + 1) % this.originalImages.length;
+    this.restartProgress();
+  }
+
+  prev(): void {
+    if (this.originalImages.length <= 1) return;
+    this.activeIndex =
+      (this.activeIndex - 1 + this.originalImages.length) %
+      this.originalImages.length;
+    this.restartProgress();
+  }
+
+  private restartProgress(): void {
+    this.stopProgress();
+    if (
+      !isPlatformBrowser(this.platformId) ||
+      this.originalImages.length <= 1 ||
+      this.reduceMotion
+    ) {
+      return;
+    }
+
+    const bar = this.progressBarEl?.nativeElement;
+    if (!bar) return;
+
+    this.ngZone.runOutsideAngular(() => {
+      this.progressTween = gsap.fromTo(
+        bar,
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          duration: this.AUTOPLAY_SECONDS,
+          ease: 'none',
+          onComplete: () => {
+            this.ngZone.run(() => this.next());
+          },
+        }
+      );
+      if (this.isPaused) {
+        this.progressTween.pause();
       }
     });
   }
 
-  ngOnInit() {
-    this.bannersService.getActive();
+  private stopProgress(): void {
+    this.progressTween?.kill();
+    this.progressTween = null;
   }
 
-  ngOnDestroy() {
-    this.stopAutoplay();
-  }
-
-  startAutoplay() {
-    this.stopAutoplay();
-    if (isPlatformBrowser(this.platformId) && this.originalImages.length > 1) {
-      this.autoplayInterval = setInterval(() => {
-        this.next();
-      }, 10000);
-    }
-  }
-
-  stopAutoplay() {
-    if (this.autoplayInterval) {
-      clearInterval(this.autoplayInterval);
-    }
-  }
-
-  next() {
-    if (this.isTransitioning || this.isResetting || this.originalImages.length <= 1) return;
-    this.currentIndex++;
-    this.updateCarousel(true);
-  }
-
-  prev() {
-    if (this.isTransitioning || this.isResetting || this.originalImages.length <= 1) return;
-    this.currentIndex--;
-    this.updateCarousel(true);
-  }
-
-  updateCarousel(withTransition: boolean) {
-    this.isTransitioning = withTransition;
-    this.transitionTime = withTransition ? 0.5 : 0;
-    this.currentTranslate = -this.currentIndex * 100;
-    this.prevTranslate = this.currentTranslate;
-  }
-
-  onTransitionEnd(event?: Event) {
-    if (event && event.target !== event.currentTarget) {
-      return;
-    }
-
-    if (this.currentIndex <= 0) {
-      this.isResetting = true;
-      this.currentIndex = this.originalImages.length;
-      this.updateCarousel(false);
-    } else if (this.currentIndex >= this.displayImages.length - 1) {
-      this.isResetting = true;
-      this.currentIndex = 1;
-      this.updateCarousel(false);
-    }
-
-    // Use a small timeout to let the browser apply the transition: none
-    // before allowing the user to click next/prev again.
-    setTimeout(() => {
-      this.isTransitioning = false;
-      this.isResetting = false;
-    }, 50);
-  }
-
-  onDragStart(event: MouseEvent | TouchEvent) {
-    if (this.originalImages.length <= 1 || this.isTransitioning || this.isResetting) return;
+  onDragStart(event: MouseEvent | TouchEvent): void {
+    if (this.originalImages.length <= 1) return;
     this.isDragging = true;
-    this.isTransitioning = false;
-    this.stopAutoplay();
     this.startX = this.getPositionX(event);
+    this.currentX = this.startX;
+    this.isPaused = true;
+    this.progressTween?.pause();
   }
 
-  onDragMove(event: MouseEvent | TouchEvent) {
+  onDragMove(event: MouseEvent | TouchEvent): void {
     if (!this.isDragging) return;
-    const currentPosition = this.getPositionX(event);
-    const diff = currentPosition - this.startX;
-
-    const diffPercent = (diff / window.innerWidth) * 100;
-    this.currentTranslate = this.prevTranslate + diffPercent;
+    this.currentX = this.getPositionX(event);
   }
 
-  onDragEnd() {
+  onDragEnd(): void {
     if (!this.isDragging) return;
     this.isDragging = false;
+    const diff = this.currentX - this.startX;
 
-    const movedBy = this.currentTranslate - this.prevTranslate;
-
-    if (movedBy < -10) {
+    this.isPaused = false;
+    if (diff < -50) {
       this.next();
-    } else if (movedBy > 10) {
+    } else if (diff > 50) {
       this.prev();
     } else {
-      this.updateCarousel(true);
+      this.progressTween?.resume();
     }
-
-    this.startAutoplay();
   }
 
   private getPositionX(event: MouseEvent | TouchEvent): number {
@@ -169,23 +174,25 @@ export class BannerCarouselComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('window:mouseup')
-  onWindowMouseUp() {
+  onWindowMouseUp(): void {
     if (this.isDragging) this.onDragEnd();
   }
 
-  onMouseEnter() {
-    this.stopAutoplay();
+  onMouseEnter(): void {
+    this.isPaused = true;
+    this.progressTween?.pause();
   }
 
-  onMouseLeave() {
+  onMouseLeave(): void {
+    this.isPaused = false;
     if (this.isDragging) {
       this.onDragEnd();
     } else {
-      this.startAutoplay();
+      this.progressTween?.resume();
     }
   }
 
-  onBannerError(event: Event) {
+  onBannerError(event: Event): void {
     const target = event.target as HTMLImageElement;
     if (target && !target.src.includes('Banner-image-1.jpg')) {
       target.src = '/assets/images/banner/Banner-image-1.jpg';

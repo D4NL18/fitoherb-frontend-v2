@@ -9,25 +9,35 @@ import {
   ViewChild,
 } from '@angular/core';
 import { BannerCarouselComponent } from './components/banner-carousel/banner-carousel.component';
+import { Suppliers3dCarouselComponent } from './components/suppliers-3d-carousel/suppliers-3d-carousel.component';
 import { ProductCategoriesService } from '../../services/product-categories/product-categories.service';
+import { SuppliersService } from '../../services/suppliers/suppliers.service';
 import { environment } from '../../../environments/environment';
 import { ButtonComponent } from '../../shared/button/button.component';
+import { BentoHoverDirective } from '../../shared/directives/bento-hover.directive';
+import { ClipPathRevealDirective } from '../../shared/directives/clip-path-reveal.directive';
+import { DotGridReactiveDirective } from '../../shared/directives/dot-grid-reactive.directive';
+import { MagneticButtonDirective } from '../../shared/directives/magnetic-button.directive';
+import { SplitTextRevealDirective } from '../../shared/directives/split-text-reveal.directive';
 import { Router } from '@angular/router';
 import { calculateFitoherbYears } from '../../shared/utils/company-age.util';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [BannerCarouselComponent, ButtonComponent],
+  imports: [BannerCarouselComponent, Suppliers3dCarouselComponent, ButtonComponent, BentoHoverDirective, ClipPathRevealDirective, DotGridReactiveDirective, MagneticButtonDirective, SplitTextRevealDirective],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit, AfterViewInit {
   private productCategoriesService = inject(ProductCategoriesService);
+  private suppliersService = inject(SuppliersService);
   private router = inject(Router);
 
   @ViewChild('aboutSection') aboutSection!: ElementRef;
+  @ViewChild('statsContainer') statsContainer!: ElementRef;
   @ViewChild('productsSection') productsSection!: ElementRef;
+  @ViewChild('suppliersSection') suppliersSection!: ElementRef;
   @ViewChild('contactSection') contactSection!: ElementRef;
 
   readonly companyYears = calculateFitoherbYears();
@@ -46,14 +56,42 @@ export class HomeComponent implements OnInit, AfterViewInit {
     return this.productCategoriesService.productCategories().map(c => {
       let url = c.imageUrl;
       if (url && !url.startsWith('http') && !url.startsWith('assets/')) {
+        if (this.backendUrl.includes('storage.googleapis.com')) {
+          url = url.replace(/^\/?uploads\/?/, '/');
+        }
         url = this.backendUrl + (url.startsWith('/') ? '' : '/') + url;
       }
       return { ...c, imageUrl: url };
     });
   });
 
+  public featuredSuppliers = computed(() => {
+    return [...this.suppliersService.suppliers()]
+      .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+      .slice(0, 12)
+      .map(s => {
+        let url = s.imageUrl;
+        if (
+          url &&
+          !url.startsWith('http') &&
+          !url.startsWith('assets/') &&
+          !url.startsWith('/assets/')
+        ) {
+          if (this.backendUrl.includes('storage.googleapis.com')) {
+            url = url.replace(/^\/?uploads\/?/, '/');
+          }
+          url = this.backendUrl + (url.startsWith('/') ? '' : '/') + url;
+        }
+        return {
+          ...s,
+          imageUrl: url || '/assets/images/fitoherb-leaf-icon.png',
+        };
+      });
+  });
+
   ngOnInit(): void {
     this.productCategoriesService.getAll();
+    this.suppliersService.getAll();
   }
 
   ngAfterViewInit() {
@@ -62,6 +100,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   goToProducts() {
     this.router.navigate(['/produtos']);
+  }
+
+  goToSuppliers() {
+    this.router.navigate(['/fornecedores']);
   }
 
   goToCategory(slug: string) {
@@ -83,29 +125,39 @@ export class HomeComponent implements OnInit, AfterViewInit {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-visible');
-
-          if (
-            entry.target === this.aboutSection.nativeElement &&
-            !this.animatedStats
-          ) {
-            this.animateNumbers();
-          }
         }
       });
     }, options);
 
+    const statsObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !this.animatedStats) {
+            this.animateNumbers();
+            statsObserver.disconnect();
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    if (this.statsContainer) {
+      statsObserver.observe(this.statsContainer.nativeElement);
+    }
+
     observer.observe(this.aboutSection.nativeElement);
     observer.observe(this.productsSection.nativeElement);
+    observer.observe(this.suppliersSection.nativeElement);
     observer.observe(this.contactSection.nativeElement);
   }
 
   private animateNumbers() {
     this.animatedStats = true;
-    const fastDuration = 800;
+    const duration = 1200;
 
-    this.counter(1800, 'products', fastDuration);
-    this.counter(this.companyYears, 'years', fastDuration);
-    this.counter(2000, 'clients', fastDuration);
+    this.counter(1800, 'products', duration);
+    this.counter(this.companyYears, 'years', duration);
+    this.counter(2000, 'clients', duration);
   }
 
   private counter(
